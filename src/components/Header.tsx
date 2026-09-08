@@ -34,8 +34,8 @@ export default function Header({ onOpenEstimator }: HeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-[#0C1618]/90 backdrop-blur-md border-b border-[#58C1C3]/10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
+    <header className="sticky top-0 z-40 bg-[#0C1618]/90 backdrop-blur-md border-b border-[#58C1C3]/10 px-4 sm:px-6 lg:px-12">
+      <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <a href="#home" className="flex items-center">
@@ -130,7 +130,7 @@ export default function Header({ onOpenEstimator }: HeaderProps) {
                 onClick={() => setIsOpen(false)}
                 className="w-full text-center py-2.5 border border-[#58C1C3]/30 text-[#58C1C3] text-xs font-semibold rounded-full hover:bg-[#58C1C3]/10 transition-colors"
               >
-                Direct Inquiry (+880 1608-098281)
+                Direct Inquiry (+880 1823-110115)
               </a>
             </div>
           </div>

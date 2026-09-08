@@ -31,7 +31,7 @@ export default function ContactSection() {
     const text = encodeURIComponent(
       `Hello Plexivia Team! I would like to build a project:\n- Name: ${formData.name || 'Visitor'}\n- Email: ${formData.email || 'N/A'}\n- Service: ${formData.service}\n- Brief: ${formData.message || 'Consultation inquiry'}`
     );
-    window.open(`https://wa.me/8801608098281?text=${text}`, '_blank');
+    window.open(`https://wa.me/8801823110115?text=${text}`, '_blank');
   };
 
   const handleEmailDirect = () => {
@@ -122,7 +122,7 @@ export default function ContactSection() {
 
                 {/* Phone / WhatsApp */}
                 <a
-                  href="https://wa.me/8801608098281"
+                  href="https://wa.me/8801823110115"
                   target="_blank"
                   rel="noreferrer"
                   className="flex items-start gap-4 p-3.5 rounded-2xl bg-[#0C1618] border border-white/5 hover:border-[#58C1C3]/40 transition-colors group"
@@ -135,7 +135,7 @@ export default function ContactSection() {
                       Phone / WhatsApp (24/7)
                     </p>
                     <p className="text-sm font-semibold text-[#F5F7F7] group-hover:text-[#58C1C3] transition-colors">
-                      +880 1608-098281
+                      +880 1823-110115
                     </p>
                   </div>
                 </a>
@@ -162,7 +162,7 @@ export default function ContactSection() {
               {/* Instant WhatsApp CTA Button */}
               <div className="mt-6 pt-6 border-t border-white/5">
                 <a
-                  href="https://wa.me/8801608098281?text=Hello%20Plexivia!%20I%20would%20like%20to%20consult%20on%20a%20digital%20solution."
+                  href="https://wa.me/8801823110115?text=Hello%20Plexivia!%20I%20would%20like%20to%20consult%20on%20a%20digital%20solution."
                   target="_blank"
                   rel="noreferrer"
                   className="w-full inline-flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-full bg-[#97CC6F] text-[#0C1618] font-bold text-xs uppercase tracking-wider hover:brightness-105 transition-all shadow-[0_0_20px_rgba(151,204,111,0.3)] cursor-pointer"
@@ -271,15 +271,11 @@ export default function ContactSection() {
                       className="w-full bg-[#0C1618] border border-white/10 rounded-xl px-4 py-3 text-sm text-[#F5F7F7] focus:outline-none focus:border-[#58C1C3] transition-colors cursor-pointer"
                     >
                       <option value="Custom Website Development">Custom Website Development</option>
-                      <option value="Web Application Development">Web Application Development</option>
-                      <option value="WordPress Development">WordPress Development</option>
-                      <option value="Shopify Development">Shopify Development</option>
-                      <option value="UI/UX Design">UI/UX Design</option>
-                      <option value="Graphics Design">Graphics Design</option>
-                      <option value="SEO">SEO (Search Engine Optimization)</option>
-                      <option value="Video Editing & Motion Graphics">Video Editing & Motion Graphics</option>
+                      <option value="Software & Web Application Development">Software & Web Application Development</option>
+                      <option value="WordPress & Shopify Development">WordPress & Shopify Development</option>
+                      <option value="ERP Solutions & Systems">ERP Solutions & Systems</option>
+                      <option value="SEO (Search Engine Optimization)">SEO (Search Engine Optimization)</option>
                       <option value="Social Media Marketing">Social Media Marketing</option>
-                      <option value="Business Solutions">Business Solutions</option>
                     </select>
                   </div>
 
@@ -317,7 +313,7 @@ export default function ContactSection() {
                   </div>
 
                   <p className="text-[11px] text-center text-[#F5F7F7]/40 pt-2">
-                    Direct inquiries also welcomed at <a href="mailto:plexivia@gmail.com" className="text-[#58C1C3] hover:underline">plexivia@gmail.com</a> or <span className="text-[#97CC6F]">+880 1608-098281</span>.
+                    Direct inquiries also welcomed at <a href="mailto:plexivia@gmail.com" className="text-[#58C1C3] hover:underline">plexivia@gmail.com</a> or <span className="text-[#97CC6F]">+880 1823-110115</span>.
                   </p>
                 </form>
               )}

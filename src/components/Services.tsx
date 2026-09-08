@@ -3,14 +3,10 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   Code,
   Layers,
-  Globe,
   ShoppingBag,
-  Layout,
-  Palette,
+  Database,
   Search,
-  Video,
   Share2,
-  Briefcase,
   ArrowRight,
   CheckCircle,
 } from 'lucide-react';
@@ -31,49 +27,31 @@ const servicesData: ServiceItem[] = [
     deliverables: 'Tailored corporate websites, landing pages & web portals',
   },
   {
-    id: 'web-app',
-    title: 'Web Application Development',
-    description: 'Robust web apps for your business needs. Full-stack cloud applications built for high concurrency, security, and scalability.',
+    id: 'software-dev',
+    title: 'Software & Web Application Development',
+    description: 'Enterprise-grade software and full-stack web applications built for high concurrency, robust security, and seamless scalability.',
     category: 'development',
     icon: 'Layers',
-    features: ['Modern React & Next.js frameworks', 'Secure Node.js & REST/GraphQL APIs', 'Role-based access & authentication', 'Scalable database architecture'],
-    deliverables: 'SaaS platforms, client portals, internal business dashboards',
+    features: ['Modern React, Next.js & Node.js architecture', 'Secure REST & GraphQL cloud APIs', 'Role-based access & multi-tenant auth', 'Scalable relational & NoSQL databases'],
+    deliverables: 'Custom business software, SaaS platforms, client portals & dashboards',
   },
   {
-    id: 'wordpress',
-    title: 'WordPress Development',
-    description: 'Flexible, powerful, and easy to manage websites with custom Gutenberg blocks, Elementor setups, and high-performance headless options.',
-    category: 'development',
-    icon: 'Globe',
-    features: ['Bespoke theme & plugin development', 'Zero-bloat performance optimization', 'Intuitive admin panel for non-tech teams', 'Automated backup & malware shield'],
-    deliverables: 'Custom WordPress sites, publishing blogs, company showcases',
-  },
-  {
-    id: 'shopify',
-    title: 'Shopify Development',
-    description: 'Build and grow your eCommerce store. High-converting shopping experiences with seamless checkout flows and payment gateways.',
+    id: 'wordpress-shopify',
+    title: 'WordPress & Shopify Development',
+    description: 'Bespoke WordPress portals and high-converting Shopify 2.0 storefronts tailored for rapid scaling and effortless management.',
     category: 'development',
     icon: 'ShoppingBag',
-    features: ['Custom Liquid & Shopify 2.0 themes', 'Third-party app & ERP integrations', 'Mobile checkout conversion optimization', 'Inventory & fulfillment setup'],
-    deliverables: 'Flagship eCommerce storefronts & international retail stores',
+    features: ['Custom Shopify 2.0 & Liquid storefronts', 'Bespoke WordPress & WooCommerce themes', 'Conversion rate & mobile checkout optimization', 'Payment gateway & third-party app integration'],
+    deliverables: 'Flagship eCommerce stores, publishing platforms & corporate CMS sites',
   },
   {
-    id: 'ui-ux',
-    title: 'UI/UX Design',
-    description: 'User-centric designs that make an impact. We turn complex user flows into intuitive, visually striking design systems in Figma.',
-    category: 'design',
-    icon: 'Layout',
-    features: ['Wireframing & user journey mapping', 'High-fidelity Figma prototypes', 'Design systems & component libraries', 'Usability testing & accessibility audit'],
-    deliverables: 'Complete design specs, interactive prototypes, design systems',
-  },
-  {
-    id: 'graphics',
-    title: 'Graphics Design',
-    description: 'Creative visuals for your brand identity. Cohesive branding that communicates trust, sophistication, and digital authority.',
-    category: 'design',
-    icon: 'Palette',
-    features: ['Brand guidelines & color palettes', 'Logo identity & vector asset suites', 'Marketing collateral & digital pitch decks', 'Custom vector iconography'],
-    deliverables: 'Brand styleguides, vector logos, marketing visual suites',
+    id: 'erp-solutions',
+    title: 'ERP Solutions & Systems',
+    description: 'Custom Enterprise Resource Planning (ERP), inventory management, and automated workflow solutions built to streamline complex business operations.',
+    category: 'solutions',
+    icon: 'Database',
+    features: ['Custom accounting, billing & HR modules', 'Automated inventory & supply chain tracking', 'Role-based security & real-time analytics', 'Enterprise CRM & multi-branch synchronization'],
+    deliverables: 'Custom ERP software, automated management systems & cloud portals',
   },
   {
     id: 'seo',
@@ -85,15 +63,6 @@ const servicesData: ServiceItem[] = [
     deliverables: 'Monthly organic growth reports, technical SEO execution',
   },
   {
-    id: 'video-motion',
-    title: 'Video Editing & Motion Graphics',
-    description: 'Engaging videos that tell your story. Dynamic product animations, promotional reels, and brand explainers that drive retention.',
-    category: 'design',
-    icon: 'Video',
-    features: ['High-impact promotional reels & ads', '3D motion graphics & logo reveals', 'SaaS product demo videos & walkthroughs', 'Color grading, audio mix & sound design'],
-    deliverables: 'High-res 4K video assets, social reels, motion assets',
-  },
-  {
     id: 'social-marketing',
     title: 'Social Media Marketing',
     description: 'Build your brand and grow your audience with targeted multi-channel campaigns, cohesive content strategy, and community engagement.',
@@ -102,23 +71,13 @@ const servicesData: ServiceItem[] = [
     features: ['Multi-platform content strategy', 'Data-backed ad campaign management', 'Audience growth & engagement metrics', 'Conversion tracking & ROI reporting'],
     deliverables: 'Editorial calendars, ad creative assets, performance reports',
   },
-  {
-    id: 'business-solutions',
-    title: 'Business Solutions',
-    description: 'Tailored digital strategies to streamline operations, automate repetitive workflows, and integrate mission-critical tools.',
-    category: 'solutions',
-    icon: 'Briefcase',
-    features: ['Workflow automation (Zapier, Make, n8n)', 'CRM, ERP & Payment API integrations', 'Data migration & cloud infrastructure setup', 'Dedicated ongoing IT consulting & SLAs'],
-    deliverables: 'Automated business systems, integrated APIs, consulting roadmap',
-  },
 ];
 
 const categoryFilters = [
-  { key: 'all', label: 'All Services (10)' },
-  { key: 'development', label: 'Development' },
-  { key: 'design', label: 'UI/UX & Design' },
+  { key: 'all', label: 'All Services (6)' },
+  { key: 'development', label: 'Web & Software' },
+  { key: 'solutions', label: 'ERP & Systems' },
   { key: 'growth', label: 'SEO & Marketing' },
-  { key: 'solutions', label: 'Business Solutions' },
 ];
 
 export default function Services({ onSelectService }: ServicesProps) {
@@ -137,22 +96,14 @@ export default function Services({ onSelectService }: ServicesProps) {
         return <Code {...props} className="w-5 h-5 text-[#58C1C3]" />;
       case 'Layers':
         return <Layers {...props} className="w-5 h-5 text-[#97CC6F]" />;
-      case 'Globe':
-        return <Globe {...props} className="w-5 h-5 text-[#58C1C3]" />;
       case 'ShoppingBag':
-        return <ShoppingBag {...props} className="w-5 h-5 text-[#97CC6F]" />;
-      case 'Layout':
-        return <Layout {...props} className="w-5 h-5 text-[#58C1C3]" />;
-      case 'Palette':
-        return <Palette {...props} className="w-5 h-5 text-[#97CC6F]" />;
+        return <ShoppingBag {...props} className="w-5 h-5 text-[#58C1C3]" />;
+      case 'Database':
+        return <Database {...props} className="w-5 h-5 text-[#97CC6F]" />;
       case 'Search':
         return <Search {...props} className="w-5 h-5 text-[#58C1C3]" />;
-      case 'Video':
-        return <Video {...props} className="w-5 h-5 text-[#97CC6F]" />;
       case 'Share2':
-        return <Share2 {...props} className="w-5 h-5 text-[#58C1C3]" />;
-      case 'Briefcase':
-        return <Briefcase {...props} className="w-5 h-5 text-[#97CC6F]" />;
+        return <Share2 {...props} className="w-5 h-5 text-[#97CC6F]" />;
       default:
         return <Code {...props} className="w-5 h-5 text-[#58C1C3]" />;
     }

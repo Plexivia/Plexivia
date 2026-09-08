@@ -21,7 +21,7 @@ const testimonials: TestimonialItem[] = [
     company: 'Lumina Luxe Apparel',
     projectType: 'Shopify 2.0 Headless Storefront',
     rating: 5,
-    quote: 'From custom UI/UX design in Figma to flawless Shopify 2.0 implementation, Plexivia worked with extreme precision. The checkout flow is silky smooth, and our conversion rate jumped by 184%. They are our go-to digital development partner.',
+    quote: 'From custom eCommerce architecture to flawless Shopify 2.0 implementation, Plexivia worked with extreme precision. The checkout flow is silky smooth, and our conversion rate jumped by 184%. They are our go-to digital development partner.',
     avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80',
   },
   {

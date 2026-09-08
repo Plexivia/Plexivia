@@ -60,9 +60,9 @@ export default function AboutSection({ onOpenEstimator }: AboutSectionProps) {
                     <Award className="w-4 h-4" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-[#F5F7F7]">Bespoke UI/UX Architecture</h4>
+                    <h4 className="text-sm font-bold text-[#F5F7F7]">Bespoke Software Architecture</h4>
                     <p className="text-xs text-[#F5F7F7]/60 mt-1">
-                      No generic templates. Every visual asset and interactive component is tailored specifically to your audience.
+                      No generic templates. Every line of code and interactive system is tailored specifically to your business logic.
                     </p>
                   </div>
                 </div>
@@ -111,11 +111,11 @@ export default function AboutSection({ onOpenEstimator }: AboutSectionProps) {
 
             {/* Official Agency Copy */}
             <p className="text-base sm:text-lg text-[#F5F7F7]/80 leading-relaxed mb-6">
-              Plexivia is a digital development agency focused on helping businesses build a stronger online presence. We combine modern UI/UX design, custom development, performance optimization, and scalable technologies to create digital experiences that support real business growth.
+              Plexivia is a digital development agency focused on helping businesses build a stronger online presence. We combine custom development, robust software engineering, performance optimization, and scalable technologies to create digital experiences that support real business growth.
             </p>
 
             <p className="text-sm sm:text-base text-[#F5F7F7]/60 leading-relaxed mb-8">
-              Whether you are an ambitious startup needing an MVP, an established retailer migrating to a headless Shopify experience, or an enterprise revamping its web application stack, we build with precision, care, and future-proof craftsmanship.
+              Whether you are an ambitious business needing custom software, an enterprise deploying an ERP solution, or an established retailer scaling on WordPress & Shopify, we build with precision, care, and future-proof craftsmanship.
             </p>
 
             {/* Metrics Chips */}

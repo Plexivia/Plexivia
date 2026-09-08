@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { ArrowRight, Code2, Sparkles, CheckCircle2, Zap, LayoutDashboard, Terminal, ExternalLink } from 'lucide-react';
+import { ArrowRight, Code2, Sparkles, CheckCircle2, Zap, Database, Terminal, ExternalLink } from 'lucide-react';
 
 interface HeroProps {
   onOpenEstimator: () => void;
@@ -84,7 +84,7 @@ export default function Hero({ onOpenEstimator }: HeroProps) {
               </div>
               <div className="flex items-center gap-2 text-xs text-[#F5F7F7]/80 col-span-2 sm:col-span-1">
                 <Sparkles className="w-4 h-4 text-[#97CC6F] flex-shrink-0" />
-                <span>Modern UI/UX Design</span>
+                <span>Enterprise ERP & Software</span>
               </div>
             </div>
           </motion.div>
@@ -177,7 +177,7 @@ export default function Hero({ onOpenEstimator }: HeroProps) {
                   <Code2 className="w-3 h-3" /> React / Next.js
                 </span>
                 <span className="px-2.5 py-1 rounded-full bg-[#97CC6F]/10 border border-[#97CC6F]/30 text-[10px] font-mono text-[#97CC6F] flex items-center gap-1">
-                  <LayoutDashboard className="w-3 h-3" /> Modern UI/UX
+                  <Database className="w-3 h-3" /> ERP & Software
                 </span>
                 <span className="px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-mono text-[#F5F7F7]/70 flex items-center gap-1">
                   <Terminal className="w-3 h-3" /> Clean Code

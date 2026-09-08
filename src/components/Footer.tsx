@@ -66,11 +66,11 @@ export default function Footer() {
 
   const serviceLinks = [
     'Custom Website Development',
-    'Web Application Development',
-    'WordPress Development',
-    'Shopify Development',
-    'UI/UX Design',
-    'SEO & Performance',
+    'Software & Web Applications',
+    'WordPress & Shopify Development',
+    'ERP Solutions & Systems',
+    'SEO (Search Engine Optimization)',
+    'Social Media Marketing',
   ];
 
   return (
@@ -85,7 +85,9 @@ export default function Footer() {
           
           {/* Brand Column */}
           <div className="lg:col-span-4 space-y-4">
-            <PlexiviaLogo size="md" showTagline={true} />
+            <a href="#home" className="inline-block">
+              <PlexiviaLogo size="md" showTagline={true} />
+            </a>
             <p className="text-xs sm:text-sm text-[#F5F7F7]/65 max-w-sm leading-relaxed pt-2">
               Plexivia is a Digital Development Agency helping businesses establish and grow their online presence through modern design, custom development, and scalable digital solutions.
             </p>
@@ -167,13 +169,13 @@ export default function Footer() {
               </a>
 
               <a
-                href="https://wa.me/8801608098281"
+                href="https://wa.me/8801823110115"
                 target="_blank"
                 rel="noreferrer"
                 className="flex items-center gap-2 hover:text-[#97CC6F] transition-colors"
               >
                 <Phone className="w-3.5 h-3.5 text-[#97CC6F] flex-shrink-0" />
-                <span>+880 1608-098281</span>
+                <span>+880 1823-110115</span>
               </a>
 
               <div className="flex items-center gap-2">

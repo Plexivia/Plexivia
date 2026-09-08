@@ -35,7 +35,7 @@ export default function App() {
         {/* Highlight Metrics Bar */}
         <MetricsBar />
 
-        {/* Services Section (All 10 Services) */}
+        {/* Services Section (All 6 Core Services) */}
         <Services onSelectService={(serviceName) => handleOpenEstimator(serviceName)} />
 
         {/* Technology & Expertise */}

@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { ExternalLink, Sparkles, Layers, ArrowUpRight, X, Check, Globe } from 'lucide-react';
 import { ProjectItem } from '../types';
@@ -74,6 +75,17 @@ export default function Portfolio({ onOpenEstimatorWithService }: PortfolioProps
     if (selectedCategory === 'All') return true;
     return project.category === selectedCategory;
   });
+
+  useEffect(() => {
+    if (activeProject) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [activeProject]);
 
   return (
     <section id="portfolio" className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 bg-[#0C1618] relative border-t border-[#58C1C3]/10">
@@ -210,121 +222,124 @@ export default function Portfolio({ onOpenEstimatorWithService }: PortfolioProps
         </motion.div>
 
         {/* Case Study Modal */}
-        <AnimatePresence>
-          {activeProject && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setActiveProject(null)}
-                className="fixed inset-0 bg-[#0C1618]/85 backdrop-blur-md"
-              />
+        {typeof document !== 'undefined' && createPortal(
+          <AnimatePresence>
+            {activeProject && (
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setActiveProject(null)}
+                  className="fixed inset-0 bg-[#0C1618]/85 backdrop-blur-md"
+                />
 
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="relative w-full max-w-2xl bg-[#0F1E22] border border-[#58C1C3]/30 rounded-3xl p-6 sm:p-8 shadow-[0_25px_60px_rgba(0,0,0,0.8)] z-10 max-h-[90vh] overflow-y-auto"
-              >
-                <div className="flex items-start justify-between gap-4 mb-4">
-                  <div>
-                    <span className="px-3 py-1 rounded-full bg-[#58C1C3]/15 text-[#58C1C3] text-[10px] font-mono uppercase tracking-wider border border-[#58C1C3]/30">
-                      {activeProject.category}
-                    </span>
-                    <h3 className="text-2xl font-bold text-[#F5F7F7] mt-2">
-                      {activeProject.title}
-                    </h3>
-                    <p className="text-xs font-mono text-[#97CC6F] mt-0.5">
-                      Client: {activeProject.client}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setActiveProject(null)}
-                    className="p-2 text-[#F5F7F7]/50 hover:text-white rounded-full bg-white/5 cursor-pointer"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-
-                <div className="rounded-2xl overflow-hidden mb-6 h-52 sm:h-64 relative">
-                  <img
-                    src={activeProject.featuredImage}
-                    alt={activeProject.title}
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute bottom-3 right-3 px-3 py-1 rounded-full bg-[#0C1618]/90 text-xs font-mono text-[#97CC6F] border border-[#97CC6F]/30 backdrop-blur-md">
-                    {activeProject.metrics}
-                  </div>
-                </div>
-
-                <div className="space-y-4 mb-6">
-                  <div>
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-[#58C1C3] mb-1">
-                      Project Overview
-                    </h4>
-                    <p className="text-xs sm:text-sm text-[#F5F7F7]/75 leading-relaxed">
-                      {activeProject.overview}
-                    </p>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                  className="relative w-full max-w-2xl bg-[#0F1E22] border border-[#58C1C3]/30 rounded-3xl p-6 sm:p-8 shadow-[0_25px_60px_rgba(0,0,0,0.8)] z-10 max-h-[90vh] overflow-y-auto"
+                >
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <div>
+                      <span className="px-3 py-1 rounded-full bg-[#58C1C3]/15 text-[#58C1C3] text-[10px] font-mono uppercase tracking-wider border border-[#58C1C3]/30">
+                        {activeProject.category}
+                      </span>
+                      <h3 className="text-2xl font-bold text-[#F5F7F7] mt-2">
+                        {activeProject.title}
+                      </h3>
+                      <p className="text-xs font-mono text-[#97CC6F] mt-0.5">
+                        Client: {activeProject.client}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setActiveProject(null)}
+                      className="p-2 text-[#F5F7F7]/50 hover:text-white rounded-full bg-white/5 cursor-pointer"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
                   </div>
 
-                  <div>
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-[#58C1C3] mb-2">
-                      Key Engineering Deliverables
-                    </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {activeProject.keyFeatures.map((feat) => (
-                        <div key={feat} className="flex items-center gap-2 text-xs text-[#F5F7F7]/80">
-                          <Check className="w-3.5 h-3.5 text-[#97CC6F] flex-shrink-0" />
-                          <span>{feat}</span>
-                        </div>
-                      ))}
+                  <div className="rounded-2xl overflow-hidden mb-6 h-52 sm:h-64 relative">
+                    <img
+                      src={activeProject.featuredImage}
+                      alt={activeProject.title}
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute bottom-3 right-3 px-3 py-1 rounded-full bg-[#0C1618]/90 text-xs font-mono text-[#97CC6F] border border-[#97CC6F]/30 backdrop-blur-md">
+                      {activeProject.metrics}
                     </div>
                   </div>
 
-                  <div>
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-[#58C1C3] mb-2">
-                      Applied Tech Stack
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {activeProject.techStack.map((tech) => (
-                        <span
-                          key={tech}
-                          className="px-3 py-1 rounded-lg bg-[#0C1618] border border-[#58C1C3]/20 text-xs font-mono text-[#58C1C3]"
-                        >
-                          {tech}
-                        </span>
-                      ))}
+                  <div className="space-y-4 mb-6">
+                    <div>
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-[#58C1C3] mb-1">
+                        Project Overview
+                      </h4>
+                      <p className="text-xs sm:text-sm text-[#F5F7F7]/75 leading-relaxed">
+                        {activeProject.overview}
+                      </p>
+                    </div>
+
+                    <div>
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-[#58C1C3] mb-2">
+                        Key Engineering Deliverables
+                      </h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {activeProject.keyFeatures.map((feat) => (
+                          <div key={feat} className="flex items-center gap-2 text-xs text-[#F5F7F7]/80">
+                            <Check className="w-3.5 h-3.5 text-[#97CC6F] flex-shrink-0" />
+                            <span>{feat}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-[#58C1C3] mb-2">
+                        Applied Tech Stack
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {activeProject.techStack.map((tech) => (
+                          <span
+                            key={tech}
+                            className="px-3 py-1 rounded-lg bg-[#0C1618] border border-[#58C1C3]/20 text-xs font-mono text-[#58C1C3]"
+                          >
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row gap-3">
-                  <button
-                    onClick={() => {
-                      const category = activeProject.category;
-                      setActiveProject(null);
-                      onOpenEstimatorWithService(category);
-                    }}
-                    className="flex-1 py-3 px-6 rounded-full bg-[#58C1C3] text-[#0C1618] font-bold text-xs uppercase tracking-wider hover:bg-[#97CC6F] transition-all cursor-pointer text-center"
-                  >
-                    Start a Project Like This
-                  </button>
+                  <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row gap-3">
+                    <button
+                      onClick={() => {
+                        const category = activeProject.category;
+                        setActiveProject(null);
+                        onOpenEstimatorWithService(category);
+                      }}
+                      className="flex-1 py-3 px-6 rounded-full bg-[#58C1C3] text-[#0C1618] font-bold text-xs uppercase tracking-wider hover:bg-[#97CC6F] transition-all cursor-pointer text-center"
+                    >
+                      Start a Project Like This
+                    </button>
 
-                  <a
-                    href={`https://wa.me/8801608098281?text=Hello%20Plexivia!%20I'm%20interested%20in%20a%20project%20similar%20to%20${encodeURIComponent(activeProject.title)}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="py-3 px-6 rounded-full bg-[#97CC6F] text-[#0C1618] font-bold text-xs uppercase tracking-wider hover:brightness-105 transition-all text-center cursor-pointer"
-                  >
-                    Discuss on WhatsApp
-                  </a>
-                </div>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
+                    <a
+                      href={`https://wa.me/8801823110115?text=Hello%20Plexivia!%20I'm%20interested%20in%20a%20project%20similar%20to%20${encodeURIComponent(activeProject.title)}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="py-3 px-6 rounded-full bg-[#97CC6F] text-[#0C1618] font-bold text-xs uppercase tracking-wider hover:brightness-105 transition-all text-center cursor-pointer"
+                    >
+                      Discuss on WhatsApp
+                    </a>
+                  </div>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>,
+          document.body
+        )}
 
       </div>
     </section>

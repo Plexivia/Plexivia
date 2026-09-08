@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Check, MessageSquare, Mail, Sparkles, ArrowRight } from 'lucide-react';
+import { X, Check, Mail, Sparkles, Send } from 'lucide-react';
 
 interface ProjectEstimatorModalProps {
   isOpen: boolean;
@@ -10,22 +11,11 @@ interface ProjectEstimatorModalProps {
 
 const serviceOptions = [
   'Custom Website Development',
-  'Web Application Development',
-  'WordPress Development',
-  'Shopify Development',
-  'UI/UX Design',
-  'Graphics Design',
-  'SEO Optimization',
-  'Video Editing & Motion Graphics',
+  'Software & Web Application Development',
+  'WordPress & Shopify Development',
+  'ERP Solutions & Systems',
+  'SEO (Search Engine Optimization)',
   'Social Media Marketing',
-  'Business Solutions',
-];
-
-const budgetRanges = [
-  '$500 - $1,500 (Starter)',
-  '$1,500 - $3,500 (Growth)',
-  '$3,500 - $8,000 (Enterprise)',
-  '$8,000+ (Full-Scale Custom)',
 ];
 
 const timelineOptions = [
@@ -35,6 +25,45 @@ const timelineOptions = [
   'Flexible / Ongoing',
 ];
 
+const countryCodes = [
+  { code: '+880', label: 'BD (+880)', flag: '🇧🇩' },
+  { code: '+1', label: 'US/CA (+1)', flag: '🇺🇸' },
+  { code: '+44', label: 'UK (+44)', flag: '🇬🇧' },
+  { code: '+971', label: 'UAE (+971)', flag: '🇦🇪' },
+  { code: '+966', label: 'KSA (+966)', flag: '🇸🇦' },
+  { code: '+91', label: 'IN (+91)', flag: '🇮🇳' },
+  { code: '+61', label: 'AU (+61)', flag: '🇦🇺' },
+  { code: '+49', label: 'DE (+49)', flag: '🇩🇪' },
+  { code: '+33', label: 'FR (+33)', flag: '🇫🇷' },
+  { code: '+65', label: 'SG (+65)', flag: '🇸🇬' },
+  { code: '+60', label: 'MY (+60)', flag: '🇲🇾' },
+  { code: '+974', label: 'QA (+974)', flag: '🇶🇦' },
+  { code: '+965', label: 'KW (+965)', flag: '🇰🇼' },
+  { code: '+31', label: 'NL (+31)', flag: '🇳🇱' },
+  { code: '+39', label: 'IT (+39)', flag: '🇮🇹' },
+  { code: '+34', label: 'ES (+34)', flag: '🇪🇸' },
+  { code: '+41', label: 'CH (+41)', flag: '🇨🇭' },
+  { code: '+46', label: 'SE (+46)', flag: '🇸🇪' },
+  { code: '+81', label: 'JP (+81)', flag: '🇯🇵' },
+  { code: '+82', label: 'KR (+82)', flag: '🇰🇷' },
+  { code: '+86', label: 'CN (+86)', flag: '🇨🇳' },
+  { code: '+92', label: 'PK (+92)', flag: '🇵🇰' },
+];
+
+function WhatsAppIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="16"
+      height="16"
+      fill="currentColor"
+      className={className}
+    >
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+    </svg>
+  );
+}
+
 export default function ProjectEstimatorModal({
   isOpen,
   onClose,
@@ -43,48 +72,109 @@ export default function ProjectEstimatorModal({
   const [selectedService, setSelectedService] = useState<string>(
     defaultService || 'Custom Website Development'
   );
-  const [selectedBudget, setSelectedBudget] = useState<string>(budgetRanges[1]);
   const [selectedTimeline, setSelectedTimeline] = useState<string>(timelineOptions[1]);
   const [clientName, setClientName] = useState('');
+  const [clientCompany, setClientCompany] = useState('');
+  const [countryCode, setCountryCode] = useState('+880');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [clientEmail, setClientEmail] = useState('');
   const [projectNotes, setProjectNotes] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
+  const [errors, setErrors] = useState<{
+    name?: string;
+    phone?: string;
+    email?: string;
+  }>({});
+
+  const validateForm = () => {
+    const newErrors: { name?: string; phone?: string; email?: string } = {};
+
+    // Validate Name (required)
+    if (!clientName.trim()) {
+      newErrors.name = 'Please enter your name';
+    }
+
+    // Validate Phone (country code + valid digits)
+    const digitsOnly = phoneNumber.replace(/[^0-9]/g, '');
+    if (!digitsOnly) {
+      newErrors.phone = 'Phone number is required';
+    } else if (digitsOnly.length < 7 || digitsOnly.length > 15) {
+      newErrors.phone = 'Please enter a valid phone number (7-15 digits)';
+    }
+
+    // Validate Email (required & valid format)
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!clientEmail.trim()) {
+      newErrors.email = 'Email address is required';
+    } else if (!emailPattern.test(clientEmail.trim())) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const generateMessage = () => {
+    const fullPhone = `${countryCode} ${phoneNumber.trim()}`;
     return `Hello Plexivia Team!
 
 I'm interested in starting a project:
 - Service: ${selectedService}
-- Estimated Budget: ${selectedBudget}
-- Preferred Timeline: ${selectedTimeline}
-${clientName ? `- Name: ${clientName}` : ''}
-${clientEmail ? `- Email: ${clientEmail}` : ''}
-${projectNotes ? `- Project Brief: ${projectNotes}` : ''}
+- Timeline: ${selectedTimeline}
+- Name: ${clientName.trim()}
+${clientCompany.trim() ? `- Company: ${clientCompany.trim()}\n` : ''}- Phone: ${fullPhone}
+- Email: ${clientEmail.trim()}
+${projectNotes.trim() ? `\nProject Brief / Message:\n${projectNotes.trim()}` : ''}
 
 Looking forward to your quotation and consultation!`;
   };
 
   const handleWhatsAppInquiry = () => {
+    if (!validateForm()) return;
     const text = encodeURIComponent(generateMessage());
-    window.open(`https://wa.me/8801608098281?text=${text}`, '_blank');
+    window.open(`https://wa.me/8801823110115?text=${text}`, '_blank');
   };
 
-  const handleEmailInquiry = () => {
-    const subject = encodeURIComponent(`Project Inquiry: ${selectedService} - Plexivia`);
+  const handleSendMessage = () => {
+    if (!validateForm()) return;
+    const subject = encodeURIComponent(`Project Inquiry: ${selectedService} - ${clientName.trim()}`);
     const body = encodeURIComponent(generateMessage());
     window.open(`mailto:plexivia@gmail.com?subject=${subject}&body=${body}`, '_blank');
+    setSubmitted(true);
   };
 
-  return (
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
+  const handleClose = () => {
+    onClose();
+    setTimeout(() => {
+      setSubmitted(false);
+      setErrors({});
+    }, 300);
+  };
+
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
+            onClick={handleClose}
             className="fixed inset-0 bg-[#0C1618]/85 backdrop-blur-md"
           />
 
@@ -115,8 +205,9 @@ Looking forward to your quotation and consultation!`;
                 </p>
               </div>
               <button
-                onClick={onClose}
-                className="p-2 text-[#F5F7F7]/50 hover:text-[#F5F7F7] hover:bg-white/5 rounded-full transition-colors cursor-pointer"
+                onClick={handleClose}
+                aria-label="Close modal"
+                className="p-2 text-[#97CC6F] border border-[#97CC6F] hover:bg-[#97CC6F] hover:text-[#0C1618] rounded-full transition-all cursor-pointer shadow-[0_0_10px_rgba(151,204,111,0.2)]"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -129,28 +220,27 @@ Looking forward to your quotation and consultation!`;
                 </div>
                 <h4 className="text-xl font-bold text-[#F5F7F7] mb-2">Inquiry Prepared!</h4>
                 <p className="text-sm text-[#F5F7F7]/70 max-w-md mx-auto mb-6">
-                  Click below to send directly via WhatsApp or Email for fastest response from our lead architects.
+                  Thank you, <span className="text-[#58C1C3] font-semibold">{clientName || 'friend'}</span>. Your inquiry has been generated. You can also connect directly on WhatsApp for an immediate response.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <div className="flex flex-row gap-3 justify-center max-w-md mx-auto w-full">
                   <button
                     onClick={handleWhatsAppInquiry}
-                    className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[#97CC6F] text-[#0C1618] font-bold text-sm hover:brightness-105 transition-all cursor-pointer shadow-[0_0_20px_rgba(151,204,111,0.3)]"
+                    className="w-1/2 flex-1 inline-flex items-center justify-center gap-2 py-3 px-4 rounded-full bg-[#97CC6F] text-[#0C1618] font-bold text-xs sm:text-sm uppercase tracking-wider hover:bg-[#58C1C3] transition-all cursor-pointer shadow-[0_0_20px_rgba(151,204,111,0.25)] hover:shadow-[0_0_20px_rgba(88,193,195,0.35)]"
                   >
-                    <MessageSquare className="w-4 h-4" />
-                    Open WhatsApp Chat (+880 1608-098281)
+                    <WhatsAppIcon className="w-4 h-4" />
+                    <span>WhatsApp</span>
                   </button>
                   <button
-                    onClick={handleEmailInquiry}
-                    className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[#58C1C3] text-[#0C1618] font-bold text-sm hover:brightness-105 transition-all cursor-pointer shadow-[0_0_20px_rgba(88,193,195,0.3)]"
+                    onClick={handleClose}
+                    className="w-1/2 flex-1 inline-flex items-center justify-center py-3 px-4 rounded-full border border-[#97CC6F] text-xs sm:text-sm font-bold uppercase tracking-wider text-[#97CC6F] hover:bg-[#97CC6F] hover:text-[#0C1618] cursor-pointer transition-all"
                   >
-                    <Mail className="w-4 h-4" />
-                    Send via Email (plexivia@gmail.com)
+                    Close
                   </button>
                 </div>
               </div>
             ) : (
               <div className="space-y-6 relative">
-                {/* Select Service */}
+                {/* 1. Select Service */}
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-[#58C1C3] mb-2.5">
                     1. Select Service Needed
@@ -174,33 +264,10 @@ Looking forward to your quotation and consultation!`;
                   </div>
                 </div>
 
-                {/* Budget Range */}
+                {/* 2. Timeline */}
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-[#58C1C3] mb-2.5">
-                    2. Estimated Project Budget
-                  </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {budgetRanges.map((b) => (
-                      <button
-                        key={b}
-                        type="button"
-                        onClick={() => setSelectedBudget(b)}
-                        className={`p-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${
-                          selectedBudget === b
-                            ? 'bg-[#97CC6F]/15 border-[#97CC6F] text-[#F5F7F7] font-semibold'
-                            : 'bg-white/[0.02] border-white/5 text-[#F5F7F7]/60 hover:bg-white/[0.05]'
-                        }`}
-                      >
-                        {b}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Timeline */}
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-[#58C1C3] mb-2.5">
-                    3. Target Timeline
+                    2. Target Timeline
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {timelineOptions.map((t) => (
@@ -220,66 +287,142 @@ Looking forward to your quotation and consultation!`;
                   </div>
                 </div>
 
-                {/* Quick Info */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-medium text-[#F5F7F7]/70 mb-1">
-                      Your Name / Company
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Sarah Jenkins (Acme Corp)"
-                      value={clientName}
-                      onChange={(e) => setClientName(e.target.value)}
-                      className="w-full bg-[#0C1618] border border-white/10 rounded-xl px-3.5 py-2 text-sm text-[#F5F7F7] focus:outline-none focus:border-[#58C1C3] transition-colors placeholder:text-white/20"
-                    />
+                {/* Form Input Fields */}
+                <div className="space-y-4 pt-1">
+                  {/* Name & Company */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-[#F5F7F7]/80 mb-1.5">
+                        Name <span className="text-[#58C1C3]">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Sarah Jenkins"
+                        value={clientName}
+                        onChange={(e) => {
+                          setClientName(e.target.value);
+                          if (errors.name) setErrors((prev) => ({ ...prev, name: '' }));
+                        }}
+                        className={`w-full bg-[#0C1618] border rounded-xl px-3.5 py-2.5 text-sm text-[#F5F7F7] focus:outline-none transition-colors placeholder:text-white/25 ${
+                          errors.name
+                            ? 'border-rose-500 focus:border-rose-500'
+                            : 'border-white/10 focus:border-[#58C1C3]'
+                        }`}
+                      />
+                      {errors.name && (
+                        <p className="text-[11px] text-rose-400 mt-1">{errors.name}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-[#F5F7F7]/80 mb-1.5">
+                        Company <span className="text-white/40 font-normal">(Optional)</span>
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Acme Corp"
+                        value={clientCompany}
+                        onChange={(e) => setClientCompany(e.target.value)}
+                        className="w-full bg-[#0C1618] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-[#F5F7F7] focus:outline-none focus:border-[#58C1C3] transition-colors placeholder:text-white/25"
+                      />
+                    </div>
                   </div>
+
+                  {/* Phone & Email */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-[#F5F7F7]/80 mb-1.5">
+                        Phone <span className="text-[#58C1C3]">*</span>
+                      </label>
+                      <div className="flex gap-2">
+                        <select
+                          value={countryCode}
+                          onChange={(e) => setCountryCode(e.target.value)}
+                          className="bg-[#0C1618] border border-white/10 rounded-xl px-2.5 py-2.5 text-xs text-[#F5F7F7] focus:outline-none focus:border-[#58C1C3] transition-colors cursor-pointer max-w-[105px]"
+                        >
+                          {countryCodes.map((c) => (
+                            <option key={c.code} value={c.code} className="bg-[#0C1618] text-[#F5F7F7]">
+                              {c.flag} {c.code}
+                            </option>
+                          ))}
+                        </select>
+                        <input
+                          type="tel"
+                          placeholder="Phone number"
+                          value={phoneNumber}
+                          onChange={(e) => {
+                            setPhoneNumber(e.target.value);
+                            if (errors.phone) setErrors((prev) => ({ ...prev, phone: '' }));
+                          }}
+                          className={`flex-1 min-w-0 bg-[#0C1618] border rounded-xl px-3.5 py-2.5 text-sm text-[#F5F7F7] focus:outline-none transition-colors placeholder:text-white/25 ${
+                            errors.phone
+                              ? 'border-rose-500 focus:border-rose-500'
+                              : 'border-white/10 focus:border-[#58C1C3]'
+                          }`}
+                        />
+                      </div>
+                      {errors.phone && (
+                        <p className="text-[11px] text-rose-400 mt-1">{errors.phone}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-[#F5F7F7]/80 mb-1.5">
+                        Email <span className="text-[#58C1C3]">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        placeholder="e.g. sarah@acme.com"
+                        value={clientEmail}
+                        onChange={(e) => {
+                          setClientEmail(e.target.value);
+                          if (errors.email) setErrors((prev) => ({ ...prev, email: '' }));
+                        }}
+                        className={`w-full bg-[#0C1618] border rounded-xl px-3.5 py-2.5 text-sm text-[#F5F7F7] focus:outline-none transition-colors placeholder:text-white/25 ${
+                          errors.email
+                            ? 'border-rose-500 focus:border-rose-500'
+                            : 'border-white/10 focus:border-[#58C1C3]'
+                        }`}
+                      />
+                      {errors.email && (
+                        <p className="text-[11px] text-rose-400 mt-1">{errors.email}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Message (Optional) */}
                   <div>
-                    <label className="block text-[11px] font-medium text-[#F5F7F7]/70 mb-1">
-                      Email Address
+                    <label className="block text-xs font-semibold text-[#F5F7F7]/80 mb-1.5">
+                      Message <span className="text-white/40 font-normal">(Optional)</span>
                     </label>
-                    <input
-                      type="email"
-                      placeholder="e.g. sarah@acme.com"
-                      value={clientEmail}
-                      onChange={(e) => setClientEmail(e.target.value)}
-                      className="w-full bg-[#0C1618] border border-white/10 rounded-xl px-3.5 py-2 text-sm text-[#F5F7F7] focus:outline-none focus:border-[#58C1C3] transition-colors placeholder:text-white/20"
+                    <textarea
+                      rows={2}
+                      placeholder="Describe your goals, features, or reference links..."
+                      value={projectNotes}
+                      onChange={(e) => setProjectNotes(e.target.value)}
+                      className="w-full bg-[#0C1618] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-[#F5F7F7] focus:outline-none focus:border-[#58C1C3] transition-colors placeholder:text-white/25 resize-none"
                     />
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-[11px] font-medium text-[#F5F7F7]/70 mb-1">
-                    Brief Project Details (Optional)
-                  </label>
-                  <textarea
-                    rows={2}
-                    placeholder="Describe your goals, features, or reference links..."
-                    value={projectNotes}
-                    onChange={(e) => setProjectNotes(e.target.value)}
-                    className="w-full bg-[#0C1618] border border-white/10 rounded-xl px-3.5 py-2 text-sm text-[#F5F7F7] focus:outline-none focus:border-[#58C1C3] transition-colors placeholder:text-white/20 resize-none"
-                  />
-                </div>
-
-                {/* Action Buttons */}
-                <div className="pt-2 flex flex-col sm:flex-row gap-3">
+                {/* 50-50 Action Buttons with Invert Hover */}
+                <div className="pt-2 flex flex-row gap-3 w-full">
                   <button
                     type="button"
                     onClick={handleWhatsAppInquiry}
-                    className="flex-1 inline-flex items-center justify-center gap-2 py-3.5 px-5 rounded-full bg-[#97CC6F] text-[#0C1618] font-bold text-xs uppercase tracking-wider hover:brightness-105 transition-all cursor-pointer shadow-[0_0_25px_rgba(151,204,111,0.25)]"
+                    className="w-1/2 flex-1 inline-flex items-center justify-center gap-2 py-3 px-4 rounded-full bg-[#97CC6F] text-[#0C1618] font-bold text-xs sm:text-sm uppercase tracking-wider hover:bg-[#58C1C3] transition-all cursor-pointer shadow-[0_0_20px_rgba(151,204,111,0.25)] hover:shadow-[0_0_20px_rgba(88,193,195,0.35)]"
                   >
-                    <MessageSquare className="w-4 h-4" />
-                    Inquire via WhatsApp (+880 1608-098281)
+                    <WhatsAppIcon className="w-4 h-4" />
+                    <span>WhatsApp</span>
                   </button>
 
                   <button
                     type="button"
-                    onClick={handleEmailInquiry}
-                    className="flex-1 inline-flex items-center justify-center gap-2 py-3.5 px-5 rounded-full bg-[#58C1C3] text-[#0C1618] font-bold text-xs uppercase tracking-wider hover:brightness-105 transition-all cursor-pointer shadow-[0_0_25px_rgba(88,193,195,0.25)]"
+                    onClick={handleSendMessage}
+                    className="w-1/2 flex-1 inline-flex items-center justify-center gap-2 py-3 px-4 rounded-full bg-[#58C1C3] text-[#0C1618] font-bold text-xs sm:text-sm uppercase tracking-wider hover:bg-[#97CC6F] transition-all cursor-pointer shadow-[0_0_20px_rgba(88,193,195,0.25)] hover:shadow-[0_0_20px_rgba(151,204,111,0.35)]"
                   >
-                    <Mail className="w-4 h-4" />
-                    Send to plexivia@gmail.com
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <Send className="w-4 h-4" />
+                    <span>Send Message</span>
                   </button>
                 </div>
               </div>
@@ -287,6 +430,7 @@ Looking forward to your quotation and consultation!`;
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
