@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Check, Mail, Sparkles, Send } from 'lucide-react';
+import { X, Check, Mail, Sparkles, Send, Loader2, AlertCircle } from 'lucide-react';
+import TurnstileWidget from './TurnstileWidget';
 
 interface ProjectEstimatorModalProps {
   isOpen: boolean;
@@ -80,6 +81,9 @@ export default function ProjectEstimatorModal({
   const [clientEmail, setClientEmail] = useState('');
   const [projectNotes, setProjectNotes] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState('');
 
   const [errors, setErrors] = useState<{
     name?: string;
@@ -90,12 +94,10 @@ export default function ProjectEstimatorModal({
   const validateForm = () => {
     const newErrors: { name?: string; phone?: string; email?: string } = {};
 
-    // Validate Name (required)
     if (!clientName.trim()) {
       newErrors.name = 'Please enter your name';
     }
 
-    // Validate Phone (country code + valid digits)
     const digitsOnly = phoneNumber.replace(/[^0-9]/g, '');
     if (!digitsOnly) {
       newErrors.phone = 'Phone number is required';
@@ -103,7 +105,6 @@ export default function ProjectEstimatorModal({
       newErrors.phone = 'Please enter a valid phone number (7-15 digits)';
     }
 
-    // Validate Email (required & valid format)
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!clientEmail.trim()) {
       newErrors.email = 'Email address is required';
@@ -116,14 +117,13 @@ export default function ProjectEstimatorModal({
   };
 
   const generateMessage = () => {
-    const fullPhone = `${countryCode} ${phoneNumber.trim()}`;
     return `Hello Plexivia Team!
+I am interested in commissioning a project:
 
-I'm interested in starting a project:
-- Service: ${selectedService}
-- Timeline: ${selectedTimeline}
-- Name: ${clientName.trim()}
-${clientCompany.trim() ? `- Company: ${clientCompany.trim()}\n` : ''}- Phone: ${fullPhone}
+- Selected Service: ${selectedService}
+- Target Timeline: ${selectedTimeline}
+- Client Name: ${clientName.trim()}
+${clientCompany.trim() ? `- Company / Organization: ${clientCompany.trim()}\n` : ''}- Phone: ${countryCode} ${phoneNumber.trim()}
 - Email: ${clientEmail.trim()}
 ${projectNotes.trim() ? `\nProject Brief / Message:\n${projectNotes.trim()}` : ''}
 
@@ -136,12 +136,43 @@ Looking forward to your quotation and consultation!`;
     window.open(`https://wa.me/8801823110115?text=${text}`, '_blank');
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!validateForm()) return;
-    const subject = encodeURIComponent(`Project Inquiry: ${selectedService} - ${clientName.trim()}`);
-    const body = encodeURIComponent(generateMessage());
-    window.open(`mailto:plexivia@gmail.com?subject=${subject}&body=${body}`, '_blank');
-    setSubmitted(true);
+    if (!turnstileToken) {
+      setSubmitError('Please complete the Cloudflare CAPTCHA verification.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitError('');
+
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: clientName.trim(),
+          email: clientEmail.trim(),
+          phone: `${countryCode} ${phoneNumber.trim()}`,
+          service: selectedService,
+          message: generateMessage(),
+          turnstileToken,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        throw new Error(data.message || 'Failed to submit inquiry. Please try again.');
+      }
+
+      setSubmitted(true);
+    } catch (err: any) {
+      setSubmitError(err.message || 'A network error occurred. Please try again or connect via WhatsApp.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   useEffect(() => {
@@ -159,6 +190,8 @@ Looking forward to your quotation and consultation!`;
     onClose();
     setTimeout(() => {
       setSubmitted(false);
+      setSubmitError('');
+      setTurnstileToken('');
       setErrors({});
     }, 300);
   };
@@ -405,6 +438,25 @@ Looking forward to your quotation and consultation!`;
                   </div>
                 </div>
 
+                {/* Cloudflare Turnstile Anti-Spam CAPTCHA */}
+                <div className="pt-1">
+                  <TurnstileWidget
+                    onVerify={(token) => {
+                      setTurnstileToken(token);
+                      setSubmitError('');
+                    }}
+                    onExpire={() => setTurnstileToken('')}
+                    onError={() => setSubmitError('Cloudflare CAPTCHA verification failed. Please refresh.')}
+                  />
+                </div>
+
+                {submitError && (
+                  <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-300 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
+                    <span>{submitError}</span>
+                  </div>
+                )}
+
                 {/* 50-50 Action Buttons with Invert Hover */}
                 <div className="pt-2 flex flex-row gap-3 w-full">
                   <button
@@ -418,11 +470,21 @@ Looking forward to your quotation and consultation!`;
 
                   <button
                     type="button"
+                    disabled={isSubmitting}
                     onClick={handleSendMessage}
-                    className="w-1/2 flex-1 inline-flex items-center justify-center gap-2 py-3 px-4 rounded-full bg-[#58C1C3] text-[#0C1618] font-bold text-xs sm:text-sm uppercase tracking-wider hover:bg-[#97CC6F] transition-all cursor-pointer shadow-[0_0_20px_rgba(88,193,195,0.25)] hover:shadow-[0_0_20px_rgba(151,204,111,0.35)]"
+                    className="w-1/2 flex-1 inline-flex items-center justify-center gap-2 py-3 px-4 rounded-full bg-[#58C1C3] text-[#0C1618] font-bold text-xs sm:text-sm uppercase tracking-wider hover:bg-[#97CC6F] transition-all cursor-pointer shadow-[0_0_20px_rgba(88,193,195,0.25)] hover:shadow-[0_0_20px_rgba(151,204,111,0.35)] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <Send className="w-4 h-4" />
-                    <span>Send Message</span>
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Sending...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        <span>Send Message</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </div>

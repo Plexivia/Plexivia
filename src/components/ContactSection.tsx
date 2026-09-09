@@ -10,7 +10,10 @@ import {
   CheckCircle2,
   ExternalLink,
   Sparkles,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react';
+import TurnstileWidget from './TurnstileWidget';
 
 export default function ContactSection() {
   const [formData, setFormData] = useState({
@@ -21,10 +24,46 @@ export default function ContactSection() {
   });
 
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState('');
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    if (!turnstileToken) {
+      setErrorMessage('Please complete the Cloudflare CAPTCHA verification before sending.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage('');
+
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          service: formData.service,
+          message: formData.message,
+          turnstileToken,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        throw new Error(data.message || 'Failed to submit inquiry. Please try again.');
+      }
+
+      setSubmitted(true);
+    } catch (err: any) {
+      setErrorMessage(err.message || 'A network error occurred. Please try again or reach out on WhatsApp.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleWhatsAppDirect = () => {
@@ -39,7 +78,7 @@ export default function ContactSection() {
     const body = encodeURIComponent(
       `Name: ${formData.name}\nEmail: ${formData.email}\nService: ${formData.service}\n\nProject details:\n${formData.message}`
     );
-    window.open(`mailto:plexivia@gmail.com?subject=${subject}&body=${body}`, '_blank');
+    window.open(`mailto:info@plexivia.online?subject=${subject}&body=${body}`, '_blank');
   };
 
   return (
@@ -104,7 +143,7 @@ export default function ContactSection() {
 
                 {/* Email */}
                 <a
-                  href="mailto:plexivia@gmail.com"
+                  href="mailto:info@plexivia.online"
                   className="flex items-start gap-4 p-3.5 rounded-2xl bg-[#0C1618] border border-white/5 hover:border-[#58C1C3]/40 transition-colors group"
                 >
                   <div className="w-10 h-10 rounded-xl bg-[#97CC6F]/15 text-[#97CC6F] flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
@@ -115,7 +154,7 @@ export default function ContactSection() {
                       Email Address
                     </p>
                     <p className="text-sm font-semibold text-[#F5F7F7] group-hover:text-[#97CC6F] transition-colors">
-                      plexivia@gmail.com
+                      info@plexivia.online
                     </p>
                   </div>
                 </a>
@@ -293,13 +332,42 @@ export default function ContactSection() {
                     />
                   </div>
 
+                  {/* Cloudflare Turnstile Anti-Spam CAPTCHA */}
+                  <div className="pt-1">
+                    <TurnstileWidget
+                      onVerify={(token) => {
+                        setTurnstileToken(token);
+                        setErrorMessage('');
+                      }}
+                      onExpire={() => setTurnstileToken('')}
+                      onError={() => setErrorMessage('Cloudflare CAPTCHA verification failed. Please refresh.')}
+                    />
+                  </div>
+
+                  {errorMessage && (
+                    <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-300 flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
+                      <span>{errorMessage}</span>
+                    </div>
+                  )}
+
                   <div className="pt-2 flex flex-col sm:flex-row gap-3">
                     <button
                       type="submit"
-                      className="flex-1 inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-full bg-[#58C1C3] text-[#0C1618] font-bold text-xs uppercase tracking-wider hover:bg-[#97CC6F] transition-all cursor-pointer shadow-[0_0_20px_rgba(88,193,195,0.3)]"
+                      disabled={isSubmitting}
+                      className="flex-1 inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-full bg-[#58C1C3] text-[#0C1618] font-bold text-xs uppercase tracking-wider hover:bg-[#97CC6F] transition-all cursor-pointer shadow-[0_0_20px_rgba(88,193,195,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <Send className="w-4 h-4" />
-                      Submit Project Brief
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Sending Inquiry...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4" />
+                          <span>Submit Project Brief</span>
+                        </>
+                      )}
                     </button>
 
                     <button
@@ -313,7 +381,7 @@ export default function ContactSection() {
                   </div>
 
                   <p className="text-[11px] text-center text-[#F5F7F7]/40 pt-2">
-                    Direct inquiries also welcomed at <a href="mailto:plexivia@gmail.com" className="text-[#58C1C3] hover:underline">plexivia@gmail.com</a> or <span className="text-[#97CC6F]">+880 1823-110115</span>.
+                    Direct inquiries also welcomed at <a href="mailto:info@plexivia.online" className="text-[#58C1C3] hover:underline">info@plexivia.online</a> or <span className="text-[#97CC6F]">+880 1823-110115</span>.
                   </p>
                 </form>
               )}

@@ -161,11 +161,11 @@ export default function Footer() {
             
             <div className="text-xs text-[#F5F7F7]/70 space-y-2.5">
               <a
-                href="mailto:plexivia@gmail.com"
+                href="mailto:info@plexivia.online"
                 className="flex items-center gap-2 hover:text-[#58C1C3] transition-colors"
               >
                 <Mail className="w-3.5 h-3.5 text-[#58C1C3] flex-shrink-0" />
-                <span>plexivia@gmail.com</span>
+                <span>info@plexivia.online</span>
               </a>
 
               <a
