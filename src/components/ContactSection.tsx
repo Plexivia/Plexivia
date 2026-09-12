@@ -82,12 +82,12 @@ export default function ContactSection() {
   };
 
   return (
-    <section id="contact" className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 bg-[#0C1618] relative border-t border-[#58C1C3]/15">
+    <section id="contact" className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 bg-[#0C1618] relative border-t border-[#58C1C3]/15 overflow-hidden w-full">
       {/* Ambient background glows adhering strictly to #58C1C3 and #97CC6F */}
       <div className="absolute top-10 left-1/3 w-[500px] h-[500px] bg-[#58C1C3]/10 rounded-full blur-[150px] pointer-events-none" />
       <div className="absolute bottom-10 right-1/4 w-[400px] h-[400px] bg-[#97CC6F]/10 rounded-full blur-[150px] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto relative z-10">
+      <div className="max-w-7xl mx-auto relative z-10 w-full">
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">

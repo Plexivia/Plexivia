@@ -11,6 +11,7 @@ interface ProjectEstimatorModalProps {
 }
 
 const serviceOptions = [
+  'Ecommerce Whitelabel Platform',
   'Custom Website Development',
   'Software & Web Application Development',
   'WordPress & Shopify Development',
@@ -84,6 +85,12 @@ export default function ProjectEstimatorModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [turnstileToken, setTurnstileToken] = useState('');
+
+  useEffect(() => {
+    if (defaultService) {
+      setSelectedService(defaultService);
+    }
+  }, [defaultService, isOpen]);
 
   const [errors, setErrors] = useState<{
     name?: string;
@@ -217,7 +224,7 @@ Looking forward to your quotation and consultation!`;
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.3 }}
-            className="relative w-full max-w-2xl bg-[#0C1618] border border-[#58C1C3]/25 rounded-3xl p-6 sm:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.8),0_0_40px_rgba(88,193,195,0.15)] z-10 max-h-[90vh] overflow-y-auto"
+            className="relative w-full max-w-2xl bg-[#0C1618] border border-[#58C1C3]/25 rounded-3xl p-6 sm:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.8),0_0_40px_rgba(88,193,195,0.15)] z-10 max-h-[90vh] overflow-y-auto overflow-x-hidden"
           >
             {/* Ambient Corner Glow */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-[#58C1C3]/10 rounded-full blur-3xl pointer-events-none" />

@@ -7,11 +7,11 @@ interface AboutSectionProps {
 
 export default function AboutSection({ onOpenEstimator }: AboutSectionProps) {
   return (
-    <section id="about" className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 bg-[#0C1618] relative border-t border-[#58C1C3]/10">
+    <section id="about" className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 bg-[#0C1618] relative border-t border-[#58C1C3]/10 overflow-hidden w-full">
       {/* Background glow */}
       <div className="absolute top-1/2 right-0 w-96 h-96 bg-[#58C1C3]/5 rounded-full blur-[140px] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto w-full">
         <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
           
           {/* Left Column: Visual Pillars Card */}

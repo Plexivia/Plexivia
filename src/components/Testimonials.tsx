@@ -52,8 +52,8 @@ export default function Testimonials() {
   const current = testimonials[currentIndex];
 
   return (
-    <section className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 bg-[#0C1618] border-t border-[#58C1C3]/10 relative">
-      <div className="max-w-5xl mx-auto relative z-10">
+    <section className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 bg-[#0C1618] border-t border-[#58C1C3]/10 relative overflow-hidden w-full">
+      <div className="max-w-5xl mx-auto relative z-10 w-full">
         
         {/* Section Header */}
         <div className="text-center mb-16">

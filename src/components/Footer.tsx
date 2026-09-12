@@ -2,7 +2,12 @@ import { motion } from 'motion/react';
 import { Mail, Phone, MapPin, Globe, ArrowUp } from 'lucide-react';
 import PlexiviaLogo from './PlexiviaLogo';
 
-export default function Footer() {
+interface FooterProps {
+  onNavigateWhitelabel?: () => void;
+  onNavigateHome?: () => void;
+}
+
+export default function Footer({ onNavigateWhitelabel, onNavigateHome }: FooterProps = {}) {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -74,20 +79,26 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-[#0C1618] border-t border-[#58C1C3]/15 pt-16 pb-12 px-4 sm:px-6 lg:px-12 relative overflow-hidden">
+    <footer className="bg-[#0C1618] border-t border-[#58C1C3]/15 pt-16 pb-12 px-4 sm:px-6 lg:px-12 relative overflow-hidden w-full">
       {/* Background ambient lighting */}
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-48 bg-gradient-to-t from-[#58C1C3]/5 to-transparent pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto relative z-10">
+      <div className="max-w-7xl mx-auto relative z-10 w-full">
         
         {/* Main Footer Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-8 pb-14 border-b border-white/5">
           
           {/* Brand Column */}
           <div className="lg:col-span-4 space-y-4">
-            <a href="#home" className="inline-block">
-              <PlexiviaLogo size="md" showTagline={true} />
-            </a>
+            {onNavigateHome ? (
+              <button onClick={onNavigateHome} className="inline-block text-left cursor-pointer">
+                <PlexiviaLogo size="md" showTagline={true} />
+              </button>
+            ) : (
+              <a href="#home" className="inline-block">
+                <PlexiviaLogo size="md" showTagline={true} />
+              </a>
+            )}
             <p className="text-xs sm:text-sm text-[#F5F7F7]/65 max-w-sm leading-relaxed pt-2">
               Plexivia is a Digital Development Agency helping businesses establish and grow their online presence through modern design, custom development, and scalable digital solutions.
             </p>
@@ -129,11 +140,38 @@ export default function Footer() {
             <ul className="space-y-2.5 text-xs text-[#F5F7F7]/70">
               {quickLinks.map((link) => (
                 <li key={link.label}>
-                  <a href={link.href} className="hover:text-[#58C1C3] transition-colors">
-                    {link.label}
-                  </a>
+                  {link.label === 'Home' && onNavigateHome ? (
+                    <button
+                      type="button"
+                      onClick={onNavigateHome}
+                      className="hover:text-[#58C1C3] transition-colors cursor-pointer text-left"
+                    >
+                      {link.label}
+                    </button>
+                  ) : (
+                    <a href={link.href} className="hover:text-[#58C1C3] transition-colors">
+                      {link.label}
+                    </a>
+                  )}
                 </li>
               ))}
+              <li>
+                {onNavigateWhitelabel ? (
+                  <button
+                    type="button"
+                    onClick={onNavigateWhitelabel}
+                    className="text-left hover:text-[#58C1C3] transition-colors cursor-pointer flex items-center gap-1.5 text-[#58C1C3] font-semibold"
+                  >
+                    <span>eCommerce Whitelabel</span>
+                    <span className="text-[9px] px-1 bg-[#97CC6F]/20 text-[#97CC6F] rounded">HOT</span>
+                  </button>
+                ) : (
+                  <a href="/ecommerce-whitelabel" className="hover:text-[#58C1C3] transition-colors flex items-center gap-1.5 text-[#58C1C3] font-semibold">
+                    <span>eCommerce Whitelabel</span>
+                    <span className="text-[9px] px-1 bg-[#97CC6F]/20 text-[#97CC6F] rounded">HOT</span>
+                  </a>
+                )}
+              </li>
             </ul>
           </div>
 
@@ -143,6 +181,21 @@ export default function Footer() {
               Core Capabilities
             </h4>
             <ul className="space-y-2.5 text-xs text-[#F5F7F7]/70">
+              <li>
+                {onNavigateWhitelabel ? (
+                  <button
+                    type="button"
+                    onClick={onNavigateWhitelabel}
+                    className="text-left hover:text-[#97CC6F] transition-colors cursor-pointer text-[#58C1C3] font-medium"
+                  >
+                    Ecommerce Whitelabel Platform
+                  </button>
+                ) : (
+                  <a href="/ecommerce-whitelabel" className="hover:text-[#97CC6F] transition-colors text-[#58C1C3] font-medium">
+                    Ecommerce Whitelabel Platform
+                  </a>
+                )}
+              </li>
               {serviceLinks.map((srv) => (
                 <li key={srv}>
                   <a href="#services" className="hover:text-[#97CC6F] transition-colors">

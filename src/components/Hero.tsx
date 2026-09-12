@@ -7,7 +7,7 @@ interface HeroProps {
 
 export default function Hero({ onOpenEstimator }: HeroProps) {
   return (
-    <section id="home" className="relative pt-12 pb-24 lg:pt-20 lg:pb-32 px-4 sm:px-6 lg:px-12 overflow-hidden">
+    <section id="home" className="relative pt-12 pb-24 lg:pt-20 lg:pb-32 px-4 sm:px-6 lg:px-12 overflow-hidden w-full">
       {/* Background Ambient Glows adhering strictly to brand cyan #58C1C3 and green #97CC6F */}
       <div className="absolute top-10 left-1/4 w-96 h-96 bg-[#58C1C3]/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute top-40 right-10 w-[450px] h-[450px] bg-[#97CC6F]/10 rounded-full blur-[140px] pointer-events-none" />
@@ -22,7 +22,7 @@ export default function Hero({ onOpenEstimator }: HeroProps) {
         }}
       />
 
-      <div className="max-w-7xl mx-auto relative z-10">
+      <div className="max-w-7xl mx-auto relative z-10 w-full">
         <div className="grid lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           
           {/* Left Hero Content */}
@@ -189,7 +189,7 @@ export default function Hero({ onOpenEstimator }: HeroProps) {
             <motion.div
               animate={{ y: [0, -6, 0] }}
               transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-              className="absolute -top-4 -right-3 sm:-right-5 bg-[#0C1618] border border-[#97CC6F]/40 px-3.5 py-2 rounded-2xl shadow-[0_10px_25px_rgba(0,0,0,0.7)] flex items-center gap-2"
+              className="absolute -top-4 -right-1 sm:-right-5 bg-[#0C1618] border border-[#97CC6F]/40 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl shadow-[0_10px_25px_rgba(0,0,0,0.7)] flex items-center gap-2 max-w-[calc(100%-1rem)]"
             >
               <span className="w-2.5 h-2.5 rounded-full bg-[#97CC6F] animate-ping" />
               <div className="text-[10px] font-mono">
@@ -202,7 +202,7 @@ export default function Hero({ onOpenEstimator }: HeroProps) {
             <motion.div
               animate={{ y: [0, 6, 0] }}
               transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-              className="absolute -bottom-4 -left-3 sm:-left-5 bg-[#0C1618] border border-[#58C1C3]/40 px-3.5 py-2 rounded-2xl shadow-[0_10px_25px_rgba(0,0,0,0.7)] flex items-center gap-2"
+              className="absolute -bottom-4 -left-1 sm:-left-5 bg-[#0C1618] border border-[#58C1C3]/40 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl shadow-[0_10px_25px_rgba(0,0,0,0.7)] flex items-center gap-2 max-w-[calc(100%-1rem)]"
             >
               <Zap className="w-4 h-4 text-[#58C1C3]" />
               <div className="text-[10px] font-mono">

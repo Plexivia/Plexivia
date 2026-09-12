@@ -5,9 +5,10 @@ import PlexiviaLogo from './PlexiviaLogo';
 
 interface HeaderProps {
   onOpenEstimator: () => void;
+  onNavigateWhitelabel?: () => void;
 }
 
-export default function Header({ onOpenEstimator }: HeaderProps) {
+export default function Header({ onOpenEstimator, onNavigateWhitelabel }: HeaderProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
@@ -34,8 +35,8 @@ export default function Header({ onOpenEstimator }: HeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-[#0C1618]/90 backdrop-blur-md border-b border-[#58C1C3]/10 px-4 sm:px-6 lg:px-12">
-      <div className="max-w-7xl mx-auto">
+    <header className="sticky top-0 z-40 bg-[#0C1618]/90 backdrop-blur-md border-b border-[#58C1C3]/10 px-4 sm:px-6 lg:px-12 w-full">
+      <div className="max-w-7xl mx-auto w-full">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <a href="#home" className="flex items-center">
@@ -43,8 +44,8 @@ export default function Header({ onOpenEstimator }: HeaderProps) {
           </a>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-8">
-            <div className="flex items-center gap-7 text-xs font-medium text-[#F5F7F7]/70">
+          <nav className="hidden md:flex items-center gap-7">
+            <div className="flex items-center gap-6 text-xs font-medium text-[#F5F7F7]/70">
               {navLinks.map((link) => (
                 <a
                   key={link.name}
@@ -55,6 +56,18 @@ export default function Header({ onOpenEstimator }: HeaderProps) {
                   <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-[#58C1C3] transition-all duration-200 group-hover:w-full" />
                 </a>
               ))}
+
+              {/* Dedicated Whitelabel eCommerce Marketing Page Link */}
+              {onNavigateWhitelabel && (
+                <button
+                  onClick={onNavigateWhitelabel}
+                  className="relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#58C1C3]/10 border border-[#58C1C3]/30 text-[#58C1C3] hover:text-[#97CC6F] hover:border-[#97CC6F]/50 transition-all text-xs font-semibold group cursor-pointer shadow-[0_0_15px_rgba(88,193,195,0.15)]"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#97CC6F] animate-pulse" />
+                  <span>Whitelabel eCommerce</span>
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 bg-[#97CC6F]/20 text-[#97CC6F] rounded">HOT</span>
+                </button>
+              )}
             </div>
 
             <button
@@ -114,6 +127,24 @@ export default function Header({ onOpenEstimator }: HeaderProps) {
                 <span className="text-[#58C1C3]/40 text-xs">→</span>
               </a>
             ))}
+
+            {onNavigateWhitelabel && (
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                  onNavigateWhitelabel();
+                }}
+                className="w-full text-left py-2.5 px-3 rounded-xl bg-[#58C1C3]/10 border border-[#58C1C3]/30 text-[#58C1C3] flex items-center justify-between font-semibold text-xs"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#97CC6F] animate-pulse" />
+                  <span>Whitelabel eCommerce Solution</span>
+                </div>
+                <span className="text-[10px] px-1.5 py-0.5 bg-[#97CC6F]/20 text-[#97CC6F] rounded font-bold">
+                  NEW
+                </span>
+              </button>
+            )}
 
             <div className="pt-2 flex flex-col gap-2.5">
               <button

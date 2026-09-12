@@ -14,6 +14,7 @@ import { ServiceItem } from '../types';
 
 interface ServicesProps {
   onSelectService: (serviceName: string) => void;
+  onNavigateWhitelabel?: () => void;
 }
 
 const servicesData: ServiceItem[] = [
@@ -80,7 +81,7 @@ const categoryFilters = [
   { key: 'growth', label: 'SEO & Marketing' },
 ];
 
-export default function Services({ onSelectService }: ServicesProps) {
+export default function Services({ onSelectService, onNavigateWhitelabel }: ServicesProps) {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [expandedService, setExpandedService] = useState<string | null>(null);
 
@@ -110,12 +111,12 @@ export default function Services({ onSelectService }: ServicesProps) {
   };
 
   return (
-    <section id="services" className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 relative border-t border-[#58C1C3]/10 bg-[#0C1618]">
+    <section id="services" className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 relative border-t border-[#58C1C3]/10 bg-[#0C1618] overflow-hidden w-full">
       {/* Background ambient lighting */}
       <div className="absolute top-1/4 -left-32 w-96 h-96 bg-[#58C1C3]/10 rounded-full blur-[140px] pointer-events-none" />
       <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-[#97CC6F]/10 rounded-full blur-[140px] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto relative z-10">
+      <div className="max-w-7xl mx-auto relative z-10 w-full">
         
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
@@ -142,7 +143,7 @@ export default function Services({ onSelectService }: ServicesProps) {
         </div>
 
         {/* Category Filters */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-10 no-scrollbar">
+        <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-10 no-scrollbar max-w-full">
           {categoryFilters.map((tab) => (
             <button
               key={tab.key}
@@ -244,6 +245,34 @@ export default function Services({ onSelectService }: ServicesProps) {
             })}
           </AnimatePresence>
         </motion.div>
+
+        {/* Dedicated Ecommerce Whitelabel Solution Highlight Banner */}
+        {onNavigateWhitelabel && (
+          <div className="mt-14 p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-[#14262A] via-[#0F1E22] to-[#14262A] border border-[#58C1C3]/30 flex flex-col md:flex-row items-center justify-between gap-6 shadow-[0_15px_40px_rgba(88,193,195,0.1)] relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-[#58C1C3]/5 rounded-full blur-3xl pointer-events-none" />
+            <div className="space-y-2 text-center md:text-left relative z-10">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#97CC6F]/15 border border-[#97CC6F]/30 text-[#97CC6F] text-[11px] font-bold uppercase tracking-wider">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#97CC6F] animate-pulse" />
+                <span>Turnkey Whitelabel Platform</span>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-bold text-white">
+                Looking to launch your own White-label eCommerce Platform?
+              </h3>
+              <p className="text-xs sm:text-sm text-[#F5F7F7]/70 max-w-2xl">
+                Skip expensive Shopify monthly app subscriptions and 2% transaction fees. Get our battle-tested, sub-second eCommerce platform with 1-click checkout, automated Steadfast/Pathao courier dispatch, and fake order shield.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={onNavigateWhitelabel}
+              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-[#58C1C3] to-[#97CC6F] text-[#0C1618] font-bold text-xs uppercase tracking-wider hover:shadow-[0_0_25px_rgba(88,193,195,0.4)] transition-all shrink-0 cursor-pointer relative z-10"
+            >
+              <span>Explore Whitelabel Platform</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
       </div>
     </section>

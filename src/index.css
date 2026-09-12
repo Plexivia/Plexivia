@@ -1,23 +1,35 @@
 @import "tailwindcss";
 
-@layer base {
-  :root {
-    --bg-dark: #0C1618;
-    --cyan-primary: #58C1C3;
-    --green-accent: #97CC6F;
-    --white-clean: #F5F7F7;
-  }
-
-  body {
-    background-color: #0C1618;
-    color: #F5F7F7;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    overflow-x: hidden;
-  }
+:root {
+  --bg-dark: #0C1618;
+  --cyan-primary: #58C1C3;
+  --green-accent: #97CC6F;
+  --white-clean: #F5F7F7;
 }
 
 html {
   scroll-behavior: smooth;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  background-color: #0C1618;
+  color: #F5F7F7;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  position: relative;
+}
+
+#root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  min-height: 100vh;
+  position: relative;
 }
 
 /* Custom glow utilities */
@@ -31,6 +43,15 @@ html {
 
 .glow-subtle {
   box-shadow: 0 8px 30px rgba(88, 193, 195, 0.08);
+}
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* Custom scrollbar */

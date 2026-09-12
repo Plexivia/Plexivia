@@ -70,8 +70,8 @@ const technologies: TechBadge[] = [
 
 export default function TechExpertise() {
   return (
-    <section id="expertise" className="py-20 px-4 sm:px-6 lg:px-12 bg-[#0C1618] border-t border-[#58C1C3]/10 relative">
-      <div className="max-w-7xl mx-auto">
+    <section id="expertise" className="py-20 px-4 sm:px-6 lg:px-12 bg-[#0C1618] border-t border-[#58C1C3]/10 relative overflow-hidden w-full">
+      <div className="max-w-7xl mx-auto w-full">
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-14">

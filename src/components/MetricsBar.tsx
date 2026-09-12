@@ -38,7 +38,7 @@ const metrics = [
 
 export default function MetricsBar() {
   return (
-    <section className="relative z-20 -mt-8 sm:-mt-12 px-4 sm:px-6 lg:px-12 max-w-7xl mx-auto">
+    <section className="relative z-20 -mt-8 sm:-mt-12 px-4 sm:px-6 lg:px-12 max-w-7xl mx-auto w-full">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}

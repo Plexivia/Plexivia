@@ -88,11 +88,11 @@ export default function Portfolio({ onOpenEstimatorWithService }: PortfolioProps
   }, [activeProject]);
 
   return (
-    <section id="portfolio" className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 bg-[#0C1618] relative border-t border-[#58C1C3]/10">
+    <section id="portfolio" className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 bg-[#0C1618] relative border-t border-[#58C1C3]/10 overflow-hidden w-full">
       {/* Background ambient lights */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-[#58C1C3]/5 rounded-full blur-[160px] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto relative z-10">
+      <div className="max-w-7xl mx-auto relative z-10 w-full">
         
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
@@ -116,7 +116,7 @@ export default function Portfolio({ onOpenEstimatorWithService }: PortfolioProps
         </div>
 
         {/* Category Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-10 no-scrollbar">
+        <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-10 no-scrollbar max-w-full">
           {categories.map((cat) => (
             <button
               key={cat}
