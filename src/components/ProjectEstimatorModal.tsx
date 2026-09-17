@@ -72,7 +72,7 @@ Looking forward to your quotation and consultation!`;
   const handleEmailInquiry = () => {
     const subject = encodeURIComponent(`Project Inquiry: ${selectedService} - Plexivia`);
     const body = encodeURIComponent(generateMessage());
-    window.open(`mailto:plexivia@gmail.com?subject=${subject}&body=${body}`, '_blank');
+    window.open(`mailto:support@plexivia.online?subject=${subject}&body=${body}`, '_blank');
   };
 
   return (
@@ -85,7 +85,7 @@ Looking forward to your quotation and consultation!`;
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-[#0C1618]/85 backdrop-blur-md"
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
           />
 
           {/* Modal Box */}
@@ -94,29 +94,29 @@ Looking forward to your quotation and consultation!`;
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.3 }}
-            className="relative w-full max-w-2xl bg-[#0C1618] border border-[#58C1C3]/25 rounded-3xl p-6 sm:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.8),0_0_40px_rgba(88,193,195,0.15)] z-10 max-h-[90vh] overflow-y-auto"
+            className="relative w-full max-w-2xl bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-2xl z-10 max-h-[90vh] overflow-y-auto text-slate-900"
           >
             {/* Ambient Corner Glow */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-[#58C1C3]/10 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#97CC6F]/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-100/30 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-100/30 rounded-full blur-3xl pointer-events-none" />
 
             {/* Header */}
             <div className="flex items-start justify-between gap-4 mb-6 relative">
               <div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#58C1C3]/10 border border-[#58C1C3]/30 text-[10px] font-semibold uppercase tracking-widest text-[#58C1C3] mb-2">
-                  <Sparkles className="w-3 h-3 text-[#97CC6F]" />
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-50 border border-cyan-200 text-[10px] font-semibold uppercase tracking-widest text-cyan-800 mb-2 shadow-xs">
+                  <Sparkles className="w-3 h-3 text-emerald-600" />
                   Instant Project Estimation
                 </div>
-                <h3 className="text-2xl sm:text-3xl font-bold text-[#F5F7F7]">
-                  Let's Scope Your <span className="text-[#58C1C3]">Digital Solution</span>
+                <h3 className="text-2xl sm:text-3xl font-bold text-slate-900">
+                  Let's Scope Your <span className="text-cyan-700">Digital Solution</span>
                 </h3>
-                <p className="text-sm text-[#F5F7F7]/60 mt-1">
+                <p className="text-sm text-slate-600 mt-1">
                   Tell us what you're looking to build. We'll provide tailored recommendations within 24 hours.
                 </p>
               </div>
               <button
                 onClick={onClose}
-                className="p-2 text-[#F5F7F7]/50 hover:text-[#F5F7F7] hover:bg-white/5 rounded-full transition-colors cursor-pointer"
+                className="p-2 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -124,27 +124,27 @@ Looking forward to your quotation and consultation!`;
 
             {submitted ? (
               <div className="text-center py-10">
-                <div className="w-16 h-16 rounded-full bg-[#97CC6F]/20 border border-[#97CC6F]/40 flex items-center justify-center mx-auto mb-4 text-[#97CC6F]">
+                <div className="w-16 h-16 rounded-full bg-emerald-100 border border-emerald-300 flex items-center justify-center mx-auto mb-4 text-emerald-700">
                   <Check className="w-8 h-8" />
                 </div>
-                <h4 className="text-xl font-bold text-[#F5F7F7] mb-2">Inquiry Prepared!</h4>
-                <p className="text-sm text-[#F5F7F7]/70 max-w-md mx-auto mb-6">
+                <h4 className="text-xl font-bold text-slate-900 mb-2">Inquiry Prepared!</h4>
+                <p className="text-sm text-slate-600 max-w-md mx-auto mb-6">
                   Click below to send directly via WhatsApp or Email for fastest response from our lead architects.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <button
                     onClick={handleWhatsAppInquiry}
-                    className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[#97CC6F] text-[#0C1618] font-bold text-sm hover:brightness-105 transition-all cursor-pointer shadow-[0_0_20px_rgba(151,204,111,0.3)]"
+                    className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-emerald-600 text-white font-bold text-sm hover:bg-emerald-700 transition-all cursor-pointer shadow-md shadow-emerald-600/25"
                   >
                     <MessageSquare className="w-4 h-4" />
                     Open WhatsApp Chat (+880 1608-098281)
                   </button>
                   <button
                     onClick={handleEmailInquiry}
-                    className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[#58C1C3] text-[#0C1618] font-bold text-sm hover:brightness-105 transition-all cursor-pointer shadow-[0_0_20px_rgba(88,193,195,0.3)]"
+                    className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-cyan-600 text-white font-bold text-sm hover:bg-cyan-700 transition-all cursor-pointer shadow-md shadow-cyan-600/25"
                   >
                     <Mail className="w-4 h-4" />
-                    Send via Email (plexivia@gmail.com)
+                    Send via Email (support@plexivia.online)
                   </button>
                 </div>
               </div>
@@ -152,7 +152,7 @@ Looking forward to your quotation and consultation!`;
               <div className="space-y-6 relative">
                 {/* Select Service */}
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-[#58C1C3] mb-2.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-900 mb-2.5">
                     1. Select Service Needed
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -163,12 +163,12 @@ Looking forward to your quotation and consultation!`;
                         onClick={() => setSelectedService(srv)}
                         className={`text-left text-xs p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
                           selectedService === srv
-                            ? 'bg-[#58C1C3]/15 border-[#58C1C3] text-[#F5F7F7] font-semibold'
-                            : 'bg-white/[0.02] border-white/5 text-[#F5F7F7]/60 hover:bg-white/[0.06] hover:text-[#F5F7F7]'
+                            ? 'bg-cyan-50 border-cyan-500 text-cyan-900 font-semibold shadow-xs'
+                            : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-white hover:border-slate-300'
                         }`}
                       >
                         <span>{srv}</span>
-                        {selectedService === srv && <Check className="w-3.5 h-3.5 text-[#58C1C3]" />}
+                        {selectedService === srv && <Check className="w-3.5 h-3.5 text-cyan-700" />}
                       </button>
                     ))}
                   </div>
@@ -176,7 +176,7 @@ Looking forward to your quotation and consultation!`;
 
                 {/* Budget Range */}
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-[#58C1C3] mb-2.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-900 mb-2.5">
                     2. Estimated Project Budget
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -187,8 +187,8 @@ Looking forward to your quotation and consultation!`;
                         onClick={() => setSelectedBudget(b)}
                         className={`p-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${
                           selectedBudget === b
-                            ? 'bg-[#97CC6F]/15 border-[#97CC6F] text-[#F5F7F7] font-semibold'
-                            : 'bg-white/[0.02] border-white/5 text-[#F5F7F7]/60 hover:bg-white/[0.05]'
+                            ? 'bg-emerald-50 border-emerald-500 text-emerald-900 font-semibold shadow-xs'
+                            : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-white hover:border-slate-300'
                         }`}
                       >
                         {b}
@@ -199,7 +199,7 @@ Looking forward to your quotation and consultation!`;
 
                 {/* Timeline */}
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-[#58C1C3] mb-2.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-900 mb-2.5">
                     3. Target Timeline
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -210,8 +210,8 @@ Looking forward to your quotation and consultation!`;
                         onClick={() => setSelectedTimeline(t)}
                         className={`p-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${
                           selectedTimeline === t
-                            ? 'bg-[#58C1C3]/15 border-[#58C1C3] text-[#F5F7F7] font-semibold'
-                            : 'bg-white/[0.02] border-white/5 text-[#F5F7F7]/60 hover:bg-white/[0.05]'
+                            ? 'bg-cyan-50 border-cyan-500 text-cyan-900 font-semibold shadow-xs'
+                            : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-white hover:border-slate-300'
                         }`}
                       >
                         {t}
@@ -223,7 +223,7 @@ Looking forward to your quotation and consultation!`;
                 {/* Quick Info */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11px] font-medium text-[#F5F7F7]/70 mb-1">
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
                       Your Name / Company
                     </label>
                     <input
@@ -231,11 +231,11 @@ Looking forward to your quotation and consultation!`;
                       placeholder="e.g. Sarah Jenkins (Acme Corp)"
                       value={clientName}
                       onChange={(e) => setClientName(e.target.value)}
-                      className="w-full bg-[#0C1618] border border-white/10 rounded-xl px-3.5 py-2 text-sm text-[#F5F7F7] focus:outline-none focus:border-[#58C1C3] transition-colors placeholder:text-white/20"
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all placeholder:text-slate-400"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-medium text-[#F5F7F7]/70 mb-1">
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
                       Email Address
                     </label>
                     <input
@@ -243,13 +243,13 @@ Looking forward to your quotation and consultation!`;
                       placeholder="e.g. sarah@acme.com"
                       value={clientEmail}
                       onChange={(e) => setClientEmail(e.target.value)}
-                      className="w-full bg-[#0C1618] border border-white/10 rounded-xl px-3.5 py-2 text-sm text-[#F5F7F7] focus:outline-none focus:border-[#58C1C3] transition-colors placeholder:text-white/20"
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all placeholder:text-slate-400"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-medium text-[#F5F7F7]/70 mb-1">
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">
                     Brief Project Details (Optional)
                   </label>
                   <textarea
@@ -257,7 +257,7 @@ Looking forward to your quotation and consultation!`;
                     placeholder="Describe your goals, features, or reference links..."
                     value={projectNotes}
                     onChange={(e) => setProjectNotes(e.target.value)}
-                    className="w-full bg-[#0C1618] border border-white/10 rounded-xl px-3.5 py-2 text-sm text-[#F5F7F7] focus:outline-none focus:border-[#58C1C3] transition-colors placeholder:text-white/20 resize-none"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all placeholder:text-slate-400 resize-none"
                   />
                 </div>
 
@@ -266,7 +266,7 @@ Looking forward to your quotation and consultation!`;
                   <button
                     type="button"
                     onClick={handleWhatsAppInquiry}
-                    className="flex-1 inline-flex items-center justify-center gap-2 py-3.5 px-5 rounded-full bg-[#97CC6F] text-[#0C1618] font-bold text-xs uppercase tracking-wider hover:brightness-105 transition-all cursor-pointer shadow-[0_0_25px_rgba(151,204,111,0.25)]"
+                    className="flex-1 inline-flex items-center justify-center gap-2 py-3.5 px-5 rounded-full bg-emerald-600 text-white font-bold text-xs uppercase tracking-wider hover:bg-emerald-700 transition-all cursor-pointer shadow-md shadow-emerald-600/25"
                   >
                     <MessageSquare className="w-4 h-4" />
                     Inquire via WhatsApp (+880 1608-098281)
@@ -275,10 +275,10 @@ Looking forward to your quotation and consultation!`;
                   <button
                     type="button"
                     onClick={handleEmailInquiry}
-                    className="flex-1 inline-flex items-center justify-center gap-2 py-3.5 px-5 rounded-full bg-[#58C1C3] text-[#0C1618] font-bold text-xs uppercase tracking-wider hover:brightness-105 transition-all cursor-pointer shadow-[0_0_25px_rgba(88,193,195,0.25)]"
+                    className="flex-1 inline-flex items-center justify-center gap-2 py-3.5 px-5 rounded-full bg-cyan-600 text-white font-bold text-xs uppercase tracking-wider hover:bg-cyan-700 transition-all cursor-pointer shadow-md shadow-cyan-600/25"
                   >
                     <Mail className="w-4 h-4" />
-                    Send to plexivia@gmail.com
+                    Send via Email (support@plexivia.online)
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>

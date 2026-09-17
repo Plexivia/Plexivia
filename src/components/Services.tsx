@@ -134,56 +134,56 @@ export default function Services({ onSelectService }: ServicesProps) {
     const props = { className: 'w-5 h-5' };
     switch (iconName) {
       case 'Code':
-        return <Code {...props} className="w-5 h-5 text-[#58C1C3]" />;
+        return <Code {...props} className="w-5 h-5 text-cyan-600" />;
       case 'Layers':
-        return <Layers {...props} className="w-5 h-5 text-[#97CC6F]" />;
+        return <Layers {...props} className="w-5 h-5 text-emerald-600" />;
       case 'Globe':
-        return <Globe {...props} className="w-5 h-5 text-[#58C1C3]" />;
+        return <Globe {...props} className="w-5 h-5 text-cyan-600" />;
       case 'ShoppingBag':
-        return <ShoppingBag {...props} className="w-5 h-5 text-[#97CC6F]" />;
+        return <ShoppingBag {...props} className="w-5 h-5 text-emerald-600" />;
       case 'Layout':
-        return <Layout {...props} className="w-5 h-5 text-[#58C1C3]" />;
+        return <Layout {...props} className="w-5 h-5 text-cyan-600" />;
       case 'Palette':
-        return <Palette {...props} className="w-5 h-5 text-[#97CC6F]" />;
+        return <Palette {...props} className="w-5 h-5 text-emerald-600" />;
       case 'Search':
-        return <Search {...props} className="w-5 h-5 text-[#58C1C3]" />;
+        return <Search {...props} className="w-5 h-5 text-cyan-600" />;
       case 'Video':
-        return <Video {...props} className="w-5 h-5 text-[#97CC6F]" />;
+        return <Video {...props} className="w-5 h-5 text-emerald-600" />;
       case 'Share2':
-        return <Share2 {...props} className="w-5 h-5 text-[#58C1C3]" />;
+        return <Share2 {...props} className="w-5 h-5 text-cyan-600" />;
       case 'Briefcase':
-        return <Briefcase {...props} className="w-5 h-5 text-[#97CC6F]" />;
+        return <Briefcase {...props} className="w-5 h-5 text-emerald-600" />;
       default:
-        return <Code {...props} className="w-5 h-5 text-[#58C1C3]" />;
+        return <Code {...props} className="w-5 h-5 text-cyan-600" />;
     }
   };
 
   return (
-    <section id="services" className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 relative border-t border-[#58C1C3]/10 bg-[#0C1618]">
+    <section id="services" className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 relative border-t border-slate-200 bg-slate-50/70">
       {/* Background ambient lighting */}
-      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-[#58C1C3]/10 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-[#97CC6F]/10 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-cyan-100/40 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-emerald-100/40 rounded-full blur-[140px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto relative z-10">
         
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
           <div>
-            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.25em] text-[#58C1C3] mb-3">
-              <span className="w-2 h-2 rounded-full bg-[#97CC6F]" />
+            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.25em] text-cyan-800 mb-3">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
               Our Services
             </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#F5F7F7] tracking-tight">
-              Everything You Need to <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#58C1C3] to-[#97CC6F]">Grow Online</span>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight">
+              Everything You Need to <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-emerald-600">Grow Online</span>
             </h2>
-            <p className="text-sm sm:text-base text-[#F5F7F7]/65 max-w-2xl mt-3">
+            <p className="text-sm sm:text-base text-slate-600 max-w-2xl mt-3">
               From websites to marketing, we provide complete digital solutions under one roof designed to drive actual business results.
             </p>
           </div>
 
           <button
             onClick={() => onSelectService('Custom Website Development')}
-            className="self-start md:self-end inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#58C1C3] hover:text-[#97CC6F] transition-colors py-2 group cursor-pointer"
+            className="self-start md:self-end inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-cyan-700 hover:text-cyan-800 transition-colors py-2 group cursor-pointer"
           >
             <span>Request Custom Solution</span>
             <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
@@ -198,8 +198,8 @@ export default function Services({ onSelectService }: ServicesProps) {
               onClick={() => setActiveCategory(tab.key)}
               className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                 activeCategory === tab.key
-                  ? 'bg-[#58C1C3] text-[#0C1618] shadow-[0_0_15px_rgba(88,193,195,0.3)]'
-                  : 'bg-white/[0.03] text-[#F5F7F7]/70 border border-white/5 hover:border-[#58C1C3]/30 hover:text-[#F5F7F7]'
+                  ? 'bg-cyan-600 text-white shadow-md shadow-cyan-600/20'
+                  : 'bg-white text-slate-700 border border-slate-200 hover:border-cyan-300 hover:text-cyan-700 shadow-sm'
               }`}
             >
               {tab.label}
@@ -224,27 +224,27 @@ export default function Services({ onSelectService }: ServicesProps) {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.4 }}
-                  className="group relative bg-[#0F1E22] border border-[#58C1C3]/15 hover:border-[#58C1C3]/40 rounded-2xl p-6 sm:p-7 transition-all duration-300 hover:shadow-[0_10px_30px_rgba(0,0,0,0.6),0_0_20px_rgba(88,193,195,0.15)] flex flex-col justify-between"
+                  className="group relative bg-white border border-slate-200/90 hover:border-cyan-400 rounded-2xl p-6 sm:p-7 transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/80 shadow-sm flex flex-col justify-between"
                 >
                   {/* Card Content */}
                   <div>
                     {/* Icon and Category */}
                     <div className="flex items-center justify-between mb-5">
-                      <div className="w-12 h-12 rounded-xl bg-[#0C1618] border border-[#58C1C3]/20 flex items-center justify-center group-hover:scale-105 transition-transform">
+                      <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center group-hover:scale-105 transition-transform shadow-xs">
                         {getIcon(service.icon)}
                       </div>
-                      <span className="text-[10px] font-mono uppercase tracking-widest text-[#F5F7F7]/40 px-2.5 py-1 rounded-full bg-white/[0.02] border border-white/5">
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-slate-500 px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 font-semibold">
                         {service.category}
                       </span>
                     </div>
 
                     {/* Title */}
-                    <h3 className="text-lg sm:text-xl font-bold text-[#F5F7F7] mb-2.5 group-hover:text-[#58C1C3] transition-colors">
+                    <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-2.5 group-hover:text-cyan-700 transition-colors">
                       {service.title}
                     </h3>
 
                     {/* Description */}
-                    <p className="text-xs sm:text-sm text-[#F5F7F7]/60 leading-relaxed mb-4">
+                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4">
                       {service.description}
                     </p>
 
@@ -254,14 +254,14 @@ export default function Services({ onSelectService }: ServicesProps) {
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
-                        className="pt-3 border-t border-white/5 mb-4 space-y-2"
+                        className="pt-3 border-t border-slate-100 mb-4 space-y-2"
                       >
-                        <p className="text-[11px] font-bold uppercase tracking-wider text-[#97CC6F]">
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-700">
                           Core Deliverables:
                         </p>
                         {service.features.map((feat) => (
-                          <div key={feat} className="flex items-center gap-2 text-xs text-[#F5F7F7]/75">
-                            <CheckCircle className="w-3.5 h-3.5 text-[#97CC6F] flex-shrink-0" />
+                          <div key={feat} className="flex items-center gap-2 text-xs text-slate-700">
+                            <CheckCircle className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
                             <span>{feat}</span>
                           </div>
                         ))}
@@ -270,11 +270,11 @@ export default function Services({ onSelectService }: ServicesProps) {
                   </div>
 
                   {/* Card Footer Actions */}
-                  <div className="pt-4 border-t border-white/5 flex items-center justify-between mt-4">
+                  <div className="pt-4 border-t border-slate-100 flex items-center justify-between mt-4">
                     <button
                       type="button"
                       onClick={() => setExpandedService(isExpanded ? null : service.id)}
-                      className="text-xs text-[#F5F7F7]/50 hover:text-[#58C1C3] transition-colors underline underline-offset-4 cursor-pointer"
+                      className="text-xs text-slate-500 hover:text-cyan-700 transition-colors underline underline-offset-4 cursor-pointer font-medium"
                     >
                       {isExpanded ? 'Show less' : 'View deliverables'}
                     </button>
@@ -282,7 +282,7 @@ export default function Services({ onSelectService }: ServicesProps) {
                     <button
                       type="button"
                       onClick={() => onSelectService(service.title)}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#58C1C3]/10 border border-[#58C1C3]/30 text-xs font-semibold text-[#58C1C3] hover:bg-[#58C1C3] hover:text-[#0C1618] transition-all cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-cyan-50 border border-cyan-200 text-xs font-semibold text-cyan-800 hover:bg-cyan-600 hover:text-white transition-all cursor-pointer shadow-xs"
                     >
                       <span>Inquire</span>
                       <ArrowRight className="w-3 h-3" />

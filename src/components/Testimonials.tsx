@@ -52,27 +52,27 @@ export default function Testimonials() {
   const current = testimonials[currentIndex];
 
   return (
-    <section className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 bg-[#0C1618] border-t border-[#58C1C3]/10 relative">
+    <section className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 bg-slate-50/60 border-t border-slate-200 relative">
       <div className="max-w-5xl mx-auto relative z-10">
         
         {/* Section Header */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.25em] text-[#58C1C3] mb-3">
-            <span className="w-2 h-2 rounded-full bg-[#97CC6F]" />
+          <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.25em] text-cyan-800 mb-3">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
             Client Voices
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#F5F7F7] tracking-tight">
-            Trusted by <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#58C1C3] to-[#97CC6F]">Growing Businesses</span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            Trusted by <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-emerald-600">Growing Businesses</span>
           </h2>
-          <p className="text-xs sm:text-sm text-[#F5F7F7]/60 mt-2">
+          <p className="text-xs sm:text-sm text-slate-600 mt-2">
             100% Client-Focused Solutions with long-term partnership guarantees.
           </p>
         </div>
 
         {/* Testimonial Box */}
-        <div className="relative bg-[#0F1E22] border border-[#58C1C3]/20 rounded-3xl p-8 sm:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.7),0_0_30px_rgba(88,193,195,0.1)] min-h-[320px] flex flex-col justify-between">
+        <div className="relative bg-white border border-slate-200/90 rounded-3xl p-8 sm:p-12 shadow-xl shadow-slate-200/60 min-h-[320px] flex flex-col justify-between">
           
-          <Quote className="w-12 h-12 text-[#58C1C3]/20 absolute top-8 right-8 pointer-events-none" />
+          <Quote className="w-12 h-12 text-cyan-100 absolute top-8 right-8 pointer-events-none" />
 
           <AnimatePresence mode="wait">
             <motion.div
@@ -84,39 +84,39 @@ export default function Testimonials() {
               className="space-y-6"
             >
               {/* Rating */}
-              <div className="flex items-center gap-1 text-[#97CC6F]">
+              <div className="flex items-center gap-1 text-amber-400">
                 {[...Array(current.rating)].map((_, i) => (
                   <Star key={i} className="w-4 h-4 fill-current" />
                 ))}
-                <span className="text-xs font-mono text-[#F5F7F7]/50 ml-2">
+                <span className="text-xs font-mono text-slate-500 ml-2 font-medium">
                   Verified Client Review
                 </span>
               </div>
 
               {/* Quote text */}
-              <p className="text-base sm:text-xl text-[#F5F7F7] font-medium leading-relaxed italic">
+              <p className="text-base sm:text-xl text-slate-800 font-medium leading-relaxed italic">
                 "{current.quote}"
               </p>
 
               {/* Author details */}
-              <div className="flex items-center gap-4 pt-4 border-t border-white/5">
+              <div className="flex items-center gap-4 pt-4 border-t border-slate-100">
                 <img
                   src={current.avatarUrl}
                   alt={current.name}
                   referrerPolicy="no-referrer"
-                  className="w-12 h-12 rounded-full object-cover border-2 border-[#58C1C3]/40"
+                  className="w-12 h-12 rounded-full object-cover border-2 border-cyan-500 shadow-sm"
                 />
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <h4 className="text-sm sm:text-base font-bold text-[#F5F7F7]">
+                    <h4 className="text-sm sm:text-base font-bold text-slate-900">
                       {current.name}
                     </h4>
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#97CC6F]" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                   </div>
-                  <p className="text-xs text-[#58C1C3]">
-                    {current.role} • <span className="text-[#F5F7F7]/60">{current.company}</span>
+                  <p className="text-xs text-cyan-700 font-medium">
+                    {current.role} • <span className="text-slate-500">{current.company}</span>
                   </p>
-                  <p className="text-[10px] font-mono text-[#97CC6F] mt-0.5">
+                  <p className="text-[10px] font-mono text-emerald-700 mt-0.5 font-semibold">
                     Project: {current.projectType}
                   </p>
                 </div>
@@ -125,14 +125,14 @@ export default function Testimonials() {
           </AnimatePresence>
 
           {/* Navigation Controls */}
-          <div className="flex items-center justify-between pt-8 mt-6 border-t border-white/5">
+          <div className="flex items-center justify-between pt-8 mt-6 border-t border-slate-100">
             <div className="flex items-center gap-2">
               {testimonials.map((t, idx) => (
                 <button
                   key={t.id}
                   onClick={() => setCurrentIndex(idx)}
                   className={`h-1.5 rounded-full transition-all cursor-pointer ${
-                    currentIndex === idx ? 'w-8 bg-[#58C1C3]' : 'w-2 bg-white/20'
+                    currentIndex === idx ? 'w-8 bg-cyan-600' : 'w-2 bg-slate-200'
                   }`}
                   aria-label={`Go to slide ${idx + 1}`}
                 />
@@ -143,14 +143,14 @@ export default function Testimonials() {
               <button
                 onClick={prev}
                 aria-label="Previous testimonial"
-                className="w-9 h-9 rounded-full border border-white/10 bg-white/5 hover:bg-[#58C1C3]/20 hover:border-[#58C1C3] text-white flex items-center justify-center transition-colors cursor-pointer"
+                className="w-9 h-9 rounded-full border border-slate-200 bg-slate-50 hover:bg-cyan-50 hover:border-cyan-300 text-slate-700 flex items-center justify-center transition-colors cursor-pointer shadow-xs"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <button
                 onClick={next}
                 aria-label="Next testimonial"
-                className="w-9 h-9 rounded-full border border-white/10 bg-white/5 hover:bg-[#58C1C3]/20 hover:border-[#58C1C3] text-white flex items-center justify-center transition-colors cursor-pointer"
+                className="w-9 h-9 rounded-full border border-slate-200 bg-slate-50 hover:bg-cyan-50 hover:border-cyan-300 text-slate-700 flex items-center justify-center transition-colors cursor-pointer shadow-xs"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>

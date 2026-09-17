@@ -70,28 +70,28 @@ const technologies: TechBadge[] = [
 
 export default function TechExpertise() {
   return (
-    <section id="expertise" className="py-20 px-4 sm:px-6 lg:px-12 bg-[#0C1618] border-t border-[#58C1C3]/10 relative">
+    <section id="expertise" className="py-20 px-4 sm:px-6 lg:px-12 bg-white border-t border-slate-200 relative">
       <div className="max-w-7xl mx-auto">
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-14">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#58C1C3]/10 border border-[#58C1C3]/20 text-xs font-semibold text-[#58C1C3] mb-3">
-            <Sparkles className="w-3.5 h-3.5 text-[#97CC6F]" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-50 border border-cyan-200 text-xs font-semibold text-cyan-800 mb-3 shadow-xs">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
             Technology & Expertise
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#F5F7F7] tracking-tight">
-            Engineered with <span className="text-[#58C1C3]">Modern Web Technologies</span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            Engineered with <span className="text-cyan-700">Modern Web Technologies</span>
           </h2>
-          <p className="text-sm text-[#F5F7F7]/60 mt-3">
+          <p className="text-sm text-slate-600 mt-3">
             We select the optimal tech stack for your project to ensure blistering performance, bank-grade security, and long-term scalability.
           </p>
 
           {/* Subtitle Tagline from Brand Guidelines */}
-          <div className="flex items-center justify-center gap-3 text-xs font-mono text-[#97CC6F] mt-4">
+          <div className="flex items-center justify-center gap-3 text-xs font-mono text-emerald-700 mt-4">
             <span>Modern Tech</span>
-            <span className="text-[#F5F7F7]/20">•</span>
+            <span className="text-slate-300">•</span>
             <span>Scalable Solutions</span>
-            <span className="text-[#F5F7F7]/20">•</span>
+            <span className="text-slate-300">•</span>
             <span>Client Focused</span>
           </div>
         </div>
@@ -106,24 +106,24 @@ export default function TechExpertise() {
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: idx * 0.06 }}
               whileHover={{ y: -4 }}
-              className="bg-[#0F1E22] border border-[#58C1C3]/15 hover:border-[#58C1C3]/40 rounded-2xl p-5 transition-all duration-300 group"
+              className="bg-slate-50/80 hover:bg-white border border-slate-200 hover:border-cyan-300 rounded-2xl p-5 transition-all duration-300 group hover:shadow-md shadow-xs"
             >
               <div className="flex items-center justify-between mb-4">
-                <div className="w-10 h-10 rounded-xl bg-[#0C1618] border border-white/10 flex items-center justify-center text-base font-bold text-[#58C1C3] group-hover:border-[#58C1C3]/40 transition-colors">
+                <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-base font-bold text-cyan-700 group-hover:border-cyan-300 transition-colors shadow-xs">
                   {tech.icon}
                 </div>
-                <span className="text-[10px] font-mono text-[#97CC6F] bg-[#97CC6F]/10 px-2 py-0.5 rounded-full border border-[#97CC6F]/20">
+                <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 font-semibold">
                   {tech.tag}
                 </span>
               </div>
 
-              <h3 className="font-bold text-base text-[#F5F7F7] group-hover:text-[#58C1C3] transition-colors">
+              <h3 className="font-bold text-base text-slate-900 group-hover:text-cyan-700 transition-colors">
                 {tech.name}
               </h3>
-              <p className="text-[10px] text-[#58C1C3]/80 font-mono uppercase tracking-wider mb-2">
+              <p className="text-[10px] text-cyan-700 font-mono uppercase tracking-wider mb-2 font-semibold">
                 {tech.category}
               </p>
-              <p className="text-xs text-[#F5F7F7]/55 leading-relaxed">
+              <p className="text-xs text-slate-600 leading-relaxed">
                 {tech.description}
               </p>
             </motion.div>
@@ -131,21 +131,21 @@ export default function TechExpertise() {
         </div>
 
         {/* Reliability Guarantee Strip */}
-        <div className="mt-10 p-6 rounded-2xl bg-gradient-to-r from-[#58C1C3]/10 via-transparent to-[#97CC6F]/10 border border-[#58C1C3]/20 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+        <div className="mt-10 p-6 rounded-2xl bg-gradient-to-r from-cyan-50 via-white to-emerald-50 border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left shadow-xs">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-[#97CC6F]/20 border border-[#97CC6F]/40 flex items-center justify-center text-[#97CC6F] flex-shrink-0">
+            <div className="w-9 h-9 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-700 flex-shrink-0">
               <CheckCircle2 className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-[#F5F7F7]">
+              <h4 className="text-sm font-bold text-slate-900">
                 Clean Code Architecture & Zero Technical Debt
               </h4>
-              <p className="text-xs text-[#F5F7F7]/60">
+              <p className="text-xs text-slate-600">
                 Every project is built with version control, modular patterns, automated tests, and comprehensive handover documentation.
               </p>
             </div>
           </div>
-          <span className="text-xs font-mono text-[#58C1C3] uppercase tracking-wider px-3 py-1.5 rounded-full bg-[#58C1C3]/15 border border-[#58C1C3]/30 whitespace-nowrap">
+          <span className="text-xs font-mono text-cyan-800 font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full bg-cyan-100/60 border border-cyan-200 whitespace-nowrap">
             100% Client Focused
           </span>
         </div>

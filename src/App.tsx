@@ -23,7 +23,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0C1618] text-[#F5F7F7] font-sans selection:bg-[#58C1C3]/30 selection:text-[#58C1C3] flex flex-col relative">
+    <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-cyan-500/20 selection:text-cyan-900 flex flex-col relative">
       {/* Header */}
       <Header onOpenEstimator={() => handleOpenEstimator()} />
 
