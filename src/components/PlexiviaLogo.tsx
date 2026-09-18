@@ -2,6 +2,7 @@ interface PlexiviaLogoProps {
   size?: 'sm' | 'md' | 'lg';
   showTagline?: boolean;
   className?: string;
+  variant?: 'dark' | 'light' | 'white' | 'icon';
   onClick?: () => void;
 }
 
@@ -9,75 +10,41 @@ export default function PlexiviaLogo({
   size = 'md',
   showTagline = true,
   className = '',
+  variant = 'dark',
   onClick,
 }: PlexiviaLogoProps) {
-  const iconSizes = {
-    sm: 'w-7 h-7',
-    md: 'w-9 h-9',
-    lg: 'w-12 h-12',
+  const heightClasses = {
+    sm: 'h-8 sm:h-9',
+    md: 'h-10 sm:h-11',
+    lg: 'h-14 sm:h-16',
   };
 
-  const titleSizes = {
-    sm: 'text-lg',
-    md: 'text-2xl',
-    lg: 'text-3xl',
-  };
-
-  const taglineSizes = {
-    sm: 'text-[6px]',
-    md: 'text-[7.5px]',
-    lg: 'text-[9.5px]',
+  const getLogoSrc = () => {
+    if (variant === 'icon') {
+      return '/icon.png';
+    }
+    if (variant === 'light') {
+      return showTagline ? '/brand-light.png' : '/brand-minimal-light.png';
+    }
+    if (variant === 'white') {
+      return showTagline ? '/brand-white.png' : '/brand-minimal-white.png';
+    }
+    // Default: dark logo text for light backgrounds
+    return showTagline ? '/brand-dark.png' : '/brand-minimal-dark.png';
   };
 
   return (
     <div
       onClick={onClick}
-      className={`inline-flex items-center gap-3 select-none ${className} ${onClick ? 'cursor-pointer' : ''}`}
+      className={`inline-flex items-center select-none ${className} ${onClick ? 'cursor-pointer' : ''}`}
     >
-      {/* Brand Icon Badge */}
-      <div className={`relative flex-shrink-0 ${iconSizes[size]}`}>
-        <svg
-          viewBox="0 0 100 100"
-          className="w-full h-full drop-shadow-[0_3px_8px_rgba(2,132,199,0.25)]"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <defs>
-            <linearGradient id="plexiviaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#16A34A" />
-              <stop offset="100%" stopColor="#0284C7" />
-            </linearGradient>
-          </defs>
-          {/* Outer Rounded Container */}
-          <rect width="100" height="100" rx="22" fill="url(#plexiviaGrad)" />
-
-          {/* Stylized P Monogram */}
-          {/* Vertical left leg with space */}
-          <rect x="24" y="47" width="13" height="28" rx="2" fill="#FFFFFF" />
-          {/* Main P upper arch and horizontal flow */}
-          <path
-            d="M24 25H59C71.7026 25 81 33.9543 81 45.5C81 57.0457 71.7026 66 59 66H37V48.5H57C62.5228 48.5 66.5 45.0228 66.5 40.5C66.5 35.9772 62.5228 32.5 57 32.5H24V25Z"
-            fill="#FFFFFF"
-          />
-        </svg>
-      </div>
-
-      {/* Brand Wordmark & Tagline */}
-      <div className="flex flex-col justify-center">
-        <span
-          className={`font-black tracking-[0.14em] uppercase text-slate-900 leading-none ${titleSizes[size]}`}
-          style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-        >
-          PLEXIVIA
-        </span>
-        {showTagline && (
-          <span
-            className={`font-semibold uppercase tracking-[0.24em] text-slate-500 mt-1 whitespace-nowrap leading-none ${taglineSizes[size]}`}
-          >
-            CRAFTING DIGITAL DREAMS
-          </span>
-        )}
-      </div>
+      <img
+        src={getLogoSrc()}
+        alt="Plexivia - Crafting Digital Dreams"
+        className={`${heightClasses[size]} w-auto object-contain transition-transform duration-200 hover:scale-[1.02]`}
+        loading="eager"
+        decoding="async"
+      />
     </div>
   );
 }
