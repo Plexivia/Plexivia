@@ -52,27 +52,27 @@ export default function Testimonials() {
   const current = testimonials[currentIndex];
 
   return (
-    <section className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 bg-slate-50/60 border-t border-slate-200 relative">
+    <section className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 bg-slate-50/60 dark:bg-[#0C1618] border-t border-slate-200 dark:border-[#58C1C3]/15 relative transition-colors">
       <div className="max-w-5xl mx-auto relative z-10">
         
         {/* Section Header */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.25em] text-cyan-800 mb-3">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+          <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.25em] text-cyan-800 dark:text-[#58C1C3] mb-3">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-[#97CC6F]" />
             Client Voices
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-            Trusted by <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-emerald-600">Growing Businesses</span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-[#F5F7F7] tracking-tight">
+            Trusted by <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-emerald-600 dark:from-[#58C1C3] dark:to-[#97CC6F]">Growing Businesses</span>
           </h2>
-          <p className="text-xs sm:text-sm text-slate-600 mt-2">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-[#F5F7F7]/70 mt-2">
             100% Client-Focused Solutions with long-term partnership guarantees.
           </p>
         </div>
 
         {/* Testimonial Box */}
-        <div className="relative bg-white border border-slate-200/90 rounded-3xl p-8 sm:p-12 shadow-xl shadow-slate-200/60 min-h-[320px] flex flex-col justify-between">
+        <div className="relative bg-white dark:bg-[#0F1E22] border border-slate-200/90 dark:border-[#58C1C3]/15 rounded-3xl p-8 sm:p-12 shadow-xl shadow-slate-200/60 dark:shadow-black/50 min-h-[320px] flex flex-col justify-between transition-colors">
           
-          <Quote className="w-12 h-12 text-cyan-100 absolute top-8 right-8 pointer-events-none" />
+          <Quote className="w-12 h-12 text-cyan-100 dark:text-[#58C1C3]/10 absolute top-8 right-8 pointer-events-none" />
 
           <AnimatePresence mode="wait">
             <motion.div
@@ -88,35 +88,35 @@ export default function Testimonials() {
                 {[...Array(current.rating)].map((_, i) => (
                   <Star key={i} className="w-4 h-4 fill-current" />
                 ))}
-                <span className="text-xs font-mono text-slate-500 ml-2 font-medium">
+                <span className="text-xs font-mono text-slate-500 dark:text-[#F5F7F7]/60 ml-2 font-medium">
                   Verified Client Review
                 </span>
               </div>
 
               {/* Quote text */}
-              <p className="text-base sm:text-xl text-slate-800 font-medium leading-relaxed italic">
+              <p className="text-base sm:text-xl text-slate-800 dark:text-[#F5F7F7] font-medium leading-relaxed italic">
                 "{current.quote}"
               </p>
 
               {/* Author details */}
-              <div className="flex items-center gap-4 pt-4 border-t border-slate-100">
+              <div className="flex items-center gap-4 pt-4 border-t border-slate-100 dark:border-slate-800">
                 <img
                   src={current.avatarUrl}
                   alt={current.name}
                   referrerPolicy="no-referrer"
-                  className="w-12 h-12 rounded-full object-cover border-2 border-cyan-500 shadow-sm"
+                  className="w-12 h-12 rounded-full object-cover border-2 border-cyan-500 dark:border-[#58C1C3] shadow-sm"
                 />
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <h4 className="text-sm sm:text-base font-bold text-slate-900">
+                    <h4 className="text-sm sm:text-base font-bold text-slate-900 dark:text-[#F5F7F7]">
                       {current.name}
                     </h4>
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-[#97CC6F]" />
                   </div>
-                  <p className="text-xs text-cyan-700 font-medium">
-                    {current.role} • <span className="text-slate-500">{current.company}</span>
+                  <p className="text-xs text-cyan-700 dark:text-[#58C1C3] font-medium">
+                    {current.role} • <span className="text-slate-500 dark:text-[#F5F7F7]/60">{current.company}</span>
                   </p>
-                  <p className="text-[10px] font-mono text-emerald-700 mt-0.5 font-semibold">
+                  <p className="text-[10px] font-mono text-emerald-700 dark:text-[#97CC6F] mt-0.5 font-semibold">
                     Project: {current.projectType}
                   </p>
                 </div>
@@ -125,14 +125,14 @@ export default function Testimonials() {
           </AnimatePresence>
 
           {/* Navigation Controls */}
-          <div className="flex items-center justify-between pt-8 mt-6 border-t border-slate-100">
+          <div className="flex items-center justify-between pt-8 mt-6 border-t border-slate-100 dark:border-slate-800">
             <div className="flex items-center gap-2">
               {testimonials.map((t, idx) => (
                 <button
                   key={t.id}
                   onClick={() => setCurrentIndex(idx)}
                   className={`h-1.5 rounded-full transition-all cursor-pointer ${
-                    currentIndex === idx ? 'w-8 bg-cyan-600' : 'w-2 bg-slate-200'
+                    currentIndex === idx ? 'w-8 bg-cyan-600 dark:bg-[#58C1C3]' : 'w-2 bg-slate-200 dark:bg-slate-700'
                   }`}
                   aria-label={`Go to slide ${idx + 1}`}
                 />
@@ -143,14 +143,14 @@ export default function Testimonials() {
               <button
                 onClick={prev}
                 aria-label="Previous testimonial"
-                className="w-9 h-9 rounded-full border border-slate-200 bg-slate-50 hover:bg-cyan-50 hover:border-cyan-300 text-slate-700 flex items-center justify-center transition-colors cursor-pointer shadow-xs"
+                className="w-9 h-9 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0C1618] hover:bg-cyan-50 dark:hover:bg-[#14262A] hover:border-cyan-300 dark:hover:border-[#58C1C3]/50 text-slate-700 dark:text-[#F5F7F7] flex items-center justify-center transition-colors cursor-pointer shadow-xs"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <button
                 onClick={next}
                 aria-label="Next testimonial"
-                className="w-9 h-9 rounded-full border border-slate-200 bg-slate-50 hover:bg-cyan-50 hover:border-cyan-300 text-slate-700 flex items-center justify-center transition-colors cursor-pointer shadow-xs"
+                className="w-9 h-9 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0C1618] hover:bg-cyan-50 dark:hover:bg-[#14262A] hover:border-cyan-300 dark:hover:border-[#58C1C3]/50 text-slate-700 dark:text-[#F5F7F7] flex items-center justify-center transition-colors cursor-pointer shadow-xs"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>

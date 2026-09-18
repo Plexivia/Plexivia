@@ -1,4 +1,3 @@
-import { motion } from 'motion/react';
 import { Mail, Phone, MapPin, Globe, ArrowUp } from 'lucide-react';
 import PlexiviaLogo from './PlexiviaLogo';
 
@@ -74,32 +73,32 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-slate-50 border-t border-slate-200 pt-16 pb-12 px-4 sm:px-6 lg:px-12 relative overflow-hidden">
+    <footer className="bg-slate-50 dark:bg-[#0C1618] border-t border-slate-200 dark:border-[#58C1C3]/15 pt-16 pb-12 px-4 sm:px-6 lg:px-12 relative overflow-hidden transition-colors duration-300">
       {/* Background ambient lighting */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-48 bg-gradient-to-t from-cyan-100/30 to-transparent pointer-events-none" />
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-48 bg-gradient-to-t from-cyan-100/30 dark:from-[#58C1C3]/10 to-transparent pointer-events-none" />
 
       <div className="max-w-7xl mx-auto relative z-10">
         
         {/* Main Footer Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-8 pb-14 border-b border-slate-200">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-8 pb-14 border-b border-slate-200 dark:border-slate-800">
           
           {/* Brand Column */}
           <div className="lg:col-span-4 space-y-4">
             <PlexiviaLogo size="md" showTagline={true} />
-            <p className="text-xs sm:text-sm text-slate-600 max-w-sm leading-relaxed pt-2">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-[#F5F7F7]/70 max-w-sm leading-relaxed pt-2">
               Plexivia is a Digital Development Agency helping businesses establish and grow their online presence through modern design, custom development, and scalable digital solutions.
             </p>
 
             {/* Official Tagline Badge */}
             <div className="inline-block pt-1">
-              <span className="text-xs font-mono text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 font-semibold shadow-xs">
+              <span className="text-xs font-mono text-emerald-800 dark:text-[#97CC6F] bg-emerald-50 dark:bg-[#97CC6F]/10 px-3 py-1 rounded-full border border-emerald-200 dark:border-[#97CC6F]/20 font-semibold shadow-xs">
                 “Your Vision. Our Development.”
               </span>
             </div>
 
             {/* Social Media Icons */}
             <div className="pt-2">
-              <p className="text-[10px] uppercase font-mono tracking-widest text-slate-500 font-semibold mb-3">
+              <p className="text-[10px] uppercase font-mono tracking-widest text-slate-500 dark:text-[#F5F7F7]/60 font-semibold mb-3">
                 Connect With Us
               </p>
               <div className="flex items-center gap-2.5">
@@ -110,7 +109,7 @@ export default function Footer() {
                     target="_blank"
                     rel="noreferrer"
                     aria-label={`Follow Plexivia on ${social.name}`}
-                    className="w-8 h-8 rounded-lg bg-white border border-slate-200 hover:border-cyan-400 text-slate-600 hover:text-cyan-700 flex items-center justify-center transition-all hover:scale-105 shadow-xs"
+                    className="w-8 h-8 rounded-lg bg-white dark:bg-[#0F1E22] border border-slate-200 dark:border-[#58C1C3]/20 hover:border-cyan-400 dark:hover:border-[#58C1C3] text-slate-600 dark:text-[#F5F7F7]/80 hover:text-cyan-700 dark:hover:text-[#58C1C3] flex items-center justify-center transition-all hover:scale-105 shadow-xs"
                   >
                     {social.icon}
                   </a>
@@ -121,13 +120,13 @@ export default function Footer() {
 
           {/* Quick Navigation */}
           <div className="lg:col-span-2">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-4">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-[#F5F7F7] mb-4">
               Navigation
             </h4>
-            <ul className="space-y-2.5 text-xs text-slate-600 font-medium">
+            <ul className="space-y-2.5 text-xs text-slate-600 dark:text-[#F5F7F7]/70 font-medium">
               {quickLinks.map((link) => (
                 <li key={link.label}>
-                  <a href={link.href} className="hover:text-cyan-700 transition-colors">
+                  <a href={link.href} className="hover:text-cyan-700 dark:hover:text-[#58C1C3] transition-colors">
                     {link.label}
                   </a>
                 </li>
@@ -137,13 +136,13 @@ export default function Footer() {
 
           {/* Services Column */}
           <div className="lg:col-span-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-4">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-[#F5F7F7] mb-4">
               Core Capabilities
             </h4>
-            <ul className="space-y-2.5 text-xs text-slate-600 font-medium">
+            <ul className="space-y-2.5 text-xs text-slate-600 dark:text-[#F5F7F7]/70 font-medium">
               {serviceLinks.map((srv) => (
                 <li key={srv}>
-                  <a href="#services" className="hover:text-cyan-700 transition-colors">
+                  <a href="#services" className="hover:text-cyan-700 dark:hover:text-[#58C1C3] transition-colors">
                     {srv}
                   </a>
                 </li>
@@ -153,16 +152,16 @@ export default function Footer() {
 
           {/* Direct Contact Information */}
           <div className="lg:col-span-3 space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-4">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-[#F5F7F7] mb-4">
               Global Agency Hub
             </h4>
             
-            <div className="text-xs text-slate-600 space-y-2.5 font-medium">
+            <div className="text-xs text-slate-600 dark:text-[#F5F7F7]/70 space-y-2.5 font-medium">
               <a
                 href="mailto:support@plexivia.online"
-                className="flex items-center gap-2 hover:text-cyan-700 transition-colors"
+                className="flex items-center gap-2 hover:text-cyan-700 dark:hover:text-[#58C1C3] transition-colors"
               >
-                <Mail className="w-3.5 h-3.5 text-cyan-600 flex-shrink-0" />
+                <Mail className="w-3.5 h-3.5 text-cyan-600 dark:text-[#58C1C3] flex-shrink-0" />
                 <span>support@plexivia.online</span>
               </a>
 
@@ -170,14 +169,14 @@ export default function Footer() {
                 href="https://wa.me/8801608098281"
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-2 hover:text-emerald-700 transition-colors"
+                className="flex items-center gap-2 hover:text-emerald-700 dark:hover:text-[#97CC6F] transition-colors"
               >
-                <Phone className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                <Phone className="w-3.5 h-3.5 text-emerald-600 dark:text-[#97CC6F] flex-shrink-0" />
                 <span>+880 1608-098281</span>
               </a>
 
               <div className="flex items-center gap-2">
-                <MapPin className="w-3.5 h-3.5 text-cyan-600 flex-shrink-0" />
+                <MapPin className="w-3.5 h-3.5 text-cyan-600 dark:text-[#58C1C3] flex-shrink-0" />
                 <span>Dhaka, Bangladesh (Serving Worldwide)</span>
               </div>
 
@@ -185,9 +184,9 @@ export default function Footer() {
                 href="https://plexivia.online"
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-2 hover:text-cyan-700 transition-colors font-mono text-cyan-700 font-semibold"
+                className="flex items-center gap-2 hover:text-cyan-700 dark:hover:text-[#58C1C3] transition-colors font-mono text-cyan-700 dark:text-[#58C1C3] font-semibold"
               >
-                <Globe className="w-3.5 h-3.5 text-cyan-600 flex-shrink-0" />
+                <Globe className="w-3.5 h-3.5 text-cyan-600 dark:text-[#58C1C3] flex-shrink-0" />
                 <span>plexivia.online</span>
               </a>
             </div>
@@ -196,18 +195,18 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 font-medium">
+        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-[#F5F7F7]/60 font-medium">
           <div>
-            © {new Date().getFullYear()} <span className="text-slate-900 font-bold">PLEXIVIA</span>. All rights reserved. Crafting Digital Dreams.
+            © {new Date().getFullYear()} <span className="text-slate-900 dark:text-[#F5F7F7] font-bold">PLEXIVIA</span>. All rights reserved. Crafting Digital Dreams.
           </div>
 
           <div className="flex items-center gap-6">
-            <span className="font-mono text-[11px] text-emerald-700 font-semibold">
+            <span className="font-mono text-[11px] text-emerald-700 dark:text-[#97CC6F] font-semibold">
               Dhaka, Bangladesh • Worldwide
             </span>
             <button
               onClick={scrollToTop}
-              className="w-8 h-8 rounded-full bg-white border border-slate-200 hover:border-cyan-400 text-slate-600 hover:text-cyan-700 flex items-center justify-center transition-colors cursor-pointer shadow-xs"
+              className="w-8 h-8 rounded-full bg-white dark:bg-[#0F1E22] border border-slate-200 dark:border-[#58C1C3]/20 hover:border-cyan-400 dark:hover:border-[#58C1C3] text-slate-600 dark:text-[#F5F7F7]/80 hover:text-cyan-700 dark:hover:text-[#58C1C3] flex items-center justify-center transition-colors cursor-pointer shadow-xs"
               aria-label="Scroll to top"
             >
               <ArrowUp className="w-4 h-4" />

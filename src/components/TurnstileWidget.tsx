@@ -34,11 +34,58 @@ export default function TurnstileWidget({
   onError,
   onExpire,
   className = '',
-  theme = 'dark',
+  theme = 'auto',
 }: TurnstileWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    if (typeof document !== 'undefined') {
+      return (
+        document.documentElement.classList.contains('dark') ||
+        document.body.classList.contains('dark')
+      );
+    }
+    return true;
+  });
+
+  // Track system or class-based dark mode
+  useEffect(() => {
+    const checkDark = () => {
+      if (typeof document !== 'undefined') {
+        setIsDark(
+          document.documentElement.classList.contains('dark') ||
+          document.body.classList.contains('dark')
+        );
+      }
+    };
+
+    checkDark();
+
+    const observer = new MutationObserver(checkDark);
+    if (typeof document !== 'undefined') {
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class'],
+      });
+      observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class'],
+      });
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  // Compute effective theme: if explicitly set to 'light'/'dark', use it, else derive from isDark
+  const effectiveTheme: 'light' | 'dark' =
+    theme === 'light'
+      ? 'light'
+      : theme === 'dark'
+      ? 'dark'
+      : isDark
+      ? 'dark'
+      : 'light';
 
   // Cloudflare Turnstile site key for plexivia.online
   const siteKey =
@@ -88,7 +135,7 @@ export default function TurnstileWidget({
         'expired-callback': () => {
           if (onExpire) onExpire();
         },
-        theme,
+        theme: effectiveTheme,
         size: 'flexible',
       });
       widgetIdRef.current = id;
@@ -105,7 +152,7 @@ export default function TurnstileWidget({
         }
       }
     };
-  }, [isScriptLoaded, siteKey, theme]);
+  }, [isScriptLoaded, siteKey, effectiveTheme]);
 
   return (
     <div className={`turnstile-wrapper my-2 ${className}`}>

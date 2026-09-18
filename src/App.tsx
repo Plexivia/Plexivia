@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import MetricsBar from './components/MetricsBar';
@@ -12,6 +12,7 @@ import Footer from './components/Footer';
 import ProjectEstimatorModal from './components/ProjectEstimatorModal';
 import ProjectDetailPage from './pages/ProjectDetailPage';
 import EcommerceWhitelabel from './pages/EcommerceWhitelabel';
+import { ThemeProvider } from './context/ThemeContext';
 
 type ViewRoute = 
   | { type: 'home' }
@@ -30,7 +31,7 @@ function parseRoute(): ViewRoute {
   return { type: 'home' };
 }
 
-export default function App() {
+function MainContent() {
   const [currentRoute, setCurrentRoute] = useState<ViewRoute>(parseRoute);
   const [isEstimatorOpen, setIsEstimatorOpen] = useState(false);
   const [defaultEstimatorService, setDefaultEstimatorService] = useState('Custom Website Development');
@@ -76,7 +77,7 @@ export default function App() {
   // Render Project Detail Case Study Page
   if (currentRoute.type === 'project') {
     return (
-      <>
+      <div className="min-h-screen bg-white dark:bg-[#0C1618] text-slate-900 dark:text-[#F5F7F7] font-sans selection:bg-cyan-500/20 selection:text-cyan-900 dark:selection:text-cyan-200 flex flex-col relative transition-colors duration-300">
         <ProjectDetailPage
           projectId={currentRoute.id}
           onNavigateHome={() => handleNavigateHome('#portfolio')}
@@ -88,27 +89,30 @@ export default function App() {
           onClose={() => setIsEstimatorOpen(false)}
           defaultService={defaultEstimatorService}
         />
-      </>
+      </div>
     );
   }
 
   // Render eCommerce Whitelabel Page
   if (currentRoute.type === 'whitelabel') {
     return (
-      <>
-        <EcommerceWhitelabel />
+      <div className="min-h-screen bg-white dark:bg-[#0C1618] text-slate-900 dark:text-[#F5F7F7] font-sans selection:bg-cyan-500/20 selection:text-cyan-900 dark:selection:text-cyan-200 flex flex-col relative transition-colors duration-300">
+        <EcommerceWhitelabel
+          onNavigateHome={() => handleNavigateHome()}
+          onOpenEstimator={handleOpenEstimator}
+        />
         <ProjectEstimatorModal
           isOpen={isEstimatorOpen}
           onClose={() => setIsEstimatorOpen(false)}
           defaultService={defaultEstimatorService}
         />
-      </>
+      </div>
     );
   }
 
   // Render Main Agency Landing Page
   return (
-    <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-cyan-500/20 selection:text-cyan-900 flex flex-col relative">
+    <div className="min-h-screen bg-white dark:bg-[#0C1618] text-slate-900 dark:text-[#F5F7F7] font-sans selection:bg-cyan-500/20 selection:text-cyan-900 dark:selection:text-cyan-200 flex flex-col relative transition-colors duration-300">
       {/* Header */}
       <Header onOpenEstimator={() => handleOpenEstimator()} />
 
@@ -152,5 +156,13 @@ export default function App() {
         defaultService={defaultEstimatorService}
       />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <MainContent />
+    </ThemeProvider>
   );
 }

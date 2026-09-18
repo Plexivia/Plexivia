@@ -1,8 +1,10 @@
+import { useTheme } from '../context/ThemeContext';
+
 interface PlexiviaLogoProps {
   size?: 'sm' | 'md' | 'lg';
   showTagline?: boolean;
   className?: string;
-  variant?: 'dark' | 'light' | 'white' | 'icon';
+  variant?: 'auto' | 'dark' | 'light' | 'white' | 'icon';
   onClick?: () => void;
 }
 
@@ -10,9 +12,18 @@ export default function PlexiviaLogo({
   size = 'md',
   showTagline = true,
   className = '',
-  variant = 'dark',
+  variant = 'auto',
   onClick,
 }: PlexiviaLogoProps) {
+  let theme: 'light' | 'dark' = 'dark';
+  try {
+    const themeContext = useTheme();
+    theme = themeContext.theme;
+  } catch {
+    // Fallback if rendered outside ThemeProvider
+    theme = 'dark';
+  }
+
   const heightClasses = {
     sm: 'h-8 sm:h-9',
     md: 'h-10 sm:h-11',
@@ -23,13 +34,22 @@ export default function PlexiviaLogo({
     if (variant === 'icon') {
       return '/icon.png';
     }
-    if (variant === 'light') {
-      return showTagline ? '/brand-light.png' : '/brand-minimal-light.png';
-    }
     if (variant === 'white') {
       return showTagline ? '/brand-white.png' : '/brand-minimal-white.png';
     }
-    // Default: dark logo text for light backgrounds
+    if (variant === 'light') {
+      return showTagline ? '/brand-light.png' : '/brand-minimal-light.png';
+    }
+    if (variant === 'dark') {
+      return showTagline ? '/brand-dark.png' : '/brand-minimal-dark.png';
+    }
+
+    // Auto theme-aware:
+    // In dark mode (dark background) -> use brand-light.png
+    // In light mode (light background) -> use brand-dark.png
+    if (theme === 'dark') {
+      return showTagline ? '/brand-light.png' : '/brand-minimal-light.png';
+    }
     return showTagline ? '/brand-dark.png' : '/brand-minimal-dark.png';
   };
 
