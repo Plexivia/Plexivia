@@ -45,12 +45,12 @@ export default function PlexiviaLogo({
     }
 
     // Auto theme-aware:
-    // In dark mode (dark background) -> use brand-light.png
-    // In light mode (light background) -> use brand-dark.png
+    // Dark mode -> brand-dark.png
+    // Light mode -> brand-light.png
     if (theme === 'dark') {
-      return showTagline ? '/brand-light.png' : '/brand-minimal-light.png';
+      return showTagline ? '/brand-dark.png' : '/brand-minimal-dark.png';
     }
-    return showTagline ? '/brand-dark.png' : '/brand-minimal-dark.png';
+    return showTagline ? '/brand-light.png' : '/brand-minimal-light.png';
   };
 
   return (
