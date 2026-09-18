@@ -5,9 +5,10 @@ import PlexiviaLogo from './PlexiviaLogo';
 
 interface HeaderProps {
   onOpenEstimator: () => void;
+  onNavigateHome?: (hash?: string) => void;
 }
 
-export default function Header({ onOpenEstimator }: HeaderProps) {
+export default function Header({ onOpenEstimator, onNavigateHome }: HeaderProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
@@ -27,6 +28,10 @@ export default function Header({ onOpenEstimator }: HeaderProps) {
 
   const handleNavClick = (href: string) => {
     setIsOpen(false);
+    if (onNavigateHome) {
+      onNavigateHome(href);
+      return;
+    }
     const element = document.querySelector(href);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
@@ -38,7 +43,14 @@ export default function Header({ onOpenEstimator }: HeaderProps) {
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <a href="#home" className="flex items-center">
+          <a
+            href="#home"
+            onClick={(e) => {
+              e.preventDefault();
+              handleNavClick('#home');
+            }}
+            className="flex items-center cursor-pointer"
+          >
             <PlexiviaLogo size="sm" showTagline={true} />
           </a>
 

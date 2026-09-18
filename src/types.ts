@@ -19,7 +19,12 @@ export interface ProjectItem {
   link?: string;
   featuredImage: string;
   overview: string;
+  challenge?: string;
+  solution?: string;
   keyFeatures: string[];
+  results?: { label: string; value: string }[];
+  duration?: string;
+  year?: string;
 }
 
 export interface TechItem {

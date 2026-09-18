@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import MetricsBar from './components/MetricsBar';
@@ -10,10 +10,38 @@ import Testimonials from './components/Testimonials';
 import ContactSection from './components/ContactSection';
 import Footer from './components/Footer';
 import ProjectEstimatorModal from './components/ProjectEstimatorModal';
+import ProjectDetailPage from './pages/ProjectDetailPage';
+import EcommerceWhitelabel from './pages/EcommerceWhitelabel';
+
+type ViewRoute = 
+  | { type: 'home' }
+  | { type: 'project'; id: string }
+  | { type: 'whitelabel' };
+
+function parseRoute(): ViewRoute {
+  const path = window.location.pathname;
+  if (path.startsWith('/project/')) {
+    const id = path.replace('/project/', '').replace(/\/$/, '');
+    if (id) return { type: 'project', id };
+  }
+  if (path === '/ecommerce-whitelabel' || path === '/whitelabel') {
+    return { type: 'whitelabel' };
+  }
+  return { type: 'home' };
+}
 
 export default function App() {
+  const [currentRoute, setCurrentRoute] = useState<ViewRoute>(parseRoute);
   const [isEstimatorOpen, setIsEstimatorOpen] = useState(false);
   const [defaultEstimatorService, setDefaultEstimatorService] = useState('Custom Website Development');
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentRoute(parseRoute());
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const handleOpenEstimator = (service?: string) => {
     if (service) {
@@ -22,6 +50,63 @@ export default function App() {
     setIsEstimatorOpen(true);
   };
 
+  const handleSelectProject = (id: string) => {
+    window.history.pushState({}, '', `/project/${id}`);
+    setCurrentRoute({ type: 'project', id });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleNavigateHome = (hash?: string) => {
+    window.history.pushState({}, '', hash && hash !== '#home' ? `/${hash}` : '/');
+    setCurrentRoute({ type: 'home' });
+    if (hash) {
+      setTimeout(() => {
+        const el = document.querySelector(hash);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }, 50);
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  // Render Project Detail Case Study Page
+  if (currentRoute.type === 'project') {
+    return (
+      <>
+        <ProjectDetailPage
+          projectId={currentRoute.id}
+          onNavigateHome={() => handleNavigateHome('#portfolio')}
+          onSelectProject={handleSelectProject}
+          onOpenEstimator={handleOpenEstimator}
+        />
+        <ProjectEstimatorModal
+          isOpen={isEstimatorOpen}
+          onClose={() => setIsEstimatorOpen(false)}
+          defaultService={defaultEstimatorService}
+        />
+      </>
+    );
+  }
+
+  // Render eCommerce Whitelabel Page
+  if (currentRoute.type === 'whitelabel') {
+    return (
+      <>
+        <EcommerceWhitelabel />
+        <ProjectEstimatorModal
+          isOpen={isEstimatorOpen}
+          onClose={() => setIsEstimatorOpen(false)}
+          defaultService={defaultEstimatorService}
+        />
+      </>
+    );
+  }
+
+  // Render Main Agency Landing Page
   return (
     <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-cyan-500/20 selection:text-cyan-900 flex flex-col relative">
       {/* Header */}
@@ -44,8 +129,11 @@ export default function App() {
         {/* About Plexivia */}
         <AboutSection onOpenEstimator={() => handleOpenEstimator()} />
 
-        {/* Featured Projects Portfolio */}
-        <Portfolio onOpenEstimatorWithService={(serviceName) => handleOpenEstimator(serviceName)} />
+        {/* Featured Projects Portfolio (Opens Dedicated Case Study Pages) */}
+        <Portfolio
+          onSelectProject={handleSelectProject}
+          onOpenEstimatorWithService={(serviceName) => handleOpenEstimator(serviceName)}
+        />
 
         {/* Testimonials */}
         <Testimonials />
