@@ -3,10 +3,14 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   Code,
   Layers,
+  Globe,
   ShoppingBag,
-  Database,
+  Layout,
+  Palette,
   Search,
+  Video,
   Share2,
+  Briefcase,
   ArrowRight,
   CheckCircle,
 } from 'lucide-react';
@@ -14,7 +18,6 @@ import { ServiceItem } from '../types';
 
 interface ServicesProps {
   onSelectService: (serviceName: string) => void;
-  onNavigateWhitelabel?: () => void;
 }
 
 const servicesData: ServiceItem[] = [
@@ -28,31 +31,49 @@ const servicesData: ServiceItem[] = [
     deliverables: 'Tailored corporate websites, landing pages & web portals',
   },
   {
-    id: 'software-dev',
-    title: 'Software & Web Application Development',
-    description: 'Enterprise-grade software and full-stack web applications built for high concurrency, robust security, and seamless scalability.',
+    id: 'web-app',
+    title: 'Web Application Development',
+    description: 'Robust web apps for your business needs. Full-stack cloud applications built for high concurrency, security, and scalability.',
     category: 'development',
     icon: 'Layers',
-    features: ['Modern React, Next.js & Node.js architecture', 'Secure REST & GraphQL cloud APIs', 'Role-based access & multi-tenant auth', 'Scalable relational & NoSQL databases'],
-    deliverables: 'Custom business software, SaaS platforms, client portals & dashboards',
+    features: ['Modern React & Next.js frameworks', 'Secure Node.js & REST/GraphQL APIs', 'Role-based access & authentication', 'Scalable database architecture'],
+    deliverables: 'SaaS platforms, client portals, internal business dashboards',
   },
   {
-    id: 'wordpress-shopify',
-    title: 'WordPress & Shopify Development',
-    description: 'Bespoke WordPress portals and high-converting Shopify 2.0 storefronts tailored for rapid scaling and effortless management.',
+    id: 'wordpress',
+    title: 'WordPress Development',
+    description: 'Flexible, powerful, and easy to manage websites with custom Gutenberg blocks, Elementor setups, and high-performance headless options.',
+    category: 'development',
+    icon: 'Globe',
+    features: ['Bespoke theme & plugin development', 'Zero-bloat performance optimization', 'Intuitive admin panel for non-tech teams', 'Automated backup & malware shield'],
+    deliverables: 'Custom WordPress sites, publishing blogs, company showcases',
+  },
+  {
+    id: 'shopify',
+    title: 'Shopify Development',
+    description: 'Build and grow your eCommerce store. High-converting shopping experiences with seamless checkout flows and payment gateways.',
     category: 'development',
     icon: 'ShoppingBag',
-    features: ['Custom Shopify 2.0 & Liquid storefronts', 'Bespoke WordPress & WooCommerce themes', 'Conversion rate & mobile checkout optimization', 'Payment gateway & third-party app integration'],
-    deliverables: 'Flagship eCommerce stores, publishing platforms & corporate CMS sites',
+    features: ['Custom Liquid & Shopify 2.0 themes', 'Third-party app & ERP integrations', 'Mobile checkout conversion optimization', 'Inventory & fulfillment setup'],
+    deliverables: 'Flagship eCommerce storefronts & international retail stores',
   },
   {
-    id: 'erp-solutions',
-    title: 'ERP Solutions & Systems',
-    description: 'Custom Enterprise Resource Planning (ERP), inventory management, and automated workflow solutions built to streamline complex business operations.',
-    category: 'solutions',
-    icon: 'Database',
-    features: ['Custom accounting, billing & HR modules', 'Automated inventory & supply chain tracking', 'Role-based security & real-time analytics', 'Enterprise CRM & multi-branch synchronization'],
-    deliverables: 'Custom ERP software, automated management systems & cloud portals',
+    id: 'ui-ux',
+    title: 'UI/UX Design',
+    description: 'User-centric designs that make an impact. We turn complex user flows into intuitive, visually striking design systems in Figma.',
+    category: 'design',
+    icon: 'Layout',
+    features: ['Wireframing & user journey mapping', 'High-fidelity Figma prototypes', 'Design systems & component libraries', 'Usability testing & accessibility audit'],
+    deliverables: 'Complete design specs, interactive prototypes, design systems',
+  },
+  {
+    id: 'graphics',
+    title: 'Graphics Design',
+    description: 'Creative visuals for your brand identity. Cohesive branding that communicates trust, sophistication, and digital authority.',
+    category: 'design',
+    icon: 'Palette',
+    features: ['Brand guidelines & color palettes', 'Logo identity & vector asset suites', 'Marketing collateral & digital pitch decks', 'Custom vector iconography'],
+    deliverables: 'Brand styleguides, vector logos, marketing visual suites',
   },
   {
     id: 'seo',
@@ -64,6 +85,15 @@ const servicesData: ServiceItem[] = [
     deliverables: 'Monthly organic growth reports, technical SEO execution',
   },
   {
+    id: 'video-motion',
+    title: 'Video Editing & Motion Graphics',
+    description: 'Engaging videos that tell your story. Dynamic product animations, promotional reels, and brand explainers that drive retention.',
+    category: 'design',
+    icon: 'Video',
+    features: ['High-impact promotional reels & ads', '3D motion graphics & logo reveals', 'SaaS product demo videos & walkthroughs', 'Color grading, audio mix & sound design'],
+    deliverables: 'High-res 4K video assets, social reels, motion assets',
+  },
+  {
     id: 'social-marketing',
     title: 'Social Media Marketing',
     description: 'Build your brand and grow your audience with targeted multi-channel campaigns, cohesive content strategy, and community engagement.',
@@ -72,16 +102,26 @@ const servicesData: ServiceItem[] = [
     features: ['Multi-platform content strategy', 'Data-backed ad campaign management', 'Audience growth & engagement metrics', 'Conversion tracking & ROI reporting'],
     deliverables: 'Editorial calendars, ad creative assets, performance reports',
   },
+  {
+    id: 'business-solutions',
+    title: 'Business Solutions',
+    description: 'Tailored digital strategies to streamline operations, automate repetitive workflows, and integrate mission-critical tools.',
+    category: 'solutions',
+    icon: 'Briefcase',
+    features: ['Workflow automation (Zapier, Make, n8n)', 'CRM, ERP & Payment API integrations', 'Data migration & cloud infrastructure setup', 'Dedicated ongoing IT consulting & SLAs'],
+    deliverables: 'Automated business systems, integrated APIs, consulting roadmap',
+  },
 ];
 
 const categoryFilters = [
-  { key: 'all', label: 'All Services (6)' },
-  { key: 'development', label: 'Web & Software' },
-  { key: 'solutions', label: 'ERP & Systems' },
+  { key: 'all', label: 'All Services (10)' },
+  { key: 'development', label: 'Development' },
+  { key: 'design', label: 'UI/UX & Design' },
   { key: 'growth', label: 'SEO & Marketing' },
+  { key: 'solutions', label: 'Business Solutions' },
 ];
 
-export default function Services({ onSelectService, onNavigateWhitelabel }: ServicesProps) {
+export default function Services({ onSelectService }: ServicesProps) {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [expandedService, setExpandedService] = useState<string | null>(null);
 
@@ -94,48 +134,56 @@ export default function Services({ onSelectService, onNavigateWhitelabel }: Serv
     const props = { className: 'w-5 h-5' };
     switch (iconName) {
       case 'Code':
-        return <Code {...props} className="w-5 h-5 text-[#58C1C3]" />;
+        return <Code {...props} className="w-5 h-5 text-cyan-600" />;
       case 'Layers':
-        return <Layers {...props} className="w-5 h-5 text-[#97CC6F]" />;
+        return <Layers {...props} className="w-5 h-5 text-emerald-600" />;
+      case 'Globe':
+        return <Globe {...props} className="w-5 h-5 text-cyan-600" />;
       case 'ShoppingBag':
-        return <ShoppingBag {...props} className="w-5 h-5 text-[#58C1C3]" />;
-      case 'Database':
-        return <Database {...props} className="w-5 h-5 text-[#97CC6F]" />;
+        return <ShoppingBag {...props} className="w-5 h-5 text-emerald-600" />;
+      case 'Layout':
+        return <Layout {...props} className="w-5 h-5 text-cyan-600" />;
+      case 'Palette':
+        return <Palette {...props} className="w-5 h-5 text-emerald-600" />;
       case 'Search':
-        return <Search {...props} className="w-5 h-5 text-[#58C1C3]" />;
+        return <Search {...props} className="w-5 h-5 text-cyan-600" />;
+      case 'Video':
+        return <Video {...props} className="w-5 h-5 text-emerald-600" />;
       case 'Share2':
-        return <Share2 {...props} className="w-5 h-5 text-[#97CC6F]" />;
+        return <Share2 {...props} className="w-5 h-5 text-cyan-600" />;
+      case 'Briefcase':
+        return <Briefcase {...props} className="w-5 h-5 text-emerald-600" />;
       default:
-        return <Code {...props} className="w-5 h-5 text-[#58C1C3]" />;
+        return <Code {...props} className="w-5 h-5 text-cyan-600" />;
     }
   };
 
   return (
-    <section id="services" className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 relative border-t border-[#58C1C3]/10 bg-[#0C1618] overflow-hidden w-full">
+    <section id="services" className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 relative border-t border-slate-200 bg-slate-50/70">
       {/* Background ambient lighting */}
-      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-[#58C1C3]/10 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-[#97CC6F]/10 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-cyan-100/40 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-emerald-100/40 rounded-full blur-[140px] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto relative z-10 w-full">
+      <div className="max-w-7xl mx-auto relative z-10">
         
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
           <div>
-            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.25em] text-[#58C1C3] mb-3">
-              <span className="w-2 h-2 rounded-full bg-[#97CC6F]" />
+            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.25em] text-cyan-800 mb-3">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
               Our Services
             </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#F5F7F7] tracking-tight">
-              Everything You Need to <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#58C1C3] to-[#97CC6F]">Grow Online</span>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight">
+              Everything You Need to <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-emerald-600">Grow Online</span>
             </h2>
-            <p className="text-sm sm:text-base text-[#F5F7F7]/65 max-w-2xl mt-3">
+            <p className="text-sm sm:text-base text-slate-600 max-w-2xl mt-3">
               From websites to marketing, we provide complete digital solutions under one roof designed to drive actual business results.
             </p>
           </div>
 
           <button
             onClick={() => onSelectService('Custom Website Development')}
-            className="self-start md:self-end inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#58C1C3] hover:text-[#97CC6F] transition-colors py-2 group cursor-pointer"
+            className="self-start md:self-end inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-cyan-700 hover:text-cyan-800 transition-colors py-2 group cursor-pointer"
           >
             <span>Request Custom Solution</span>
             <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
@@ -143,15 +191,15 @@ export default function Services({ onSelectService, onNavigateWhitelabel }: Serv
         </div>
 
         {/* Category Filters */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-10 no-scrollbar max-w-full">
+        <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-10 no-scrollbar">
           {categoryFilters.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveCategory(tab.key)}
               className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                 activeCategory === tab.key
-                  ? 'bg-[#58C1C3] text-[#0C1618] shadow-[0_0_15px_rgba(88,193,195,0.3)]'
-                  : 'bg-white/[0.03] text-[#F5F7F7]/70 border border-white/5 hover:border-[#58C1C3]/30 hover:text-[#F5F7F7]'
+                  ? 'bg-cyan-600 text-white shadow-md shadow-cyan-600/20'
+                  : 'bg-white text-slate-700 border border-slate-200 hover:border-cyan-300 hover:text-cyan-700 shadow-sm'
               }`}
             >
               {tab.label}
@@ -176,27 +224,27 @@ export default function Services({ onSelectService, onNavigateWhitelabel }: Serv
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.4 }}
-                  className="group relative bg-[#0F1E22] border border-[#58C1C3]/15 hover:border-[#58C1C3]/40 rounded-2xl p-6 sm:p-7 transition-all duration-300 hover:shadow-[0_10px_30px_rgba(0,0,0,0.6),0_0_20px_rgba(88,193,195,0.15)] flex flex-col justify-between"
+                  className="group relative bg-white border border-slate-200/90 hover:border-cyan-400 rounded-2xl p-6 sm:p-7 transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/80 shadow-sm flex flex-col justify-between"
                 >
                   {/* Card Content */}
                   <div>
                     {/* Icon and Category */}
                     <div className="flex items-center justify-between mb-5">
-                      <div className="w-12 h-12 rounded-xl bg-[#0C1618] border border-[#58C1C3]/20 flex items-center justify-center group-hover:scale-105 transition-transform">
+                      <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center group-hover:scale-105 transition-transform shadow-xs">
                         {getIcon(service.icon)}
                       </div>
-                      <span className="text-[10px] font-mono uppercase tracking-widest text-[#F5F7F7]/40 px-2.5 py-1 rounded-full bg-white/[0.02] border border-white/5">
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-slate-500 px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 font-semibold">
                         {service.category}
                       </span>
                     </div>
 
                     {/* Title */}
-                    <h3 className="text-lg sm:text-xl font-bold text-[#F5F7F7] mb-2.5 group-hover:text-[#58C1C3] transition-colors">
+                    <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-2.5 group-hover:text-cyan-700 transition-colors">
                       {service.title}
                     </h3>
 
                     {/* Description */}
-                    <p className="text-xs sm:text-sm text-[#F5F7F7]/60 leading-relaxed mb-4">
+                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4">
                       {service.description}
                     </p>
 
@@ -206,14 +254,14 @@ export default function Services({ onSelectService, onNavigateWhitelabel }: Serv
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
-                        className="pt-3 border-t border-white/5 mb-4 space-y-2"
+                        className="pt-3 border-t border-slate-100 mb-4 space-y-2"
                       >
-                        <p className="text-[11px] font-bold uppercase tracking-wider text-[#97CC6F]">
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-700">
                           Core Deliverables:
                         </p>
                         {service.features.map((feat) => (
-                          <div key={feat} className="flex items-center gap-2 text-xs text-[#F5F7F7]/75">
-                            <CheckCircle className="w-3.5 h-3.5 text-[#97CC6F] flex-shrink-0" />
+                          <div key={feat} className="flex items-center gap-2 text-xs text-slate-700">
+                            <CheckCircle className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
                             <span>{feat}</span>
                           </div>
                         ))}
@@ -222,11 +270,11 @@ export default function Services({ onSelectService, onNavigateWhitelabel }: Serv
                   </div>
 
                   {/* Card Footer Actions */}
-                  <div className="pt-4 border-t border-white/5 flex items-center justify-between mt-4">
+                  <div className="pt-4 border-t border-slate-100 flex items-center justify-between mt-4">
                     <button
                       type="button"
                       onClick={() => setExpandedService(isExpanded ? null : service.id)}
-                      className="text-xs text-[#F5F7F7]/50 hover:text-[#58C1C3] transition-colors underline underline-offset-4 cursor-pointer"
+                      className="text-xs text-slate-500 hover:text-cyan-700 transition-colors underline underline-offset-4 cursor-pointer font-medium"
                     >
                       {isExpanded ? 'Show less' : 'View deliverables'}
                     </button>
@@ -234,7 +282,7 @@ export default function Services({ onSelectService, onNavigateWhitelabel }: Serv
                     <button
                       type="button"
                       onClick={() => onSelectService(service.title)}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#58C1C3]/10 border border-[#58C1C3]/30 text-xs font-semibold text-[#58C1C3] hover:bg-[#58C1C3] hover:text-[#0C1618] transition-all cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-cyan-50 border border-cyan-200 text-xs font-semibold text-cyan-800 hover:bg-cyan-600 hover:text-white transition-all cursor-pointer shadow-xs"
                     >
                       <span>Inquire</span>
                       <ArrowRight className="w-3 h-3" />
@@ -245,34 +293,6 @@ export default function Services({ onSelectService, onNavigateWhitelabel }: Serv
             })}
           </AnimatePresence>
         </motion.div>
-
-        {/* Dedicated Ecommerce Whitelabel Solution Highlight Banner */}
-        {onNavigateWhitelabel && (
-          <div className="mt-14 p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-[#14262A] via-[#0F1E22] to-[#14262A] border border-[#58C1C3]/30 flex flex-col md:flex-row items-center justify-between gap-6 shadow-[0_15px_40px_rgba(88,193,195,0.1)] relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-[#58C1C3]/5 rounded-full blur-3xl pointer-events-none" />
-            <div className="space-y-2 text-center md:text-left relative z-10">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#97CC6F]/15 border border-[#97CC6F]/30 text-[#97CC6F] text-[11px] font-bold uppercase tracking-wider">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#97CC6F] animate-pulse" />
-                <span>Turnkey Whitelabel Platform</span>
-              </div>
-              <h3 className="text-xl sm:text-2xl font-bold text-white">
-                Looking to launch your own White-label eCommerce Platform?
-              </h3>
-              <p className="text-xs sm:text-sm text-[#F5F7F7]/70 max-w-2xl">
-                Skip expensive Shopify monthly app subscriptions and 2% transaction fees. Get our battle-tested, sub-second eCommerce platform with 1-click checkout, automated Steadfast/Pathao courier dispatch, and fake order shield.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={onNavigateWhitelabel}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-[#58C1C3] to-[#97CC6F] text-[#0C1618] font-bold text-xs uppercase tracking-wider hover:shadow-[0_0_25px_rgba(88,193,195,0.4)] transition-all shrink-0 cursor-pointer relative z-10"
-            >
-              <span>Explore Whitelabel Platform</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
-        )}
 
       </div>
     </section>

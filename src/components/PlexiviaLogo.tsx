@@ -1,30 +1,36 @@
-import logoImg from '@/assets/logo.png';
-import favImg from '@/assets/fav.png';
-
 interface PlexiviaLogoProps {
   size?: 'sm' | 'md' | 'lg';
   showTagline?: boolean;
   className?: string;
+  variant?: 'dark' | 'light' | 'white' | 'icon';
   onClick?: () => void;
-  iconOnly?: boolean;
 }
 
 export default function PlexiviaLogo({
   size = 'md',
+  showTagline = true,
   className = '',
+  variant = 'dark',
   onClick,
-  iconOnly = false,
 }: PlexiviaLogoProps) {
   const heightClasses = {
-    sm: 'h-8 sm:h-9.5',
-    md: 'h-10 sm:h-11.5',
-    lg: 'h-13 sm:h-15',
+    sm: 'h-8 sm:h-9',
+    md: 'h-10 sm:h-11',
+    lg: 'h-14 sm:h-16',
   };
 
-  const iconClasses = {
-    sm: 'w-7 h-7 sm:w-8 sm:h-8',
-    md: 'w-9 h-9 sm:w-10 sm:h-10',
-    lg: 'w-12 h-12 sm:w-14 sm:h-14',
+  const getLogoSrc = () => {
+    if (variant === 'icon') {
+      return '/icon.png';
+    }
+    if (variant === 'light') {
+      return showTagline ? '/brand-light.png' : '/brand-minimal-light.png';
+    }
+    if (variant === 'white') {
+      return showTagline ? '/brand-white.png' : '/brand-minimal-white.png';
+    }
+    // Default: dark logo text for light backgrounds
+    return showTagline ? '/brand-dark.png' : '/brand-minimal-dark.png';
   };
 
   return (
@@ -32,22 +38,13 @@ export default function PlexiviaLogo({
       onClick={onClick}
       className={`inline-flex items-center select-none ${className} ${onClick ? 'cursor-pointer' : ''}`}
     >
-      {iconOnly ? (
-        <img
-          src={favImg}
-          alt="Plexivia Icon"
-          className={`${iconClasses[size]} object-contain rounded-xl drop-shadow-[0_0_12px_rgba(88,193,195,0.35)]`}
-          loading="eager"
-        />
-      ) : (
-        <img
-          src={logoImg}
-          alt="Plexivia - Crafting Digital Dreams"
-          className={`${heightClasses[size]} w-auto object-contain drop-shadow-[0_0_15px_rgba(88,193,195,0.2)]`}
-          loading="eager"
-        />
-      )}
+      <img
+        src={getLogoSrc()}
+        alt="Plexivia - Crafting Digital Dreams"
+        className={`${heightClasses[size]} w-auto object-contain transition-transform duration-200 hover:scale-[1.02]`}
+        loading="eager"
+        decoding="async"
+      />
     </div>
   );
 }
-

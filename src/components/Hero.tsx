@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { ArrowRight, Code2, Sparkles, CheckCircle2, Zap, Database, Terminal, ExternalLink } from 'lucide-react';
+import { ArrowRight, Code2, Sparkles, CheckCircle2, Zap, LayoutDashboard, Terminal, ExternalLink } from 'lucide-react';
 
 interface HeroProps {
   onOpenEstimator: () => void;
@@ -7,22 +7,22 @@ interface HeroProps {
 
 export default function Hero({ onOpenEstimator }: HeroProps) {
   return (
-    <section id="home" className="relative pt-12 pb-24 lg:pt-20 lg:pb-32 px-4 sm:px-6 lg:px-12 overflow-hidden w-full">
-      {/* Background Ambient Glows adhering strictly to brand cyan #58C1C3 and green #97CC6F */}
-      <div className="absolute top-10 left-1/4 w-96 h-96 bg-[#58C1C3]/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute top-40 right-10 w-[450px] h-[450px] bg-[#97CC6F]/10 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-full max-w-5xl h-48 bg-gradient-to-t from-[#58C1C3]/5 to-transparent pointer-events-none" />
+    <section id="home" className="relative pt-12 pb-24 lg:pt-20 lg:pb-32 px-4 sm:px-6 lg:px-12 overflow-hidden bg-white">
+      {/* Background Ambient Glows */}
+      <div className="absolute top-10 left-1/4 w-96 h-96 bg-cyan-100/50 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute top-40 right-10 w-[450px] h-[450px] bg-emerald-100/40 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-full max-w-5xl h-48 bg-gradient-to-t from-cyan-50/60 to-transparent pointer-events-none" />
 
       {/* Subtle Digital Grid Pattern */}
       <div
         className="absolute inset-0 opacity-[0.03] pointer-events-none"
         style={{
-          backgroundImage: `radial-gradient(circle at 1px 1px, #58C1C3 1px, transparent 0)`,
+          backgroundImage: `radial-gradient(circle at 1px 1px, #0284C7 1px, transparent 0)`,
           backgroundSize: '36px 36px',
         }}
       />
 
-      <div className="max-w-7xl mx-auto relative z-10 w-full">
+      <div className="max-w-7xl mx-auto relative z-10">
         <div className="grid lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           
           {/* Left Hero Content */}
@@ -33,23 +33,23 @@ export default function Hero({ onOpenEstimator }: HeroProps) {
             className="lg:col-span-7 flex flex-col items-start text-left"
           >
             {/* Tagline Pill */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#58C1C3]/10 border border-[#58C1C3]/25 text-xs font-semibold text-[#58C1C3] mb-6">
-              <span className="w-2 h-2 rounded-full bg-[#97CC6F] animate-pulse" />
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-50 border border-cyan-200/80 text-xs font-semibold text-cyan-800 mb-6 shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span className="tracking-wide">Digital Development Agency</span>
-              <span className="text-[#F5F7F7]/30">|</span>
-              <span className="text-[#F5F7F7]/70 text-[11px] font-mono">plexivia.online</span>
+              <span className="text-slate-300">|</span>
+              <span className="text-slate-600 text-[11px] font-mono">plexivia.online</span>
             </div>
 
             {/* Main Headline */}
-            <h1 className="text-4xl sm:text-5xl lg:text-[56px] xl:text-[62px] font-extrabold text-[#F5F7F7] tracking-tight leading-[1.08] mb-6">
+            <h1 className="text-4xl sm:text-5xl lg:text-[56px] xl:text-[62px] font-extrabold text-slate-900 tracking-tight leading-[1.08] mb-6">
               Custom Digital Solutions for{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#58C1C3] via-[#75C79E] to-[#97CC6F]">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 via-teal-600 to-emerald-600">
                 Growing Businesses
               </span>
             </h1>
 
             {/* Description */}
-            <p className="text-base sm:text-lg text-[#F5F7F7]/75 max-w-xl leading-relaxed mb-8">
+            <p className="text-base sm:text-lg text-slate-600 max-w-xl leading-relaxed mb-8">
               We build modern, scalable, and high-performing websites and digital solutions designed around your business goals.
             </p>
 
@@ -57,7 +57,7 @@ export default function Hero({ onOpenEstimator }: HeroProps) {
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto mb-10">
               <button
                 onClick={onOpenEstimator}
-                className="inline-flex items-center justify-center gap-2.5 px-8 py-4 bg-[#58C1C3] text-[#0C1618] text-sm font-bold uppercase tracking-wider rounded-full hover:bg-[#97CC6F] transition-all duration-300 shadow-[0_0_30px_rgba(88,193,195,0.35)] hover:shadow-[0_0_35px_rgba(151,204,111,0.45)] cursor-pointer"
+                className="inline-flex items-center justify-center gap-2.5 px-8 py-4 bg-cyan-600 text-white text-sm font-bold uppercase tracking-wider rounded-full hover:bg-cyan-700 transition-all duration-300 shadow-lg shadow-cyan-600/25 hover:shadow-xl hover:shadow-cyan-600/35 cursor-pointer"
               >
                 Get Started
                 <ArrowRight className="w-4 h-4" />
@@ -65,26 +65,26 @@ export default function Hero({ onOpenEstimator }: HeroProps) {
 
               <a
                 href="#portfolio"
-                className="inline-flex items-center justify-center gap-2 px-7 py-4 bg-[#0C1618] text-[#F5F7F7] text-sm font-semibold rounded-full border border-[#58C1C3]/30 hover:border-[#58C1C3] hover:bg-[#58C1C3]/10 transition-all duration-300 cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 px-7 py-4 bg-white text-slate-800 text-sm font-bold rounded-full border-2 border-slate-200 hover:border-cyan-500 hover:bg-cyan-50/50 transition-all duration-300 cursor-pointer shadow-sm"
               >
                 View Our Work
-                <ExternalLink className="w-4 h-4 text-[#58C1C3]" />
+                <ExternalLink className="w-4 h-4 text-cyan-600" />
               </a>
             </div>
 
             {/* Trust Highlights */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-6 border-t border-[#58C1C3]/15 w-full">
-              <div className="flex items-center gap-2 text-xs text-[#F5F7F7]/80">
-                <CheckCircle2 className="w-4 h-4 text-[#97CC6F] flex-shrink-0" />
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-6 border-t border-slate-200 w-full">
+              <div className="flex items-center gap-2 text-xs font-medium text-slate-700">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                 <span>Custom Architecture</span>
               </div>
-              <div className="flex items-center gap-2 text-xs text-[#F5F7F7]/80">
-                <Zap className="w-4 h-4 text-[#58C1C3] flex-shrink-0" />
+              <div className="flex items-center gap-2 text-xs font-medium text-slate-700">
+                <Zap className="w-4 h-4 text-cyan-600 flex-shrink-0" />
                 <span>High Performance (99+)</span>
               </div>
-              <div className="flex items-center gap-2 text-xs text-[#F5F7F7]/80 col-span-2 sm:col-span-1">
-                <Sparkles className="w-4 h-4 text-[#97CC6F] flex-shrink-0" />
-                <span>Enterprise ERP & Software</span>
+              <div className="flex items-center gap-2 text-xs font-medium text-slate-700 col-span-2 sm:col-span-1">
+                <Sparkles className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                <span>Modern UI/UX Design</span>
               </div>
             </div>
           </motion.div>
@@ -97,75 +97,75 @@ export default function Hero({ onOpenEstimator }: HeroProps) {
             className="lg:col-span-5 relative"
           >
             {/* Ambient Back Glow */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-[#58C1C3]/20 via-[#97CC6F]/15 to-transparent rounded-3xl blur-2xl transform -rotate-1 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-tr from-cyan-200/40 via-emerald-200/30 to-transparent rounded-3xl blur-2xl transform -rotate-1 pointer-events-none" />
 
-            {/* Futuristic App / Code / Dashboard Card */}
-            <div className="relative bg-[#0F1E22] border border-[#58C1C3]/30 rounded-3xl p-4 sm:p-6 shadow-[0_25px_60px_rgba(0,0,0,0.8),0_0_35px_rgba(88,193,195,0.15)] overflow-hidden">
+            {/* Modern App / Code / Dashboard Card */}
+            <div className="relative bg-white border border-slate-200/90 rounded-3xl p-4 sm:p-6 shadow-2xl shadow-slate-300/60 overflow-hidden">
               
               {/* Window Header */}
-              <div className="flex items-center justify-between pb-4 mb-4 border-b border-white/5">
+              <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-[#EF4444]/80" />
-                  <div className="w-3 h-3 rounded-full bg-[#F59E0B]/80" />
-                  <div className="w-3 h-3 rounded-full bg-[#97CC6F]" />
-                  <span className="text-[11px] font-mono text-[#F5F7F7]/40 ml-2">plexivia-app.tsx</span>
+                  <div className="w-3 h-3 rounded-full bg-red-400" />
+                  <div className="w-3 h-3 rounded-full bg-amber-400" />
+                  <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                  <span className="text-[11px] font-mono text-slate-400 ml-2">plexivia-app.tsx</span>
                 </div>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#58C1C3]/15 text-[#58C1C3] border border-[#58C1C3]/30">
+                <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-cyan-50 text-cyan-700 border border-cyan-200 font-semibold">
                   Production Ready
                 </span>
               </div>
 
-              {/* Code Snippet & Architecture Preview */}
-              <div className="bg-[#0C1618] rounded-xl p-4 border border-[#58C1C3]/15 font-mono text-[11px] sm:text-xs leading-relaxed text-[#F5F7F7]/80 mb-4 overflow-x-auto">
-                <div className="text-[#58C1C3]">
-                  <span className="text-[#97CC6F]">import</span> &#123; createDigitalDream &#125; <span className="text-[#97CC6F]">from</span> <span className="text-[#F5F7F7]/60">'@plexivia/core'</span>;
+              {/* Code Snippet */}
+              <div className="bg-slate-900 rounded-xl p-4 font-mono text-[11px] sm:text-xs leading-relaxed text-slate-200 mb-4 overflow-x-auto shadow-inner">
+                <div className="text-cyan-300">
+                  <span className="text-emerald-400">import</span> &#123; createDigitalDream &#125; <span className="text-emerald-400">from</span> <span className="text-slate-400">'@plexivia/core'</span>;
                 </div>
                 <div className="mt-1">
-                  <span className="text-[#58C1C3]">const</span> <span className="text-[#F5F7F7]">app</span> = <span className="text-[#97CC6F]">await</span> createDigitalDream(&#123;
+                  <span className="text-cyan-300">const</span> <span className="text-white font-bold">app</span> = <span className="text-emerald-400">await</span> createDigitalDream(&#123;
                 </div>
-                <div className="pl-4 text-[#F5F7F7]/70">
-                  client: <span className="text-[#97CC6F]">'Global Enterprise'</span>,
+                <div className="pl-4 text-slate-300">
+                  client: <span className="text-emerald-300">'Global Enterprise'</span>,
                 </div>
-                <div className="pl-4 text-[#F5F7F7]/70">
-                  performance: <span className="text-[#58C1C3]">99.8</span>, <span className="text-[#F5F7F7]/40">// Lighthouse</span>
+                <div className="pl-4 text-slate-300">
+                  performance: <span className="text-cyan-300 font-bold">99.8</span>, <span className="text-slate-500">// Lighthouse</span>
                 </div>
-                <div className="pl-4 text-[#F5F7F7]/70">
-                  stack: [<span className="text-[#97CC6F]">'React'</span>, <span className="text-[#97CC6F]">'Next.js'</span>, <span className="text-[#97CC6F]">'TypeScript'</span>],
+                <div className="pl-4 text-slate-300">
+                  stack: [<span className="text-emerald-300">'React'</span>, <span className="text-emerald-300">'Next.js'</span>, <span className="text-emerald-300">'TypeScript'</span>],
                 </div>
-                <div className="pl-4 text-[#F5F7F7]/70">
-                  scalable: <span className="text-[#58C1C3]">true</span>,
+                <div className="pl-4 text-slate-300">
+                  scalable: <span className="text-cyan-300">true</span>,
                 </div>
                 <div>&#125;);</div>
               </div>
 
-              {/* Mini Interactive Analytics Visualizer */}
+              {/* Mini Analytics Visualizer */}
               <div className="grid grid-cols-2 gap-3 mb-4">
-                <div className="bg-[#0C1618]/90 border border-white/5 rounded-xl p-3.5">
-                  <div className="flex items-center justify-between text-[11px] text-[#F5F7F7]/60 mb-1">
-                    <span>Performance Score</span>
-                    <span className="text-[#97CC6F] font-bold">100/100</span>
+                <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 shadow-sm">
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1">
+                    <span className="font-medium">Performance Score</span>
+                    <span className="text-emerald-600 font-bold">100/100</span>
                   </div>
-                  <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: '100%' }}
                       transition={{ duration: 1.2, delay: 0.5 }}
-                      className="h-full bg-gradient-to-r from-[#58C1C3] to-[#97CC6F]"
+                      className="h-full bg-gradient-to-r from-cyan-500 to-emerald-500"
                     />
                   </div>
                 </div>
 
-                <div className="bg-[#0C1618]/90 border border-white/5 rounded-xl p-3.5">
-                  <div className="flex items-center justify-between text-[11px] text-[#F5F7F7]/60 mb-1">
-                    <span>Client Satisfaction</span>
-                    <span className="text-[#58C1C3] font-bold">100%</span>
+                <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 shadow-sm">
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1">
+                    <span className="font-medium">Client Satisfaction</span>
+                    <span className="text-cyan-600 font-bold">100%</span>
                   </div>
-                  <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: '100%' }}
                       transition={{ duration: 1.2, delay: 0.7 }}
-                      className="h-full bg-gradient-to-r from-[#97CC6F] to-[#58C1C3]"
+                      className="h-full bg-gradient-to-r from-emerald-500 to-cyan-500"
                     />
                   </div>
                 </div>
@@ -173,14 +173,14 @@ export default function Hero({ onOpenEstimator }: HeroProps) {
 
               {/* Floating Tech Chips */}
               <div className="flex flex-wrap items-center gap-2 pt-1">
-                <span className="px-2.5 py-1 rounded-full bg-[#58C1C3]/10 border border-[#58C1C3]/30 text-[10px] font-mono text-[#58C1C3] flex items-center gap-1">
-                  <Code2 className="w-3 h-3" /> React / Next.js
+                <span className="px-2.5 py-1 rounded-full bg-cyan-50 border border-cyan-200 text-[10px] font-mono text-cyan-800 font-semibold flex items-center gap-1">
+                  <Code2 className="w-3 h-3 text-cyan-600" /> React / Next.js
                 </span>
-                <span className="px-2.5 py-1 rounded-full bg-[#97CC6F]/10 border border-[#97CC6F]/30 text-[10px] font-mono text-[#97CC6F] flex items-center gap-1">
-                  <Database className="w-3 h-3" /> ERP & Software
+                <span className="px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-[10px] font-mono text-emerald-800 font-semibold flex items-center gap-1">
+                  <LayoutDashboard className="w-3 h-3 text-emerald-600" /> Modern UI/UX
                 </span>
-                <span className="px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-mono text-[#F5F7F7]/70 flex items-center gap-1">
-                  <Terminal className="w-3 h-3" /> Clean Code
+                <span className="px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-[10px] font-mono text-slate-700 font-semibold flex items-center gap-1">
+                  <Terminal className="w-3 h-3 text-slate-500" /> Clean Code
                 </span>
               </div>
             </div>
@@ -189,12 +189,12 @@ export default function Hero({ onOpenEstimator }: HeroProps) {
             <motion.div
               animate={{ y: [0, -6, 0] }}
               transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-              className="absolute -top-4 -right-1 sm:-right-5 bg-[#0C1618] border border-[#97CC6F]/40 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl shadow-[0_10px_25px_rgba(0,0,0,0.7)] flex items-center gap-2 max-w-[calc(100%-1rem)]"
+              className="absolute -top-4 -right-3 sm:-right-5 bg-white border border-slate-200 px-3.5 py-2 rounded-2xl shadow-lg flex items-center gap-2"
             >
-              <span className="w-2.5 h-2.5 rounded-full bg-[#97CC6F] animate-ping" />
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
               <div className="text-[10px] font-mono">
-                <div className="text-[#97CC6F] font-bold">80+ Websites</div>
-                <div className="text-[#F5F7F7]/50">Global Delivery</div>
+                <div className="text-emerald-700 font-bold">80+ Websites</div>
+                <div className="text-slate-500">Global Delivery</div>
               </div>
             </motion.div>
 
@@ -202,12 +202,12 @@ export default function Hero({ onOpenEstimator }: HeroProps) {
             <motion.div
               animate={{ y: [0, 6, 0] }}
               transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-              className="absolute -bottom-4 -left-1 sm:-left-5 bg-[#0C1618] border border-[#58C1C3]/40 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl shadow-[0_10px_25px_rgba(0,0,0,0.7)] flex items-center gap-2 max-w-[calc(100%-1rem)]"
+              className="absolute -bottom-4 -left-3 sm:-left-5 bg-white border border-slate-200 px-3.5 py-2 rounded-2xl shadow-lg flex items-center gap-2"
             >
-              <Zap className="w-4 h-4 text-[#58C1C3]" />
+              <Zap className="w-4 h-4 text-cyan-600" />
               <div className="text-[10px] font-mono">
-                <div className="text-[#58C1C3] font-bold">Ultra Fast Speed</div>
-                <div className="text-[#F5F7F7]/50">SEO Ready</div>
+                <div className="text-cyan-700 font-bold">Ultra Fast Speed</div>
+                <div className="text-slate-500">SEO Ready</div>
               </div>
             </motion.div>
 

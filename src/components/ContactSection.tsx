@@ -10,10 +10,7 @@ import {
   CheckCircle2,
   ExternalLink,
   Sparkles,
-  Loader2,
-  AlertCircle,
 } from 'lucide-react';
-import TurnstileWidget from './TurnstileWidget';
 
 export default function ContactSection() {
   const [formData, setFormData] = useState({
@@ -24,53 +21,17 @@ export default function ContactSection() {
   });
 
   const [submitted, setSubmitted] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [turnstileToken, setTurnstileToken] = useState('');
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (!turnstileToken) {
-      setErrorMessage('Please complete the Cloudflare CAPTCHA verification before sending.');
-      return;
-    }
-
-    setIsSubmitting(true);
-    setErrorMessage('');
-
-    try {
-      const res = await fetch('/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          service: formData.service,
-          message: formData.message,
-          turnstileToken,
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.ok) {
-        throw new Error(data.message || 'Failed to submit inquiry. Please try again.');
-      }
-
-      setSubmitted(true);
-    } catch (err: any) {
-      setErrorMessage(err.message || 'A network error occurred. Please try again or reach out on WhatsApp.');
-    } finally {
-      setIsSubmitting(false);
-    }
+    setSubmitted(true);
   };
 
   const handleWhatsAppDirect = () => {
     const text = encodeURIComponent(
       `Hello Plexivia Team! I would like to build a project:\n- Name: ${formData.name || 'Visitor'}\n- Email: ${formData.email || 'N/A'}\n- Service: ${formData.service}\n- Brief: ${formData.message || 'Consultation inquiry'}`
     );
-    window.open(`https://wa.me/8801823110115?text=${text}`, '_blank');
+    window.open(`https://wa.me/8801608098281?text=${text}`, '_blank');
   };
 
   const handleEmailDirect = () => {
@@ -78,30 +39,30 @@ export default function ContactSection() {
     const body = encodeURIComponent(
       `Name: ${formData.name}\nEmail: ${formData.email}\nService: ${formData.service}\n\nProject details:\n${formData.message}`
     );
-    window.open(`mailto:info@plexivia.online?subject=${subject}&body=${body}`, '_blank');
+    window.open(`mailto:support@plexivia.online?subject=${subject}&body=${body}`, '_blank');
   };
 
   return (
-    <section id="contact" className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 bg-[#0C1618] relative border-t border-[#58C1C3]/15 overflow-hidden w-full">
-      {/* Ambient background glows adhering strictly to #58C1C3 and #97CC6F */}
-      <div className="absolute top-10 left-1/3 w-[500px] h-[500px] bg-[#58C1C3]/10 rounded-full blur-[150px] pointer-events-none" />
-      <div className="absolute bottom-10 right-1/4 w-[400px] h-[400px] bg-[#97CC6F]/10 rounded-full blur-[150px] pointer-events-none" />
+    <section id="contact" className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 bg-slate-50/70 relative border-t border-slate-200">
+      {/* Ambient background glows */}
+      <div className="absolute top-10 left-1/3 w-[500px] h-[500px] bg-cyan-100/40 rounded-full blur-[150px] pointer-events-none" />
+      <div className="absolute bottom-10 right-1/4 w-[400px] h-[400px] bg-emerald-100/40 rounded-full blur-[150px] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto relative z-10 w-full">
+      <div className="max-w-7xl mx-auto relative z-10">
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#58C1C3]/10 border border-[#58C1C3]/20 text-xs font-semibold text-[#58C1C3] mb-4">
-            <Sparkles className="w-3.5 h-3.5 text-[#97CC6F]" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-50 border border-cyan-200 text-xs font-semibold text-cyan-800 mb-4 shadow-xs">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
             Start Your Digital Journey
           </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#F5F7F7] tracking-tight">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight">
             Let’s Build Something{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#58C1C3] to-[#97CC6F]">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-emerald-600">
               Great Together
             </span>
           </h2>
-          <p className="text-sm sm:text-base text-[#F5F7F7]/65 mt-3 max-w-xl mx-auto">
+          <p className="text-sm sm:text-base text-slate-600 mt-3 max-w-xl mx-auto">
             Ready to turn your ideas into a powerful digital solution? Reach out for a free discovery session and technical roadmap.
           </p>
         </div>
@@ -112,30 +73,30 @@ export default function ContactSection() {
           <div className="lg:col-span-5 space-y-6">
             
             {/* Quick Contact Box */}
-            <div className="bg-[#0F1E22] border border-[#58C1C3]/20 rounded-3xl p-6 sm:p-8 shadow-[0_15px_40px_rgba(0,0,0,0.6)]">
-              <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-[#58C1C3]">
+            <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/60">
+              <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-cyan-700 font-bold">
                 Direct Channels
               </span>
-              <h3 className="text-xl font-bold text-[#F5F7F7] mt-1 mb-6">
+              <h3 className="text-xl font-bold text-slate-900 mt-1 mb-6">
                 Get In Touch Fast
               </h3>
 
-              <div className="space-y-5">
+              <div className="space-y-4">
                 {/* Website */}
                 <a
                   href="https://plexivia.online"
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-start gap-4 p-3.5 rounded-2xl bg-[#0C1618] border border-white/5 hover:border-[#58C1C3]/40 transition-colors group"
+                  className="flex items-start gap-4 p-3.5 rounded-2xl bg-slate-50 border border-slate-200 hover:border-cyan-400 hover:bg-white transition-all group shadow-xs"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-[#58C1C3]/15 text-[#58C1C3] flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+                  <div className="w-10 h-10 rounded-xl bg-cyan-100 text-cyan-700 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
                     <Globe className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-mono uppercase tracking-wider text-[#F5F7F7]/40">
+                    <p className="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
                       Official Domain
                     </p>
-                    <p className="text-sm font-semibold text-[#F5F7F7] group-hover:text-[#58C1C3] transition-colors">
+                    <p className="text-sm font-bold text-slate-900 group-hover:text-cyan-700 transition-colors">
                       plexivia.online
                     </p>
                   </div>
@@ -143,55 +104,55 @@ export default function ContactSection() {
 
                 {/* Email */}
                 <a
-                  href="mailto:info@plexivia.online"
-                  className="flex items-start gap-4 p-3.5 rounded-2xl bg-[#0C1618] border border-white/5 hover:border-[#58C1C3]/40 transition-colors group"
+                  href="mailto:support@plexivia.online"
+                  className="flex items-start gap-4 p-3.5 rounded-2xl bg-slate-50 border border-slate-200 hover:border-cyan-400 hover:bg-white transition-all group shadow-xs"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-[#97CC6F]/15 text-[#97CC6F] flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
                     <Mail className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-mono uppercase tracking-wider text-[#F5F7F7]/40">
+                    <p className="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
                       Email Address
                     </p>
-                    <p className="text-sm font-semibold text-[#F5F7F7] group-hover:text-[#97CC6F] transition-colors">
-                      info@plexivia.online
+                    <p className="text-sm font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">
+                      support@plexivia.online
                     </p>
                   </div>
                 </a>
 
                 {/* Phone / WhatsApp */}
                 <a
-                  href="https://wa.me/8801823110115"
+                  href="https://wa.me/8801608098281"
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-start gap-4 p-3.5 rounded-2xl bg-[#0C1618] border border-white/5 hover:border-[#58C1C3]/40 transition-colors group"
+                  className="flex items-start gap-4 p-3.5 rounded-2xl bg-slate-50 border border-slate-200 hover:border-cyan-400 hover:bg-white transition-all group shadow-xs"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-[#58C1C3]/15 text-[#58C1C3] flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+                  <div className="w-10 h-10 rounded-xl bg-cyan-100 text-cyan-700 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
                     <Phone className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-mono uppercase tracking-wider text-[#F5F7F7]/40">
+                    <p className="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
                       Phone / WhatsApp (24/7)
                     </p>
-                    <p className="text-sm font-semibold text-[#F5F7F7] group-hover:text-[#58C1C3] transition-colors">
-                      +880 1823-110115
+                    <p className="text-sm font-bold text-slate-900 group-hover:text-cyan-700 transition-colors">
+                      +880 1608-098281
                     </p>
                   </div>
                 </a>
 
                 {/* Location */}
-                <div className="flex items-start gap-4 p-3.5 rounded-2xl bg-[#0C1618] border border-white/5">
-                  <div className="w-10 h-10 rounded-xl bg-[#97CC6F]/15 text-[#97CC6F] flex items-center justify-center flex-shrink-0">
+                <div className="flex items-start gap-4 p-3.5 rounded-2xl bg-slate-50 border border-slate-200 shadow-xs">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
                     <MapPin className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-mono uppercase tracking-wider text-[#F5F7F7]/40">
+                    <p className="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
                       Headquarters
                     </p>
-                    <p className="text-sm font-semibold text-[#F5F7F7]">
+                    <p className="text-sm font-bold text-slate-900">
                       Dhaka, Bangladesh
                     </p>
-                    <p className="text-xs text-[#97CC6F] mt-0.5">
+                    <p className="text-xs text-emerald-700 mt-0.5 font-medium">
                       Serving clients worldwide.
                     </p>
                   </div>
@@ -199,12 +160,12 @@ export default function ContactSection() {
               </div>
 
               {/* Instant WhatsApp CTA Button */}
-              <div className="mt-6 pt-6 border-t border-white/5">
+              <div className="mt-6 pt-6 border-t border-slate-100">
                 <a
-                  href="https://wa.me/8801823110115?text=Hello%20Plexivia!%20I%20would%20like%20to%20consult%20on%20a%20digital%20solution."
+                  href="https://wa.me/8801608098281?text=Hello%20Plexivia!%20I%20would%20like%20to%20consult%20on%20a%20digital%20solution."
                   target="_blank"
                   rel="noreferrer"
-                  className="w-full inline-flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-full bg-[#97CC6F] text-[#0C1618] font-bold text-xs uppercase tracking-wider hover:brightness-105 transition-all shadow-[0_0_20px_rgba(151,204,111,0.3)] cursor-pointer"
+                  className="w-full inline-flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-full bg-emerald-600 text-white font-bold text-xs uppercase tracking-wider hover:bg-emerald-700 transition-all shadow-md shadow-emerald-600/25 cursor-pointer"
                 >
                   <MessageSquare className="w-4 h-4" />
                   Chat Directly on WhatsApp
@@ -213,13 +174,13 @@ export default function ContactSection() {
             </div>
 
             {/* Global Reach Card */}
-            <div className="p-5 rounded-2xl bg-gradient-to-r from-[#58C1C3]/10 to-[#97CC6F]/10 border border-[#58C1C3]/20 flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-[#58C1C3]/20 flex items-center justify-center text-[#58C1C3] flex-shrink-0">
+            <div className="p-5 rounded-2xl bg-gradient-to-r from-cyan-50 to-emerald-50 border border-slate-200 flex items-center gap-4 shadow-xs">
+              <div className="w-10 h-10 rounded-full bg-cyan-100 flex items-center justify-center text-cyan-700 flex-shrink-0">
                 <Globe className="w-5 h-5" />
               </div>
               <div className="text-xs">
-                <p className="font-bold text-[#F5F7F7]">Worldwide Remote Collaboration</p>
-                <p className="text-[#F5F7F7]/60 mt-0.5">
+                <p className="font-bold text-slate-900">Worldwide Remote Collaboration</p>
+                <p className="text-slate-600 mt-0.5">
                   Seamless communication across all time zones with weekly sprint reviews.
                 </p>
               </div>
@@ -229,31 +190,31 @@ export default function ContactSection() {
 
           {/* Right Column: Interactive Proposal & Inquiry Form */}
           <div className="lg:col-span-7">
-            <div className="bg-[#0F1E22] border border-[#58C1C3]/20 rounded-3xl p-6 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.7)]">
+            <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-10 shadow-xl shadow-slate-200/60">
               
               {submitted ? (
                 <div className="text-center py-12">
-                  <div className="w-16 h-16 rounded-full bg-[#97CC6F]/20 border border-[#97CC6F]/40 flex items-center justify-center mx-auto mb-5 text-[#97CC6F]">
+                  <div className="w-16 h-16 rounded-full bg-emerald-100 border border-emerald-300 flex items-center justify-center mx-auto mb-5 text-emerald-700">
                     <CheckCircle2 className="w-8 h-8" />
                   </div>
-                  <h3 className="text-2xl font-bold text-[#F5F7F7] mb-2">
+                  <h3 className="text-2xl font-bold text-slate-900 mb-2">
                     Inquiry Received!
                   </h3>
-                  <p className="text-sm text-[#F5F7F7]/70 max-w-md mx-auto mb-8">
-                    Thank you, <span className="text-[#58C1C3] font-semibold">{formData.name || 'friend'}</span>. A lead architect from Plexivia will review your requirements and respond within 24 hours.
+                  <p className="text-sm text-slate-600 max-w-md mx-auto mb-8">
+                    Thank you, <span className="text-cyan-700 font-bold">{formData.name || 'friend'}</span>. A lead architect from Plexivia will review your requirements and respond within 24 hours.
                   </p>
 
                   <div className="flex flex-col sm:flex-row gap-3 justify-center">
                     <button
                       onClick={handleWhatsAppDirect}
-                      className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[#97CC6F] text-[#0C1618] font-bold text-xs uppercase tracking-wider cursor-pointer"
+                      className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-emerald-600 text-white font-bold text-xs uppercase tracking-wider cursor-pointer hover:bg-emerald-700 shadow-md"
                     >
                       <MessageSquare className="w-4 h-4" />
                       Speed Up via WhatsApp
                     </button>
                     <button
                       onClick={() => setSubmitted(false)}
-                      className="px-6 py-3 rounded-full border border-white/10 text-xs font-semibold text-[#F5F7F7]/70 hover:text-white cursor-pointer"
+                      className="px-6 py-3 rounded-full border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"
                     >
                       Send Another Message
                     </button>
@@ -261,19 +222,19 @@ export default function ContactSection() {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-5">
-                  <div className="border-b border-white/5 pb-4 mb-2">
-                    <h3 className="text-xl font-bold text-[#F5F7F7]">
+                  <div className="border-b border-slate-100 pb-4 mb-2">
+                    <h3 className="text-xl font-bold text-slate-900">
                       Send Us a Message
                     </h3>
-                    <p className="text-xs text-[#F5F7F7]/60 mt-1">
+                    <p className="text-xs text-slate-500 mt-1">
                       Fill out the form below or chat directly on WhatsApp.
                     </p>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-medium text-[#F5F7F7]/80 mb-1.5">
-                        Your Name <span className="text-[#58C1C3]">*</span>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                        Your Name <span className="text-cyan-600">*</span>
                       </label>
                       <input
                         type="text"
@@ -281,13 +242,13 @@ export default function ContactSection() {
                         placeholder="John Doe"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full bg-[#0C1618] border border-white/10 rounded-xl px-4 py-3 text-sm text-[#F5F7F7] focus:outline-none focus:border-[#58C1C3] transition-colors placeholder:text-white/20"
+                        className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all placeholder:text-slate-400"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-[#F5F7F7]/80 mb-1.5">
-                        Email Address <span className="text-[#58C1C3]">*</span>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                        Email Address <span className="text-cyan-600">*</span>
                       </label>
                       <input
                         type="email"
@@ -295,32 +256,36 @@ export default function ContactSection() {
                         placeholder="john@company.com"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="w-full bg-[#0C1618] border border-white/10 rounded-xl px-4 py-3 text-sm text-[#F5F7F7] focus:outline-none focus:border-[#58C1C3] transition-colors placeholder:text-white/20"
+                        className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all placeholder:text-slate-400"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-[#F5F7F7]/80 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Service of Interest
                     </label>
                     <select
                       value={formData.service}
                       onChange={(e) => setFormData({ ...formData, service: e.target.value })}
-                      className="w-full bg-[#0C1618] border border-white/10 rounded-xl px-4 py-3 text-sm text-[#F5F7F7] focus:outline-none focus:border-[#58C1C3] transition-colors cursor-pointer"
+                      className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all cursor-pointer"
                     >
                       <option value="Custom Website Development">Custom Website Development</option>
-                      <option value="Software & Web Application Development">Software & Web Application Development</option>
-                      <option value="WordPress & Shopify Development">WordPress & Shopify Development</option>
-                      <option value="ERP Solutions & Systems">ERP Solutions & Systems</option>
-                      <option value="SEO (Search Engine Optimization)">SEO (Search Engine Optimization)</option>
+                      <option value="Web Application Development">Web Application Development</option>
+                      <option value="WordPress Development">WordPress Development</option>
+                      <option value="Shopify Development">Shopify Development</option>
+                      <option value="UI/UX Design">UI/UX Design</option>
+                      <option value="Graphics Design">Graphics Design</option>
+                      <option value="SEO">SEO (Search Engine Optimization)</option>
+                      <option value="Video Editing & Motion Graphics">Video Editing & Motion Graphics</option>
                       <option value="Social Media Marketing">Social Media Marketing</option>
+                      <option value="Business Solutions">Business Solutions</option>
                     </select>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-[#F5F7F7]/80 mb-1.5">
-                      Project Details & Vision <span className="text-[#58C1C3]">*</span>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                      Project Details & Vision <span className="text-cyan-600">*</span>
                     </label>
                     <textarea
                       required
@@ -328,60 +293,31 @@ export default function ContactSection() {
                       placeholder="Tell us about your project goals, scope, desired timeline, or any reference websites..."
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                      className="w-full bg-[#0C1618] border border-white/10 rounded-xl px-4 py-3 text-sm text-[#F5F7F7] focus:outline-none focus:border-[#58C1C3] transition-colors placeholder:text-white/20 resize-none"
+                      className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all placeholder:text-slate-400 resize-none"
                     />
                   </div>
-
-                  {/* Cloudflare Turnstile Anti-Spam CAPTCHA */}
-                  <div className="pt-1">
-                    <TurnstileWidget
-                      onVerify={(token) => {
-                        setTurnstileToken(token);
-                        setErrorMessage('');
-                      }}
-                      onExpire={() => setTurnstileToken('')}
-                      onError={() => setErrorMessage('Cloudflare CAPTCHA verification failed. Please refresh.')}
-                    />
-                  </div>
-
-                  {errorMessage && (
-                    <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-300 flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
-                      <span>{errorMessage}</span>
-                    </div>
-                  )}
 
                   <div className="pt-2 flex flex-col sm:flex-row gap-3">
                     <button
                       type="submit"
-                      disabled={isSubmitting}
-                      className="flex-1 inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-full bg-[#58C1C3] text-[#0C1618] font-bold text-xs uppercase tracking-wider hover:bg-[#97CC6F] transition-all cursor-pointer shadow-[0_0_20px_rgba(88,193,195,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1 inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-full bg-cyan-600 text-white font-bold text-xs uppercase tracking-wider hover:bg-cyan-700 transition-all cursor-pointer shadow-md shadow-cyan-600/25"
                     >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>Sending Inquiry...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Send className="w-4 h-4" />
-                          <span>Submit Project Brief</span>
-                        </>
-                      )}
+                      <Send className="w-4 h-4" />
+                      Submit Project Brief
                     </button>
 
                     <button
                       type="button"
                       onClick={handleWhatsAppDirect}
-                      className="inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-full bg-[#97CC6F] text-[#0C1618] font-bold text-xs uppercase tracking-wider hover:brightness-105 transition-all cursor-pointer shadow-[0_0_20px_rgba(151,204,111,0.25)]"
+                      className="inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-full bg-emerald-600 text-white font-bold text-xs uppercase tracking-wider hover:bg-emerald-700 transition-all cursor-pointer shadow-md shadow-emerald-600/25"
                     >
                       <MessageSquare className="w-4 h-4" />
                       Send via WhatsApp
                     </button>
                   </div>
 
-                  <p className="text-[11px] text-center text-[#F5F7F7]/40 pt-2">
-                    Direct inquiries also welcomed at <a href="mailto:info@plexivia.online" className="text-[#58C1C3] hover:underline">info@plexivia.online</a> or <span className="text-[#97CC6F]">+880 1823-110115</span>.
+                  <p className="text-[11px] text-center text-slate-500 pt-2">
+                    Direct inquiries also welcomed at <a href="mailto:support@plexivia.online" className="text-cyan-700 hover:underline font-semibold">support@plexivia.online</a> or <span className="text-emerald-700 font-semibold">+880 1608-098281</span>.
                   </p>
                 </form>
               )}
