@@ -1,0 +1,117 @@
+/* ── Shadcn Typeset CSS ────────────────────────────────────────────────────── */
+
+.typeset {
+  --typeset-font-body: inherit;
+  --typeset-font-heading: var(--font-heading, inherit);
+  --typeset-font-mono: var(--font-mono, monospace);
+  --typeset-size: 1em;
+  --typeset-leading: 1.75;
+  --typeset-flow: 1.25em;
+
+  font-size: var(--typeset-size);
+  line-height: var(--typeset-leading);
+  font-family: var(--typeset-font-body);
+}
+
+.typeset :where(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--typeset-font-heading);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin-block-start: calc(var(--typeset-flow) * 1.5);
+  margin-block-end: calc(var(--typeset-flow) * 0.5);
+  line-height: 1.25;
+}
+
+.typeset :where(h1) { font-size: 2.25em; }
+.typeset :where(h2) { font-size: 1.75em; }
+.typeset :where(h3) { font-size: 1.375em; }
+.typeset :where(h4) { font-size: 1.125em; }
+
+.typeset :where(p, ul, ol, dl, pre, blockquote, table) {
+  margin-block-start: var(--typeset-flow);
+  margin-block-end: 0;
+}
+
+.typeset :where(p) {
+  color: hsl(var(--foreground) / 90%);
+}
+
+.typeset :where(a) {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.typeset :where(a):hover {
+  color: hsl(var(--primary) / 80%);
+}
+
+.typeset :where(ul) { list-style-type: disc; padding-inline-start: 1.5em; }
+.typeset :where(ol) { list-style-type: decimal; padding-inline-start: 1.5em; }
+
+.typeset :where(blockquote) {
+  border-inline-start: 4px solid hsl(var(--border));
+  padding-inline-start: 1em;
+  font-style: italic;
+  color: hsl(var(--muted-foreground));
+}
+
+.typeset :where(pre) {
+  background-color: hsl(var(--muted));
+  padding: 1em;
+  border-radius: var(--radius);
+  overflow-x: auto;
+  font-family: var(--typeset-font-mono);
+}
+
+.typeset :where(code) {
+  background-color: hsl(var(--muted));
+  padding: 0.2em 0.4em;
+  border-radius: calc(var(--radius) * 0.5);
+  font-size: 0.875em;
+  font-family: var(--typeset-font-mono);
+}
+
+.typeset :where(table) {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.typeset :where(th, td) {
+  padding: 0.75em;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.typeset :where(th) {
+  font-weight: 600;
+  background-color: hsl(var(--muted) / 50%);
+}
+
+/* Scroll wrapper for wide tables */
+.typeset-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+/* Preset variations */
+.typeset-chat {
+  --typeset-flow: 1em;
+  --typeset-leading: 1.6;
+}
+
+.typeset-docs {
+  --typeset-size: 15px;
+  --typeset-flow: 1.5em;
+}
+
+.typeset-compact {
+  --typeset-size: 14px;
+  --typeset-leading: 1.6;
+  --typeset-flow: 1em;
+}
+
+/* Opt-out escape hatch */
+.typeset :where(.not-typeset, [data-not-typeset]) {
+  all: unset;
+}

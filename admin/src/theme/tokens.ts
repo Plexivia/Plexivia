@@ -1,0 +1,196 @@
+import { ThemeConfig, ThemePreset } from './types';
+
+export const THEME_PRESETS: ThemePreset[] = [
+  {
+    id: 'plexivia',
+    name: 'Plexivia Brand (Ocean & Sky)',
+    description: 'Official Plexivia signature theme featuring deep navy, cyan, and vibrant sky blue',
+    config: {
+      mode: 'light',
+      borderRadius: '0.75rem',
+      fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif",
+      colors: {
+        primary: '#0284c7', // sky-600 / plexivia cyan-blue
+        primaryForeground: '#ffffff',
+        secondary: '#f0f9ff', // sky-50
+        secondaryForeground: '#0369a1', // sky-700
+        accent: '#06b6d4', // cyan-500
+        accentForeground: '#ffffff',
+        background: '#ffffff',
+        foreground: '#09090b',
+        card: '#ffffff',
+        cardForeground: '#09090b',
+        sidebar: '#0b3a60', // deep plexivia navy
+        sidebarForeground: '#ffffff',
+        sidebarBorder: 'rgba(255, 255, 255, 0.15)',
+        sidebarActive: '#38bdf8',
+        border: 'rgba(0, 0, 0, 0.1)',
+        muted: 'rgba(0, 0, 0, 0.03)',
+        mutedForeground: 'rgba(0, 0, 0, 0.6)',
+        ring: '#0284c7',
+      },
+      documentTheme: {
+        headerBg: '#0b3a60',
+        headerText: '#ffffff',
+        accentBorder: '#0284c7',
+        watermarkOpacity: 0.04,
+        printFont: "'Plus Jakarta Sans', sans-serif",
+        stampColor: '#0284c7',
+      },
+    },
+  },
+  {
+    id: 'emerald',
+    name: 'Emerald Travel & Medical',
+    description: 'Fresh emerald teal designed for travel, health, and modern ERPs',
+    config: {
+      mode: 'light',
+      borderRadius: '0.5rem',
+      fontFamily: "'Inter', system-ui, sans-serif",
+      colors: {
+        primary: '#0f766e', // teal-700
+        primaryForeground: '#ffffff',
+        secondary: '#f0fdfa',
+        secondaryForeground: '#115e59',
+        accent: '#f59e0b',
+        accentForeground: '#ffffff',
+        background: '#ffffff',
+        foreground: '#0f172a',
+        card: '#ffffff',
+        cardForeground: '#0f172a',
+        sidebar: '#042f2e', // deep teal
+        sidebarForeground: '#ccfbf1',
+        sidebarBorder: '#134e4a',
+        sidebarActive: '#0d9488',
+        border: '#e2e8f0',
+        muted: '#f8fafc',
+        mutedForeground: '#64748b',
+        ring: '#0f766e',
+      },
+      documentTheme: {
+        headerBg: '#0f766e',
+        headerText: '#ffffff',
+        accentBorder: '#0f766e',
+        watermarkOpacity: 0.04,
+        printFont: "'Inter', sans-serif",
+        stampColor: '#0f766e',
+      },
+    },
+  },
+  {
+    id: 'corporate',
+    name: 'Corporate Slate & Blue',
+    description: 'Clean, enterprise-grade slate and royal indigo',
+    config: {
+      mode: 'light',
+      borderRadius: '0.375rem',
+      fontFamily: "'Inter', system-ui, sans-serif",
+      colors: {
+        primary: '#2563eb', // blue-600
+        primaryForeground: '#ffffff',
+        secondary: '#eff6ff',
+        secondaryForeground: '#1e40af',
+        accent: '#06b6d4',
+        accentForeground: '#ffffff',
+        background: '#ffffff',
+        foreground: '#0f172a',
+        card: '#ffffff',
+        cardForeground: '#0f172a',
+        sidebar: '#0f172a', // slate-900
+        sidebarForeground: '#e2e8f0',
+        sidebarBorder: '#1e293b',
+        sidebarActive: '#2563eb',
+        border: '#e2e8f0',
+        muted: '#f8fafc',
+        mutedForeground: '#64748b',
+        ring: '#2563eb',
+      },
+      documentTheme: {
+        headerBg: '#1e3a8a',
+        headerText: '#ffffff',
+        accentBorder: '#2563eb',
+        watermarkOpacity: 0.04,
+        printFont: "'Inter', sans-serif",
+        stampColor: '#1e3a8a',
+      },
+    },
+  },
+  {
+    id: 'royal',
+    name: 'Royal Violet & Indigo',
+    description: 'Modern, high-contrast creative agency palette',
+    config: {
+      mode: 'light',
+      borderRadius: '0.625rem',
+      fontFamily: "'Inter', system-ui, sans-serif",
+      colors: {
+        primary: '#7c3aed', // violet-600
+        primaryForeground: '#ffffff',
+        secondary: '#f5f3ff',
+        secondaryForeground: '#5b21b6',
+        accent: '#ec4899',
+        accentForeground: '#ffffff',
+        background: '#ffffff',
+        foreground: '#0f172a',
+        card: '#ffffff',
+        cardForeground: '#0f172a',
+        sidebar: '#2e1065', // violet-950
+        sidebarForeground: '#ede9fe',
+        sidebarBorder: '#4c1d95',
+        sidebarActive: '#7c3aed',
+        border: '#e2e8f0',
+        muted: '#faf5ff',
+        mutedForeground: '#64748b',
+        ring: '#7c3aed',
+      },
+      documentTheme: {
+        headerBg: '#4c1d95',
+        headerText: '#ffffff',
+        accentBorder: '#7c3aed',
+        watermarkOpacity: 0.04,
+        printFont: "'Inter', sans-serif",
+        stampColor: '#6d28d9',
+      },
+    },
+  },
+  {
+    id: 'midnight',
+    name: 'Midnight Dark Studio',
+    description: 'High performance ultra-dark dashboard experience',
+    config: {
+      mode: 'dark',
+      borderRadius: '0.5rem',
+      fontFamily: "'Inter', system-ui, sans-serif",
+      colors: {
+        primary: '#38bdf8', // sky-400
+        primaryForeground: '#0f172a',
+        secondary: '#1e293b',
+        secondaryForeground: '#f8fafc',
+        accent: '#a855f7',
+        accentForeground: '#ffffff',
+        background: '#090d16',
+        foreground: '#f8fafc',
+        card: '#0f172a',
+        cardForeground: '#f8fafc',
+        sidebar: '#050811',
+        sidebarForeground: '#94a3b8',
+        sidebarBorder: '#1e293b',
+        sidebarActive: '#38bdf8',
+        border: '#1e293b',
+        muted: '#1e293b',
+        mutedForeground: '#94a3b8',
+        ring: '#38bdf8',
+      },
+      documentTheme: {
+        headerBg: '#0f172a',
+        headerText: '#ffffff',
+        accentBorder: '#38bdf8',
+        watermarkOpacity: 0.06,
+        printFont: "'Inter', sans-serif",
+        stampColor: '#38bdf8',
+      },
+    },
+  },
+];
+
+export const DEFAULT_THEME = THEME_PRESETS[0].config;

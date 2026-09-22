@@ -1,0 +1,20 @@
+{
+  "agencyName": "Plexivia Agency",
+  "brandTitle": "PLEXIVIA",
+  "brandSubtitle": "ENTERPRISE",
+  "tagline": "Your Trusted Solutions Partner",
+  "phone": "+880 1700-000000",
+  "phoneLocal": "01700-000000",
+  "email": "contact@plexivia.com",
+  "domain": "plexivia.com",
+  "website": "www.plexivia.com",
+  "address": {
+    "village": "Commercial Area",
+    "road": "VIP Road",
+    "district": "Dhaka",
+    "postcode": "1212",
+    "country": "Bangladesh",
+    "full": "Commercial Area, VIP Road, Dhaka, Post Code 1212",
+    "fullBn": "বাণিজ্যিক এলাকা, ভিআইপি রোড, ঢাকা ১২১২"
+  }
+}

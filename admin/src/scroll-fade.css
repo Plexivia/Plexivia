@@ -1,0 +1,67 @@
+/* ── Scroll Fade Utilities ── */
+
+@utility scroll-fade {
+  --scroll-fade-size: min(12%, 40px);
+  --scroll-fade-reveal: 96px;
+  --scroll-fade-mask: linear-gradient(
+    to bottom,
+    transparent,
+    black var(--scroll-fade-reveal) calc(100% - var(--scroll-fade-reveal)),
+    transparent
+  );
+  mask-image: var(--scroll-fade-mask);
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+}
+
+@utility scroll-fade-y {
+  --scroll-fade-size: min(12%, 40px);
+  --scroll-fade-reveal: 96px;
+  --scroll-fade-mask: linear-gradient(
+    to bottom,
+    transparent,
+    black var(--scroll-fade-reveal) calc(100% - var(--scroll-fade-reveal)),
+    transparent
+  );
+  mask-image: var(--scroll-fade-mask);
+}
+
+@utility scroll-fade-x {
+  --scroll-fade-size: min(12%, 40px);
+  --scroll-fade-reveal: 96px;
+  --scroll-fade-mask: linear-gradient(
+    to right,
+    transparent,
+    black var(--scroll-fade-reveal) calc(100% - var(--scroll-fade-reveal)),
+    transparent
+  );
+  mask-image: var(--scroll-fade-mask);
+}
+
+@utility scroll-fade-t {
+  mask-image: linear-gradient(to bottom, transparent, black var(--scroll-fade-size, 40px));
+}
+
+@utility scroll-fade-b {
+  mask-image: linear-gradient(to top, transparent, black var(--scroll-fade-size, 40px));
+}
+
+@utility scroll-fade-l {
+  mask-image: linear-gradient(to right, transparent, black var(--scroll-fade-size, 40px));
+}
+
+@utility scroll-fade-r {
+  mask-image: linear-gradient(to left, transparent, black var(--scroll-fade-size, 40px));
+}
+
+@utility scroll-fade-none {
+  mask-image: none !important;
+}
+
+@utility no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+  &::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+  }
+}

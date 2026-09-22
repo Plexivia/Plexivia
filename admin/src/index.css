@@ -1,0 +1,368 @@
+@import "tailwindcss";
+@import "./typeset.css";
+@import "./scroll-fade.css";
+@import "./shimmer.css";
+
+@theme inline {
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1440px;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Force all standard Tailwind gray/slate/zinc scale categories to map to custom shades of black/charcoal/white */
+  --color-gray-50: #fafafa;
+  --color-gray-100: #f5f5f5;
+  --color-gray-200: #e5e5e5;
+  --color-gray-300: #d4d4d4;
+  --color-gray-400: #a3a3a3;
+  --color-gray-500: #737373;
+  --color-gray-600: #525252;
+  --color-gray-700: #404040;
+  --color-gray-800: #262626;
+  --color-gray-900: #171717;
+  --color-gray-950: #0a0a0a;
+
+  --color-slate-50: var(--color-gray-50);
+  --color-slate-100: var(--color-gray-100);
+  --color-slate-200: var(--color-gray-200);
+  --color-slate-300: var(--color-gray-300);
+  --color-slate-400: var(--color-gray-400);
+  --color-slate-500: var(--color-gray-500);
+  --color-slate-600: var(--color-gray-600);
+  --color-slate-700: var(--color-gray-700);
+  --color-slate-800: var(--color-gray-800);
+  --color-slate-900: var(--color-gray-900);
+  --color-slate-950: var(--color-gray-950);
+
+  --color-zinc-50: var(--color-gray-50);
+  --color-zinc-100: var(--color-gray-100);
+  --color-zinc-200: var(--color-gray-200);
+  --color-zinc-300: var(--color-gray-300);
+  --color-zinc-400: var(--color-gray-400);
+  --color-zinc-500: var(--color-gray-500);
+  --color-zinc-600: var(--color-gray-600);
+  --color-zinc-700: var(--color-gray-700);
+  --color-zinc-800: var(--color-gray-800);
+  --color-zinc-900: var(--color-gray-900);
+  --color-zinc-950: var(--color-gray-950);
+
+  --color-neutral-50: var(--color-gray-50);
+  --color-neutral-100: var(--color-gray-100);
+  --color-neutral-200: var(--color-gray-200);
+  --color-neutral-300: var(--color-gray-300);
+  --color-neutral-400: var(--color-gray-400);
+  --color-neutral-500: var(--color-gray-500);
+  --color-neutral-600: var(--color-gray-600);
+  --color-neutral-700: var(--color-gray-700);
+  --color-neutral-800: var(--color-gray-800);
+  --color-neutral-900: var(--color-gray-900);
+  --color-neutral-950: var(--color-gray-950);
+
+  --color-stone-50: var(--color-gray-50);
+  --color-stone-100: var(--color-gray-100);
+  --color-stone-200: var(--color-gray-200);
+  --color-stone-300: var(--color-gray-300);
+  --color-stone-400: var(--color-gray-400);
+  --color-stone-500: var(--color-gray-500);
+  --color-stone-600: var(--color-gray-600);
+  --color-stone-700: var(--color-gray-700);
+  --color-stone-800: var(--color-gray-800);
+  --color-stone-900: var(--color-gray-900);
+  --color-stone-950: var(--color-gray-950);
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #09090b;
+  --card: #ffffff;
+  --card-foreground: #09090b;
+  --popover: #ffffff;
+  --popover-foreground: #09090b;
+  --primary: #0284c7;
+  --primary-foreground: #ffffff;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+  --muted: rgba(0, 0, 0, 0.03);
+  --muted-foreground: rgba(0, 0, 0, 0.6);
+  --accent: rgba(0, 0, 0, 0.04);
+  --accent-foreground: #09090b;
+  --destructive: #ef4444;
+  --border: rgba(0, 0, 0, 0.1);
+  --input: rgba(0, 0, 0, 0.12);
+  --ring: #0284c7;
+  --chart-1: #0284c7;
+  --chart-2: #10b981;
+  --chart-3: #f59e0b;
+  --chart-4: #6366f1;
+  --chart-5: #ec4899;
+  --radius: 0.75rem;
+  --sidebar: #0b3a60;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #38bdf8;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgba(255, 255, 255, 0.12);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.15);
+  --sidebar-ring: #38bdf8;
+  --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Hind Siliguri', sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.dark {
+  --background: #09090b;
+  --foreground: #fafafa;
+  --card: #111114;
+  --card-foreground: #fafafa;
+  --popover: #111114;
+  --popover-foreground: #fafafa;
+  --primary: #38bdf8;
+  --primary-foreground: #09090b;
+  --secondary: #18181b;
+  --secondary-foreground: #fafafa;
+  --muted: rgba(255, 255, 255, 0.05);
+  --muted-foreground: rgba(255, 255, 255, 0.6);
+  --accent: rgba(255, 255, 255, 0.08);
+  --accent-foreground: #fafafa;
+  --destructive: #ef4444;
+  --border: rgba(255, 255, 255, 0.12);
+  --input: rgba(255, 255, 255, 0.15);
+  --ring: #38bdf8;
+  --sidebar: #0b1320;
+  --sidebar-foreground: #f8fafc;
+  --sidebar-primary: #38bdf8;
+  --sidebar-primary-foreground: #09090b;
+  --sidebar-accent: rgba(255, 255, 255, 0.1);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.12);
+  --sidebar-ring: #38bdf8;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+    height: 100dvh;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    touch-action: pan-x pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  a, button, [role="button"], select, input[type="button"], input[type="submit"] {
+    cursor: pointer !important;
+  }
+}
+
+/* ------------------------------------------------------------- */
+/* GLOBAL A4 PRINT SPECIFICATIONS FOR DOCUMENT STUDIO            */
+/* ------------------------------------------------------------- */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0 !important;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #111827 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    min-height: 100% !important;
+    overflow: visible !important;
+  }
+
+  /* Reset layout containers so sidebar width & margins do not displace printable document */
+  #root,
+  .app-container,
+  .dashboard-layout,
+  main,
+  [data-layout],
+  .flex-1 {
+    margin: 0 !important;
+    padding: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    display: block !important;
+  }
+
+  /* Reset split-view scale or container transforms */
+  [class*="scale-"],
+  [class*="origin-"],
+  .scale-\[0\.88\],
+  .origin-top {
+    transform: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Strictly force-hide non-printable elements */
+  aside,
+  header,
+  footer,
+  nav,
+  [data-sidebar],
+  .sidebar,
+  input,
+  textarea,
+  select,
+  button,
+  .no-print,
+  .no-print * {
+    display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* HIDE EVERYTHING ON THE PAGE BY DEFAULT */
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* SHOW ONLY THE PRINTABLE DOCUMENT & ITS CHILDREN */
+  .printable-a4-paper,
+  .printable-a4-paper *,
+  .printable-money-receipt,
+  .printable-money-receipt *,
+  [id*="canvas"],
+  [id*="canvas"] *,
+  [id*="printable"],
+  [id*="printable"] *,
+  #printable-receipt-canvas,
+  #printable-receipt-canvas *,
+  #printable-money-receipt,
+  #printable-money-receipt *,
+  #job-verification-canvas,
+  #job-verification-canvas *,
+  #experience-certificate-canvas,
+  #experience-certificate-canvas *,
+  #printable-experience-certificate,
+  #printable-experience-certificate *,
+  #marriage-certificate-canvas,
+  #marriage-certificate-canvas *,
+  #printable-marriage-certificate,
+  #printable-marriage-certificate *,
+  #character-certificate-canvas,
+  #character-certificate-canvas *,
+  #printable-character-certificate,
+  #printable-character-certificate *,
+  #salary-slip-canvas,
+  #salary-slip-canvas *,
+  #employment-agreement-canvas,
+  #employment-agreement-canvas *,
+  #client-guardian-canvas,
+  #client-guardian-canvas *,
+  #printable-client-form-canvas,
+  #printable-client-form-canvas *,
+  #customer-guardian-canvas,
+  #customer-guardian-canvas *,
+  #printable-invoice-canvas,
+  #printable-invoice-canvas *,
+  #printable-indian-visa-canvas,
+  #printable-indian-visa-canvas *,
+  #printable-passport-canvas,
+  #printable-passport-canvas *,
+  #cash-voucher-canvas,
+  #cash-voucher-canvas * {
+    visibility: visible !important;
+  }
+
+  /* Anchor printable paper to exact 210mm x 297mm A4 page coordinates starting at (0,0) */
+  .printable-a4-paper,
+  .printable-money-receipt,
+  #printable-receipt-canvas,
+  #printable-money-receipt,
+  #job-verification-canvas,
+  #experience-certificate-canvas,
+  #printable-experience-certificate,
+  #marriage-certificate-canvas,
+  #printable-marriage-certificate,
+  #character-certificate-canvas,
+  #printable-character-certificate,
+  #salary-slip-canvas,
+  #employment-agreement-canvas,
+  #client-guardian-canvas,
+  #printable-client-form-canvas,
+  #customer-guardian-canvas,
+  #printable-invoice-canvas,
+  #printable-indian-visa-canvas,
+  #printable-passport-canvas,
+  #cash-voucher-canvas {
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 296mm !important;
+    box-sizing: border-box !important;
+    margin: 0 auto !important;
+    padding: 6mm 8mm !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    color: #111827 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    overflow: visible !important;
+    z-index: 9999999 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+}
