@@ -19,13 +19,19 @@ import {
 const TOKEN_KEY = 'plexi_jwt_token';
 const USER_KEY = 'plexi_active_user';
 
-export async function apiFetch<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
+// Fetch data from backend API with authentication headers
+export const apiFetch = async <T = any>(endpoint: string, options: RequestInit = {}): Promise<T> => {
   const token = localStorage.getItem(TOKEN_KEY) || localStorage.getItem('accessToken');
   const headers = new Headers(options.headers || {});
   headers.set('Content-Type', 'application/json');
   if (token) headers.set('Authorization', 'Bearer ' + token);
+
+  const baseUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) ? import.meta.env.VITE_API_BASE_URL : '';
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const requestUrl = baseUrl ? `${baseUrl}/api${cleanEndpoint}` : `/api${cleanEndpoint}`;
+
   try {
-    const res = await fetch('/api' + endpoint, { ...options, headers });
+    const res = await fetch(requestUrl, { ...options, headers });
     if (!res.ok) {
       if (res.status === 401) window.dispatchEvent(new CustomEvent('plexi:unauthorized'));
       throw new Error('API Error: ' + res.status + ' ' + res.statusText);
@@ -34,9 +40,10 @@ export async function apiFetch<T = any>(endpoint: string, options: RequestInit =
   } catch (err) {
     throw err;
   }
-}
+};
 
-function extractArray<T>(res: any): T[] {
+// Extract array from various API response wrapper formats
+const extractArray = <T>(res: any): T[] => {
   if (!res) return [];
   if (Array.isArray(res)) return res;
   if (typeof res === 'object') {
@@ -65,9 +72,10 @@ function extractArray<T>(res: any): T[] {
     }
   }
   return [];
-}
+};
 
-function extractItem<T>(res: any): T | null {
+// Extract single item from various API response envelope formats
+const extractItem = <T>(res: any): T | null => {
   if (!res) return null;
   if (typeof res === 'object') {
     if (res.data && typeof res.data === 'object' && !Array.isArray(res.data)) return res.data;
@@ -83,7 +91,7 @@ function extractItem<T>(res: any): T | null {
     if (res.result && typeof res.result === 'object') return res.result;
   }
   return res as T;
-}
+};
 
 export interface ApiClient {
   getToken(): string | null;

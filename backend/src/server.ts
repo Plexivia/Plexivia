@@ -8,10 +8,30 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5095;
 
+const allowedOrigins = [
+  'http://localhost:8010',
+  'http://127.0.0.1:8010',
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'https://admin.plexivia.com',
+  'https://hub.plexivia.com',
+  'https://plexivia.com',
+];
+
+// Single line comment before CORS configuration
 app.use(cors({
-  origin: '*',
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin) || origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
+      callback(null, true);
+    } else {
+      callback(null, true);
+    }
+  },
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
 }));
 
 app.use(express.json());
