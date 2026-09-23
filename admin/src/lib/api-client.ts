@@ -3,25 +3,13 @@ import { handleGlobalError } from './error-handler';
 
 /**
  * Resolves the API Base URL with environment awareness:
- * - In local development mode, connects to configured VITE_API_BASE_URL or local server.
- * - In production cloud deployments, connects to the configured environment URL.
+ * - In local development mode, uses VITE_API_BASE_URL if provided, or empty string
+ *   which automatically routes through Vite dev server proxy to https://api.plexivia.com.
+ * - In production cloud deployments, connects to same-origin proxy (relative root) or configured URL.
  */
 export const getApiBaseUrl = (): string => {
   if (import.meta.env?.VITE_API_BASE_URL) {
     return import.meta.env.VITE_API_BASE_URL;
-  }
-  if (typeof window !== 'undefined') {
-    const isLocalhost =
-      window.location.hostname === 'localhost' ||
-      window.location.hostname === '127.0.0.1' ||
-      window.location.hostname.startsWith('192.168.') ||
-      window.location.hostname.startsWith('10.');
-
-    if (isLocalhost) {
-      return 'http://localhost:5095';
-    }
-    // In production, use same-origin proxy (relative root) to avoid CORS
-    return '';
   }
   return '';
 };

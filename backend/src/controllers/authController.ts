@@ -1,4 +1,5 @@
-﻿import { Request, Response } from 'express';
+import { Request, Response } from 'express';
+import { Store } from '../data/mockStore.js';
 
 export const login = async (req: Request, res: Response) => {
   try {
@@ -8,26 +9,36 @@ export const login = async (req: Request, res: Response) => {
     }
 
     const emailClean = String(email).trim().toLowerCase();
-    const isSuperAdmin =
-      emailClean === 'admin@plexivia.com' ||
-      emailClean === 'plexivia.ikram@gmail.com' ||
-      emailClean.includes('admin');
+    let user = Store.users.find(u => u.email.toLowerCase() === emailClean);
 
-    const user = {
-      id: isSuperAdmin ? 'usr_admin_01' : 'usr_dev_01',
-      email: emailClean,
-      name: emailClean.split('@')[0].replace('.', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
-      role: isSuperAdmin ? 'Superadmin' : 'Admin',
-      department: 'Engineering',
-      designation: 'Enterprise Admin',
-      avatar: '',
-    };
+    if (!user) {
+      const isSuperAdmin =
+        emailClean === 'admin@plexivia.com' ||
+        emailClean === 'plexivia.ikram@gmail.com' ||
+        emailClean.includes('admin');
+
+      user = {
+        id: `usr_${Date.now().toString().slice(-4)}`,
+        email: emailClean,
+        name: emailClean.split('@')[0].replace('.', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
+        role: isSuperAdmin ? 'SUPER_ADMIN' : 'DEV',
+        department: 'Engineering',
+        designation: isSuperAdmin ? 'Principal Architect' : 'Engineer',
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(emailClean)}&background=0284c7&color=ffffff&bold=true`,
+        is_active: true,
+        status: 'ACTIVE',
+        created_at: new Date().toISOString(),
+      };
+      Store.users.push(user);
+    }
 
     const accessToken = `jwt_access_token_${Date.now()}_${Buffer.from(emailClean).toString('base64')}`;
     const refreshToken = `jwt_refresh_token_${Date.now()}_${Buffer.from(emailClean).toString('base64')}`;
 
     return res.json({
       success: true,
+      token: accessToken, // for legacy clients expecting res.token
+      user,
       message: 'Logged in successfully',
       data: {
         user,
@@ -44,14 +55,7 @@ export const verify2fa = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
     const userEmail = email ? String(email).trim().toLowerCase() : 'admin@plexivia.com';
-
-    const user = {
-      id: 'usr_admin_01',
-      email: userEmail,
-      name: userEmail.split('@')[0].replace('.', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
-      role: 'Superadmin',
-      department: 'Engineering',
-    };
+    const user = Store.users.find(u => u.email.toLowerCase() === userEmail) || Store.users[0];
 
     return res.json({
       success: true,
@@ -68,15 +72,11 @@ export const verify2fa = async (req: Request, res: Response) => {
 };
 
 export const getMe = async (_req: Request, res: Response) => {
+  const user = Store.users[0];
   return res.json({
     success: true,
     data: {
-      user: {
-        id: 'usr_admin_01',
-        email: 'admin@plexivia.com',
-        name: 'Plexivia Admin',
-        role: 'Superadmin',
-      },
+      user,
     },
   });
 };

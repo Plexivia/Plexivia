@@ -1,9 +1,7 @@
 import express from 'express';
 import cors from 'cors';
-import { createServer } from 'http';
 import dotenv from 'dotenv';
 import apiRoutes from './routes/index.js';
-import { TelemetryHub } from './websocket/telemetryHub.js';
 
 dotenv.config();
 
@@ -12,51 +10,41 @@ const PORT = process.env.PORT || 5095;
 
 app.use(cors({
   origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 app.use(express.json());
 
 // API health endpoint
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (_req, res) => {
   res.json({
     status: 'ok',
-    service: 'plexi-hub-server',
-    version: '1.0.3',
+    service: 'plexi-backend-core',
+    version: '2.0.0',
     timestamp: new Date().toISOString(),
+    collections: ['user', 'project', 'task', 'client', 'team'],
     endpoints: [
-      '/api/version',
+      '/api/auth/login',
+      '/api/auth/me',
+      '/api/users',
+      '/api/clients',
       '/api/projects',
-      '/api/issues',
-      '/api/docs',
-      '/api/cpanel/fleet-overview',
-      '/api/guard/health',
-      '/api/guard/telemetry',
-      '/api/mail/health',
-      '/api/mail/logs',
-      '/api/gitea/status',
-      '/api/backup/status',
-      '/api/backup/trigger',
-      '/ws/telemetry'
+      '/api/tasks',
+      '/api/teams',
     ]
   });
 });
 
-// Mount modular microservices router
+// Mount modular core router
 app.use('/api', apiRoutes);
 
-const httpServer = createServer(app);
-
-// Initialize real-time WebSocket telemetry broadcaster
-TelemetryHub.initialize(httpServer);
-
-httpServer.listen(PORT, () => {
+app.listen(PORT, () => {
   console.log(`===================================================`);
-  console.log(`🚀 Plexivia API Gateway & Microservices Bridge v1.0.3`);
+  console.log(`🚀 Plexivia Core Backend Service v2.0.0`);
   console.log(`📡 HTTP Server listening on http://127.0.0.1:${PORT}`);
-  console.log(`⚡ WebSocket Telemetry stream at ws://127.0.0.1:${PORT}/ws/telemetry`);
+  console.log(`📦 Collections: User, Project, Task, Client, Team`);
   console.log(`===================================================`);
 });
 
-export { app, httpServer };
+export { app };

@@ -38,10 +38,8 @@ export const useTelemetrySocket = () => {
   useEffect(() => {
     let ws: WebSocket | null = null;
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    // Use host if in dev proxy or 5095 default
-    const wsUrl = window.location.port === '5173' || window.location.port === '3000' || window.location.port === '8010'
-      ? `${protocol}//${window.location.hostname}:5095/ws/telemetry`
-      : `${protocol}//${window.location.host}/ws/telemetry`;
+    // Use configured VITE_WS_URL or dev proxy / production host endpoint
+    const wsUrl = import.meta.env?.VITE_WS_URL || `${protocol}//${window.location.host}/ws/telemetry`;
 
     try {
       ws = new WebSocket(wsUrl);

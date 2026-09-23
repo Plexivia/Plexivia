@@ -1,242 +1,112 @@
-export interface VPSNode {
+// ============================================================================
+// Plexivia Backend Core Entity Types
+// Collections: User, Project, Task, Client, Team
+// ============================================================================
+
+export type UserRole = 'SUPER_ADMIN' | 'PM' | 'DEV' | 'DESIGNER' | 'SRE' | 'ADMIN' | 'MEMBER' | string;
+export type UserStatus = 'ACTIVE' | 'INACTIVE' | 'AWAY' | 'OFFLINE';
+
+export interface User {
   id: string;
+  email: string;
   name: string;
-  hostname: string;
-  ipAddress: string;
-  sshPort: number;
-  status: 'ONLINE' | 'DEGRADED' | 'OFFLINE' | 'REBOOTING' | 'SYNCING';
-  isMaster: boolean;
-  region: string;
-  os: string;
-  cpu: {
-    cores: number;
-    usagePercent: number;
-    loadAvg: [number, number, number];
-  };
-  ram: {
-    totalBytes: number;
-    usedBytes: number;
-    freeBytes: number;
-    usagePercent: number;
-  };
-  disk: {
-    totalBytes: number;
-    usedBytes: number;
-    freeBytes: number;
-    usagePercent: number;
-    partitions: Array<{
-      mountPoint: string;
-      totalBytes: number;
-      usedBytes: number;
-      usagePercent: number;
-    }>;
-  };
-  uptime: {
-    seconds: number;
-    formatted: string;
-    percent: number;
-  };
-  network: {
-    pingMs: number;
-    rxBytesPerSec: number;
-    txBytesPerSec: number;
-    interfaces: Array<{
-      name: string;
-      ip: string;
-      rxBytes: number;
-      txBytes: number;
-    }>;
-  };
-  containers: Array<{
-    name: string;
-    image: string;
-    status: 'running' | 'restarting' | 'stopped';
-    port: string;
-    cpuPercent: number;
-    memoryMb: number;
-  }>;
-  lastHeartbeat: string;
+  full_name?: string;
+  username?: string;
+  role: UserRole;
+  department?: string;
+  designation?: string;
+  phone?: string;
+  address?: string;
+  avatar?: string;
+  avatar_url?: string;
+  is_active?: boolean;
+  status?: UserStatus | string;
+  hourly_rate?: number;
+  active_tasks_count?: number;
+  total_logged_hours?: number;
+  created_at: string;
+  updated_at?: string;
 }
 
-export interface AnomalyAlert {
+export type ClientType = 'SINGLE_TENANT' | 'MULTI_TENANT_ECOMMERCE' | 'CORPORATE';
+export type ClientStatus = 'ACTIVE' | 'INACTIVE' | 'ONBOARDING' | 'MAINTENANCE' | 'ARCHIVED';
+
+export interface Client {
   id: string;
-  severity: 'CRITICAL' | 'WARNING' | 'INFO';
-  title: string;
-  message: string;
-  nodeId: string;
-  nodeName: string;
-  source: string;
-  timestamp: string;
-  acknowledged: boolean;
-  acknowledgedBy?: string;
-  resolved: boolean;
-  resolvedAt?: string;
+  client_key?: string;
+  business_name: string;
+  primary_domain?: string;
+  client_type?: ClientType;
+  database_shared?: boolean;
+  status: ClientStatus;
+  monthly_revenue?: number;
+  monthly_retainer?: number;
+  contact_email?: string;
+  contact_phone?: string;
+  address?: string;
+  projects_count?: number;
+  created_at: string;
+  updated_at?: string;
 }
 
-export interface ContainerHealth {
-  name: string;
-  internalPort: number;
-  ingressDomain: string;
-  responsibility: string;
-  status: 'healthy' | 'unhealthy' | 'starting';
-  cpuPercent: number;
-  memoryMb: number;
-  memoryLimitMb: number;
-  restarts: number;
-  uptimeSeconds: number;
-}
+export type ProjectType = 'ECOMMERCE_MULTITENANT' | 'CUSTOM_WEB' | 'SRE_INFRA' | 'MOBILE_APP' | 'SYSTEM_MIGRATION' | 'INTERNAL_TOOL';
+export type ProjectStatus = 'PLANNING' | 'ACTIVE' | 'MAINTENANCE' | 'ARCHIVED' | 'DEPLOYING' | 'COMPLETED' | 'PAUSED';
 
-export interface TelemetryPacket {
-  timestamp: string;
-  cpu: {
-    overallUsage: number;
-    cores: number[];
-    loadAvg: [number, number, number];
-  };
-  ram: {
-    totalGb: number;
-    usedGb: number;
-    cachedGb: number;
-    freeGb: number;
-    usagePercent: number;
-  };
-  network: {
-    rxKbps: number;
-    txKbps: number;
-    activeConnections: number;
-    packetLossPercent: number;
-  };
-  disk: {
-    readIops: number;
-    writeIops: number;
-    diskUsagePercent: number;
-  };
-  activeAnomaliesCount: number;
-}
-
-export interface EmailLogEntry {
+export interface Project {
   id: string;
-  recipient: string;
-  subject: string;
-  template: string;
-  status: 'SENT' | 'FAILED' | 'QUEUED';
-  smtpServer: string;
-  sender: string;
-  messageId: string;
-  timestamp: string;
-  errorMessage?: string;
-  sizeBytes: number;
-  metadata?: Record<string, any>;
-}
-
-export interface EmailTemplate {
-  id: string;
-  name: string;
-  subject: string;
-  description: string;
-  defaultRecipient: string;
-  variables: string[];
-  htmlPreview: string;
-}
-
-export interface GiteaRepository {
-  id: string;
-  name: string;
-  description: string;
-  isPrivate: boolean;
-  defaultBranch: string;
-  cloneUrlHttps: string;
-  cloneUrlSsh: string;
-  starsCount: number;
-  forksCount: number;
-  openIssues: number;
-  lastCommit: {
-    sha: string;
-    message: string;
-    author: string;
-    timestamp: string;
-  };
-}
-
-export interface BackupArchive {
-  id: string;
-  filename: string;
-  sizeBytes: number;
-  sizeFormatted: string;
-  createdAt: string;
-  checksumSha256: string;
-  storageTarget: 'Cloudflare R2' | 'Dual (R2 + Local Disk)';
-  r2Bucket: string;
-  r2Key: string;
-  status: 'AVAILABLE' | 'SYNCING' | 'CORRUPTED';
-  type: 'POSTGRES_DUMP' | 'FULL_SYSTEM_SNAPSHOT';
-  downloadUrl: string;
-}
-
-export interface BackupStatus {
-  cloudflareAccountId: string;
-  r2Bucket: string;
-  cronSchedule: string;
-  cronFile: string;
-  notificationRecipient: string;
-  retentionPolicy: string;
-  lastBackupStatus: 'SUCCESS' | 'FAILED' | 'RUNNING' | 'NEVER';
-  lastBackupTime: string;
-  totalBackupsCount: number;
-  totalR2StorageBytes: number;
-  totalR2StorageFormatted: string;
-  isTriggering?: boolean;
-}
-
-export interface SystemVersion {
-  version: string;
-  buildNumber: string;
-  releaseDate: string;
-  commitSha: string;
-  environment: string;
-  baseline: string;
-  services: Array<{
-    name: string;
-    version: string;
-    status: 'ONLINE' | 'DEGRADED';
-  }>;
-}
-
-export type PlexiviaProjectType = 'ECOMMERCE_MULTITENANT' | 'CUSTOM_WEB' | 'SRE_INFRA' | 'MOBILE_APP' | 'SYSTEM_MIGRATION' | 'INTERNAL_TOOL';
-export type PlexiviaProjectStatus = 'PLANNING' | 'ACTIVE' | 'MAINTENANCE' | 'ARCHIVED' | 'DEPLOYING' | 'COMPLETED' | 'PAUSED';
-
-export interface PlexiviaProject {
-  id: string;
-  name: string;
-  code: string;
-  description: string;
+  client_id?: string;
   clientId?: string;
+  client_name?: string;
   clientName?: string;
-  type: PlexiviaProjectType;
-  status: PlexiviaProjectStatus;
-  progressPercent: number;
+  project_name?: string;
+  name: string;
+  project_code?: string;
+  code: string;
+  description?: string;
+  project_type?: ProjectType;
+  type?: ProjectType;
+  team_id?: string;
+  teamId?: string;
+  team_name?: string;
+  teamName?: string;
+  status: ProjectStatus;
+  progress_percent?: number;
+  progressPercent?: number;
+  lead_id?: string;
   leadId?: string;
+  lead_name?: string;
   leadName?: string;
+  lead_avatar?: string;
   leadAvatar?: string;
+  git_repo_url?: string;
   gitRepoUrl?: string;
+  production_url?: string;
   productionUrl?: string;
+  staging_url?: string;
   stagingUrl?: string;
+  due_date?: string;
   dueDate?: string;
-  tasksCount: {
+  tasks_count?: {
     total: number;
     completed: number;
-    inProgress: number;
+    inProgress?: number;
+  };
+  tasksCount?: {
+    total: number;
+    completed: number;
+    inProgress?: number;
   };
   tags?: string[];
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  createdAt?: string;
+  updated_at?: string;
+  updatedAt?: string;
 }
 
-export type PlexiviaIssueStatus = 'BACKLOG' | 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE' | 'CANCELLED';
-export type PlexiviaIssuePriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' | 'URGENT';
-export type PlexiviaIssueType = 'BUG' | 'FEATURE' | 'IMPROVEMENT' | 'TASK' | 'EPIC' | 'INFRA';
+export type TaskStatus = 'BACKLOG' | 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE' | 'CANCELLED';
+export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
-export interface PlexiviaChecklistItem {
+export interface TaskChecklistItem {
   id: string;
   text: string;
   completed: boolean;
@@ -244,80 +114,84 @@ export interface PlexiviaChecklistItem {
   completedBy?: string;
 }
 
-export interface PlexiviaIssue {
+export interface TaskComment {
   id: string;
-  issueKey: string;
-  projectId: string;
+  user_id?: string;
+  user_name: string;
+  user_avatar?: string;
+  content: string;
+  created_at: string;
+}
+
+export interface Task {
+  id: string;
+  issueKey?: string;
+  project_id?: string;
+  projectId?: string;
+  project_name?: string;
   projectName?: string;
+  project_code?: string;
   projectCode?: string;
+  assignee_id?: string;
+  assigneeId?: string;
+  assignee_name?: string;
+  assigneeName?: string;
+  assignee_avatar?: string;
+  assigneeAvatar?: string;
+  reporter_id?: string;
+  reporterId?: string;
+  reporter_name?: string;
+  reporterName?: string;
   title: string;
   description?: string;
-  status: PlexiviaIssueStatus;
-  priority: PlexiviaIssuePriority;
-  issueType: PlexiviaIssueType;
-  assigneeId?: string;
-  assigneeName?: string;
-  assigneeAvatar?: string;
-  reporterId?: string;
-  reporterName?: string;
+  status: TaskStatus;
+  priority: TaskPriority;
+  estimated_hours?: number;
   estimatedHours?: number;
+  spent_hours?: number;
   spentHours?: number;
+  logged_hours?: number;
   loggedHours?: number;
+  due_date?: string;
   dueDate?: string;
   tags?: string[];
-  checklist?: PlexiviaChecklistItem[];
-  commentsCount?: number;
-  attachmentsCount?: number;
-  createdAt: string;
-  updatedAt: string;
+  checklist?: TaskChecklistItem[];
+  comments?: TaskComment[];
+  created_at: string;
+  createdAt?: string;
+  updated_at?: string;
+  updatedAt?: string;
 }
 
-export type PlexiviaDocCategory = 'ARCHITECTURE' | 'API_SPEC' | 'RUNBOOK' | 'DEPLOYMENT' | 'CLIENT_BRIEF' | 'SRE_GUIDE' | 'GENERAL';
-export type PlexiviaDocStatus = 'DRAFT' | 'IN_REVIEW' | 'PUBLISHED' | 'ARCHIVED';
-
-export interface PlexiviaDoc {
+export interface TeamMember {
   id: string;
-  title: string;
-  slug: string;
+  name: string;
+  email: string;
+  role: string;
+  avatar?: string;
+  designation?: string;
+  department?: string;
+  joined_at?: string;
+}
+
+export interface Team {
+  id: string;
+  name: string;
+  code?: string;
   description?: string;
-  content: string;
-  category: PlexiviaDocCategory;
-  status: PlexiviaDocStatus;
-  projectId?: string;
-  projectName?: string;
-  authorId?: string;
-  authorName?: string;
-  authorAvatar?: string;
-  version: string;
-  tags?: string[];
-  isPublic?: boolean;
-  isPinned?: boolean;
-  createdAt: string;
-  updatedAt: string;
+  department: string;
+  lead_id?: string;
+  leadId?: string;
+  lead_name?: string;
+  leadName?: string;
+  lead_avatar?: string;
+  leadAvatar?: string;
+  members: TeamMember[];
+  members_count: number;
+  membersCount?: number;
+  projects_count?: number;
+  projectsCount?: number;
+  status: 'ACTIVE' | 'INACTIVE';
+  created_at: string;
+  updated_at?: string;
 }
-
-export interface PlexiviaIssueFilters {
-  status?: string;
-  priority?: string;
-  project?: string;
-  projectId?: string;
-  assignee?: string;
-  assigneeId?: string;
-  issueType?: string;
-  search?: string;
-}
-
-export interface PlexiviaProjectFilters {
-  status?: string;
-  type?: string;
-  clientId?: string;
-  search?: string;
-}
-
-export interface PlexiviaDocFilters {
-  category?: string;
-  status?: string;
-  projectId?: string;
-  search?: string;
-}
-

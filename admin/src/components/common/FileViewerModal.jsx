@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 
 export const API_BASE_URL =
-  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) || 'https://server.plexivia.online';
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) || 'https://api.plexivia.com';
 
 /**
  * Normalizes file URLs to handle relative paths, legacy dev server hosts, and Cloudflare R2 endpoints
