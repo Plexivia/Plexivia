@@ -163,11 +163,11 @@ export function UnifiedSidebar({
           <button
             type="button"
             onClick={() => setOpen(true)}
-            className="size-9 rounded-full border border-sky-400/50 hover:border-sky-300 bg-sidebar-accent hover:bg-sidebar-accent/80 text-sky-300 hover:text-white flex items-center justify-center shrink-0 shadow-xs transition-all duration-200 cursor-pointer"
+            className="size-9 rounded-full border border-cyan-500/30 hover:border-cyan-400/50 bg-sidebar-accent hover:bg-sidebar-accent/80 text-cyan-300 hover:text-white flex items-center justify-center shrink-0 shadow-xs transition-all duration-200 cursor-pointer"
             title={'Open Sidebar'}
             aria-label="Open Sidebar"
           >
-            <Menu className="w-4 h-4 text-sky-300 hover:text-white" />
+            <Menu className="w-4 h-4 text-cyan-300 hover:text-white" />
           </button>
         ) : (
           <div className="flex items-center justify-between w-full px-1">
@@ -203,7 +203,7 @@ export function UnifiedSidebar({
                       </span>
                     )}
                     {brandSubtitle && (
-                      <span className="text-[10px] text-sky-200 font-semibold uppercase tracking-wider mt-0.5">
+                      <span className="text-[10px] text-cyan-300/80 font-semibold uppercase tracking-wider mt-0.5">
                         {brandSubtitle}
                       </span>
                     )}
@@ -229,7 +229,7 @@ export function UnifiedSidebar({
                 setOpen(false);
                 if (isMobile) setOpenMobile(false);
               }}
-              className="size-7 rounded-full bg-sidebar-accent hover:bg-sidebar-accent/80 border border-sidebar-border text-sky-300 hover:text-white flex items-center justify-center shrink-0 transition-all cursor-pointer shadow-xs"
+              className="size-7 rounded-full bg-sidebar-accent hover:bg-sidebar-accent/80 border border-sidebar-border text-cyan-300 hover:text-white flex items-center justify-center shrink-0 transition-all cursor-pointer shadow-xs"
               title={'Close Sidebar'}
             >
               <X className="w-3.5 h-3.5" />
@@ -265,11 +265,11 @@ export function UnifiedSidebar({
               <SidebarGroup className="p-0">
                 {groupLabel && (
                   <CollapsibleTrigger asChild>
-                    <SidebarGroupLabel className="px-3 pt-2 pb-1 text-[11px] font-extrabold tracking-widest text-sky-400 uppercase flex items-center justify-between cursor-pointer hover:text-sky-300 select-none group/label">
+                    <SidebarGroupLabel className="px-3 pt-2 pb-1 text-[11px] font-extrabold tracking-widest text-cyan-400 uppercase flex items-center justify-between cursor-pointer hover:text-cyan-300 select-none group/label">
                       <span>{groupLabel}</span>
                       <ChevronRight
                         className={cn(
-                          'w-3.5 h-3.5 text-sky-400 transition-transform duration-200 group-hover/label:text-sky-200',
+                          'w-3.5 h-3.5 text-cyan-400 transition-transform duration-200 group-hover/label:text-cyan-200',
                           isGroupOpen && 'rotate-90',
                           'group-data-[collapsible=icon]:hidden'
                         )}
@@ -318,7 +318,7 @@ export function UnifiedSidebar({
                                   className={cn(
                                     'group w-full justify-between cursor-pointer font-medium text-sm py-2 px-3 rounded-xl transition-all duration-200 text-sidebar-foreground hover:text-white hover:bg-sidebar-accent',
                                     isAnyChildActive &&
-                                      'bg-white/20 text-white font-bold border border-white/30 shadow-xs'
+                                      'bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/30 shadow-xs'
                                   )}
                                 >
                                   <div className="flex items-center gap-2.5 min-w-0">
@@ -326,8 +326,8 @@ export function UnifiedSidebar({
                                       item.icon,
                                       cn(
                                         isAnyChildActive
-                                          ? 'text-white'
-                                          : 'text-sky-300 group-hover:text-white'
+                                          ? 'text-cyan-300'
+                                          : 'text-cyan-400 group-hover:text-white'
                                       )
                                     )}
                                     <span className="truncate group-hover:text-white">{itemLabel}</span>
@@ -336,8 +336,8 @@ export function UnifiedSidebar({
                                     className={cn(
                                       'w-4 h-4 transition-transform duration-200',
                                       isAnyChildActive
-                                        ? 'text-white'
-                                        : 'text-sky-300 group-hover:text-white',
+                                        ? 'text-cyan-300'
+                                        : 'text-cyan-400 group-hover:text-white',
                                       isCollapsibleOpen && 'rotate-90',
                                       'group-data-[collapsible=icon]:hidden'
                                     )}
@@ -345,7 +345,7 @@ export function UnifiedSidebar({
                                 </SidebarMenuButton>
                                 <CollapsibleContent>
                                   {/* Submenu with space-y-2 */}
-                                  <SidebarMenuSub className="ml-5 border-l-2 border-sky-400/30 pl-3 my-2 space-y-2">
+                                  <SidebarMenuSub className="ml-5 border-l-2 border-cyan-400/30 pl-3 my-2 space-y-2">
                                     {childList.map((subItem, subIdx) => {
                                       if (subItem.roles && subItem.roles.length > 0) {
                                         const hasRole = subItem.roles.includes(userRole) || subItem.roles.includes(userSubRole);
@@ -366,7 +366,7 @@ export function UnifiedSidebar({
                                             className={cn(
                                               'group cursor-pointer text-[13px] rounded-lg py-2 px-2.5 flex items-center gap-2 transition-all duration-200',
                                               isSubActive
-                                                ? '!bg-white !text-black font-bold shadow-xs hover:!bg-white hover:!text-black focus:!text-black focus:!bg-white active:!bg-white active:!text-black'
+                                                ? '!bg-gradient-to-r !from-cyan-500 !to-cyan-600 !text-slate-950 font-bold shadow-xs'
                                                 : 'text-sidebar-foreground/85 hover:text-white hover:bg-sidebar-accent font-medium'
                                             )}
                                           >
@@ -376,15 +376,15 @@ export function UnifiedSidebar({
                                                 cn(
                                                   'w-4 h-4 shrink-0 transition-colors',
                                                   isSubActive
-                                                    ? '!text-black group-hover:!text-black'
-                                                    : 'text-sky-300 group-hover:text-white'
+                                                    ? '!text-slate-950 group-hover:!text-slate-950'
+                                                    : 'text-cyan-400 group-hover:text-white'
                                                 )
                                               )}
                                             <span
                                               className={cn(
                                                 'truncate transition-colors',
                                                 isSubActive
-                                                  ? '!text-black group-hover:!text-black font-bold'
+                                                  ? '!text-slate-950 group-hover:!text-slate-950 font-bold'
                                                   : 'group-hover:text-white'
                                               )}
                                             >
@@ -412,7 +412,7 @@ export function UnifiedSidebar({
                               className={cn(
                                 'group cursor-pointer text-sm font-medium py-2 px-3 rounded-xl transition-all duration-200 flex items-center justify-between',
                                 isActive
-                                  ? '!bg-white !text-black font-bold shadow-xs hover:!bg-white hover:!text-black focus:!text-black focus:!bg-white active:!bg-white active:!text-black'
+                                  ? '!bg-gradient-to-r !from-cyan-500 !to-cyan-600 !text-slate-950 font-bold shadow-xs'
                                   : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-white'
                               )}
                             >
@@ -422,15 +422,15 @@ export function UnifiedSidebar({
                                   cn(
                                     'w-4.5 h-4.5 shrink-0 transition-colors',
                                     isActive
-                                      ? '!text-black group-hover:!text-black'
-                                      : 'text-sky-300 group-hover:text-white'
+                                      ? '!text-slate-950 group-hover:!text-slate-950'
+                                      : 'text-cyan-400 group-hover:text-white'
                                   )
                                 )}
                                 <span
                                   className={cn(
                                     'truncate transition-colors',
                                     isActive
-                                      ? '!text-black group-hover:!text-black font-bold'
+                                      ? '!text-slate-950 group-hover:!text-slate-950 font-bold'
                                       : 'group-hover:text-white'
                                   )}
                                 >
@@ -441,9 +441,11 @@ export function UnifiedSidebar({
                                 <span
                                   className={cn(
                                     'text-[10px] font-bold px-1.5 py-0.5 rounded-md leading-none shrink-0',
-                                    item.badgeVariant === 'secondary'
-                                      ? 'bg-slate-700/60 text-slate-300 border border-slate-600/40'
-                                      : 'bg-sky-500/20 text-sky-300 border border-sky-400/30'
+                                    isActive
+                                      ? 'bg-slate-950/20 text-slate-950'
+                                      : item.badgeVariant === 'secondary'
+                                      ? 'bg-slate-800 text-slate-300 border border-slate-700/60'
+                                      : 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/30'
                                   )}
                                 >
                                   {item.badge}
@@ -468,7 +470,7 @@ export function UnifiedSidebar({
           <button
             type="button"
             onClick={onProfileClick}
-            className="relative size-9 rounded-full border border-sky-400/50 bg-sidebar-accent hover:bg-sidebar-accent/80 text-sky-300 flex items-center justify-center shrink-0 transition-all duration-200 cursor-pointer mx-auto shadow-xs"
+            className="relative size-9 rounded-full border border-cyan-500/40 bg-sidebar-accent hover:bg-sidebar-accent/80 text-cyan-300 flex items-center justify-center shrink-0 transition-all duration-200 cursor-pointer mx-auto shadow-xs"
             title={user?.name || user?.fullName || 'My Profile'}
             aria-label="Profile"
           >
@@ -492,7 +494,7 @@ export function UnifiedSidebar({
               className="flex items-center gap-2.5 min-w-0 cursor-pointer hover:opacity-90 transition-opacity"
               title={user?.name || user?.fullName || 'My Profile'}
             >
-              <div className="relative size-9 rounded-full bg-sky-500/30 border border-sky-300/40 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+              <div className="relative size-9 rounded-full bg-cyan-500/20 border border-cyan-400/30 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
                 {user?.avatar || user?.avatarUrl || user?.photoUrl ? (
                   <img
                     src={user.avatar || user.avatarUrl || user.photoUrl}
@@ -508,7 +510,7 @@ export function UnifiedSidebar({
                 <span className="text-xs font-bold text-sidebar-foreground truncate leading-tight">
                   {user?.name || user?.fullName || user?.email?.split('@')[0] || 'User'}
                 </span>
-                <span className="text-[10.5px] text-sky-200 font-medium truncate mt-0.5 capitalize">
+                <span className="text-[10.5px] text-cyan-300/80 font-medium truncate mt-0.5 capitalize">
                   {user?.subRole ? user.subRole.replace(/_/g, ' ') : (user?.role || 'Staff')}
                 </span>
               </div>

@@ -140,7 +140,7 @@ export function TopBreadcrumbBar({
           {theme === 'dark' ? (
             <Sun className="w-4 h-4 text-amber-400 transition-transform duration-300 rotate-0" />
           ) : (
-            <Moon className="w-4 h-4 text-slate-700 transition-transform duration-300 rotate-0" />
+            <Moon className="w-4 h-4 text-cyan-600 transition-transform duration-300 rotate-0" />
           )}
         </Button>
 
