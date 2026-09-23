@@ -42,14 +42,17 @@ export function DashboardLayout({
           {/* Sticky Header (Fixed 56px / h-14 height) */}
           {header}
 
-          {/* Dynamic Content View Container (Internally scrollable, never pushes main page past 100dvh) */}
+          {/* Dynamic Content View Container (Stable scrollbar-gutter prevents width jitter between pages) */}
           <main
             className={cn(
-              'flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 sm:p-6 lg:p-8 w-full max-w-[1440px] mx-auto space-y-6',
+              'flex-1 min-h-0 overflow-y-auto w-full scrollbar-theme',
               mainClassName
             )}
+            style={{ scrollbarGutter: 'stable' }}
           >
-            {children}
+            <div className="w-full max-w-[1440px] mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+              {children}
+            </div>
           </main>
 
           {/* Global Utilities */}

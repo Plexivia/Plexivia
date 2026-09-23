@@ -181,6 +181,11 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(2, 132, 199, 0.35) transparent;
+  }
+  .dark * {
+    scrollbar-color: rgba(56, 189, 248, 0.35) transparent;
   }
   html,
   body,
@@ -199,6 +204,78 @@
   a, button, [role="button"], select, input[type="button"], input[type="submit"] {
     cursor: pointer !important;
   }
+}
+
+/* ------------------------------------------------------------- */
+/* PLEXIVIA THEME SCROLLBAR STYLING                              */
+/* ------------------------------------------------------------- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(2, 132, 199, 0.3);
+  border-radius: 9999px;
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(2, 132, 199, 0.6);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(56, 189, 248, 0.3);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(56, 189, 248, 0.6);
+}
+
+.scrollbar-theme {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(2, 132, 199, 0.45) transparent;
+}
+
+.dark .scrollbar-theme {
+  scrollbar-color: rgba(56, 189, 248, 0.45) transparent;
+}
+
+.scrollbar-theme::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-theme::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 9999px;
+}
+
+.dark .scrollbar-theme::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 9999px;
+}
+
+.scrollbar-theme::-webkit-scrollbar-thumb {
+  background: rgba(2, 132, 199, 0.45);
+  border-radius: 9999px;
+}
+
+.scrollbar-theme::-webkit-scrollbar-thumb:hover {
+  background: rgba(2, 132, 199, 0.75);
+}
+
+.dark .scrollbar-theme::-webkit-scrollbar-thumb {
+  background: rgba(56, 189, 248, 0.45);
+  border-radius: 9999px;
+}
+
+.dark .scrollbar-theme::-webkit-scrollbar-thumb:hover {
+  background: rgba(56, 189, 248, 0.75);
 }
 
 /* ------------------------------------------------------------- */

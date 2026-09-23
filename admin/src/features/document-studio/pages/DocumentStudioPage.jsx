@@ -2,19 +2,13 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLocation, useParams, useNavigate, Navigate } from 'react-router-dom';
 import { EmploymentAgreement } from '../components/agreement/EmploymentAgreement';
 import { IdCard } from '../components/idcard/IdCard';
-import { JobVerification } from '../components/job-verification/JobVerification';
 import { SalarySlip } from '../components/payroll/SalarySlip';
-import { Invoice } from '../components/invoice/Invoice';
-import { PassportSubmission } from '../components/passport/PassportSubmission';
-import { IndianVisa } from '../components/indian-visa/IndianVisa';
-import { ClientGuardian } from '../components/client-form/ClientGuardian';
 import { MoneyReceipt } from '../components/receipt/MoneyReceipt';
 import { CashVoucher } from '../components/cash-voucher/CashVoucher';
 import { ExperienceCertificate } from '../components/certificate-experience/ExperienceCertificate';
 import { CharacterCertificate } from '../components/certificate-character/CharacterCertificate';
 import { MarriageCertificate } from '../components/certificate-marriage/MarriageCertificate';
 import { ResumeBuilder } from '../components/resume/ResumeBuilder';
-import { CertificateBuilder } from '../components/certificate/CertificateBuilder';
 import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
 import { ShieldCheck, ArrowLeft, Lock, FileText, CheckCircle2, Loader2 } from 'lucide-react';
@@ -446,40 +440,6 @@ export function DocumentStudioPage({
           isLocked={Boolean(dossierContext?.isLocked)}
         />
       )}
-      {(resolvedSubmodule === 'client-form' || resolvedSubmodule === 'customer-form') && (
-        <ClientGuardian
-          initialData={initialData}
-          onSavedSuccess={handleSavedSuccess}
-          isLocked={Boolean(dossierContext?.isLocked)}
-        />
-      )}
-      {(resolvedSubmodule === 'resume' || resolvedSubmodule === 'cv') && (
-        <ResumeBuilder />
-      )}
-      {(resolvedSubmodule === 'certificate' || resolvedSubmodule === 'certificate-builder') && (
-        <CertificateBuilder />
-      )}
-      {resolvedSubmodule === 'indian-visa' && (
-        <IndianVisa
-          initialData={initialData}
-          onSavedSuccess={handleSavedSuccess}
-          isLocked={Boolean(dossierContext?.isLocked)}
-        />
-      )}
-      {(resolvedSubmodule === 'passport-sub' || resolvedSubmodule === 'passport') && (
-        <PassportSubmission
-          initialData={initialData}
-          onSavedSuccess={handleSavedSuccess}
-          isLocked={Boolean(dossierContext?.isLocked)}
-        />
-      )}
-      {(resolvedSubmodule === 'job-verification' || resolvedSubmodule === 'job-verify' || resolvedSubmodule === 'job-verification-form') && (
-        <JobVerification
-          initialData={initialData}
-          onSavedSuccess={handleSavedSuccess}
-          isLocked={Boolean(dossierContext?.isLocked)}
-        />
-      )}
       {resolvedSubmodule === 'idcard' && (
         <IdCard
           initialData={initialData}
@@ -489,13 +449,6 @@ export function DocumentStudioPage({
       )}
       {(resolvedSubmodule === 'payroll' || resolvedSubmodule === 'salary-slip' || resolvedSubmodule === 'salary') && (
         <SalarySlip
-          initialData={initialData}
-          onSavedSuccess={handleSavedSuccess}
-          isLocked={Boolean(dossierContext?.isLocked)}
-        />
-      )}
-      {resolvedSubmodule === 'invoice' && (
-        <Invoice
           initialData={initialData}
           onSavedSuccess={handleSavedSuccess}
           isLocked={Boolean(dossierContext?.isLocked)}
@@ -535,6 +488,9 @@ export function DocumentStudioPage({
           onSavedSuccess={handleSavedSuccess}
           isLocked={Boolean(dossierContext?.isLocked)}
         />
+      )}
+      {(resolvedSubmodule === 'resume' || resolvedSubmodule === 'cv') && (
+        <ResumeBuilder />
       )}
     </div>
   );

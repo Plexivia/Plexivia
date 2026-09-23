@@ -2,14 +2,12 @@ import React, { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Search,
-  LayoutDashboard,
-  BarChart3,
   Users,
-  Layers,
   FolderKanban,
-  Settings,
-  Shield,
+  CheckSquare,
+  Building2,
   FileText,
+  UserCheck,
   ArrowRight,
   X,
   Command,
@@ -51,60 +49,81 @@ export function GlobalSearchModal() {
   const searchItems: SearchItem[] = useMemo(
     () => [
       {
-        title: 'Dashboard Overview',
-        path: '/',
-        desc: 'Metrics, live KPI cards, and recent records',
-        category: 'Main',
-        icon: LayoutDashboard,
-      },
-      {
-        title: 'Analytics & Trends',
-        path: '/analytics',
-        desc: 'Revenue, system volume and growth charts',
-        category: 'Main',
-        icon: BarChart3,
-      },
-      {
-        title: 'User Management',
+        title: 'Users Management',
         path: '/users',
-        desc: 'Active staff, roles, and authorization levels',
-        category: 'Management',
-        icon: Users,
+        desc: 'Active staff, roles, and department allocation',
+        category: 'Agency',
+        icon: UserCheck,
       },
       {
-        title: 'Operations & Transactions',
-        path: '/operations/transactions',
-        desc: 'Financial records, settlements, and ledger',
-        category: 'Management',
-        icon: Layers,
-      },
-      {
-        title: 'Audit Logs',
-        path: '/operations/audit-logs',
-        desc: 'System event trails and compliance history',
-        category: 'Management',
-        icon: Shield,
-      },
-      {
-        title: 'Projects & Workflows',
+        title: 'Projects',
         path: '/projects',
-        desc: 'Kanban tasks and deployment pipelines',
-        category: 'Management',
+        desc: 'Client projects, velocity, and deliverables tracking',
+        category: 'Agency',
         icon: FolderKanban,
       },
       {
-        title: 'Documentation',
-        path: '/docs',
-        desc: 'API guides, schemas, and template architecture',
-        category: 'System',
+        title: 'Tasks Hub',
+        path: '/tasks',
+        desc: 'Sprint Kanban board, issue tracker, and status cards',
+        category: 'Agency',
+        icon: CheckSquare,
+      },
+      {
+        title: 'Clients Directory',
+        path: '/clients',
+        desc: 'Client accounts, business profiles, and contact details',
+        category: 'Agency',
+        icon: Building2,
+      },
+      {
+        title: 'Agency Team',
+        path: '/team',
+        desc: 'Specialist roster, workload distribution, and RBAC matrix',
+        category: 'Agency',
+        icon: Users,
+      },
+      {
+        title: 'Document Studio',
+        path: '/documents',
+        desc: 'Official certificates, agreements, invoices, slips, and vouchers',
+        category: 'Studio',
         icon: FileText,
       },
       {
-        title: 'System Settings',
-        path: '/settings',
-        desc: 'Branding, environment flags, and integrations',
-        category: 'System',
-        icon: Settings,
+        title: 'Employment Agreement',
+        path: '/documents/agreement',
+        desc: 'Bilingual employment legal contract builder',
+        category: 'Studio',
+        icon: FileText,
+      },
+      {
+        title: 'ID Card Builder',
+        path: '/documents/idcard',
+        desc: 'Corporate employee identity card generator',
+        category: 'Studio',
+        icon: FileText,
+      },
+      {
+        title: 'Salary / Payslip',
+        path: '/documents/salary',
+        desc: 'Monthly salary breakdown and payroll slip',
+        category: 'Studio',
+        icon: FileText,
+      },
+      {
+        title: 'Tax Invoice',
+        path: '/documents/invoice',
+        desc: 'Itemized client tax invoice and billing',
+        category: 'Studio',
+        icon: FileText,
+      },
+      {
+        title: 'Money Receipt',
+        path: '/documents/receipt',
+        desc: 'Payment receipt voucher with signatures',
+        category: 'Studio',
+        icon: FileText,
       },
     ],
     []
@@ -145,8 +164,8 @@ export function GlobalSearchModal() {
           <Search className="w-5 h-5 text-muted-foreground shrink-0" />
           <input
             type="text"
-            placeholder="Type a command or search..."
-            className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground outline-none text-sm"
+            placeholder="Type to search users, projects, tasks, documents..."
+            className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground outline-hidden text-sm"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             autoFocus
@@ -168,7 +187,7 @@ export function GlobalSearchModal() {
         {/* Results List */}
         <div className="max-h-80 overflow-y-auto p-2 divide-y divide-border/40">
           {filteredItems.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground text-sm">
+            <div className="p-8 text-center text-muted-foreground text-sm font-mono">
               No results found for &ldquo;{searchQuery}&rdquo;
             </div>
           ) : (
@@ -210,7 +229,7 @@ export function GlobalSearchModal() {
             <Command className="w-3 h-3" />
             <span>Navigation shortcuts enabled</span>
           </div>
-          <span>Plexivia Template</span>
+          <span>Plexivia Admin</span>
         </div>
       </div>
     </div>

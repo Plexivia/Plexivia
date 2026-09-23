@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { UnifiedSidebar } from '@/components/layout/UnifiedSidebar';
 import { TopBreadcrumbBar } from '@/components/layout/TopBreadcrumbBar';
@@ -11,30 +11,19 @@ import { LoginModal } from '@/components/common/LoginModal';
 import { LoginPage } from '@/components/auth/LoginPage';
 import { NAVIGATION_MENU_GROUPS } from '@/constants/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
-import { useData } from '@/context/DataContext';
-import { Task, TaskStatus, VPSNode, NavTab } from '@/types';
 
 // Modals
 import { CreateProjectModal } from '@/components/modals/CreateProjectModal';
 import { CreateClientModal } from '@/components/modals/CreateClientModal';
 import { CreateTaskModal } from '@/components/modals/CreateTaskModal';
 import { TaskDetailModal } from '@/components/modals/TaskDetailModal';
-import { TriggerBackupModal } from '@/components/modals/TriggerBackupModal';
-import { SendTestEmailModal } from '@/components/modals/SendTestEmailModal';
-import { SSHConsoleModal } from '@/components/modals/SSHConsoleModal';
 
 // Pages
-import { OverviewPage } from '@/pages/OverviewPage';
-import { ProjectsKanbanPage } from '@/pages/ProjectsKanbanPage';
+import { UsersPage } from '@/pages/UsersPage';
+import { ProjectsPage } from '@/pages/ProjectsPage';
+import { TasksPage } from '@/pages/TasksPage';
 import { ClientsDirectoryPage } from '@/pages/ClientsDirectoryPage';
-import { TimeTrackerPage } from '@/pages/TimeTrackerPage';
 import { AgencyTeamPage } from '@/pages/AgencyTeamPage';
-import { VPSFleetPage } from '@/pages/VPSFleetPage';
-import { SRETelemetryPage } from '@/pages/SRETelemetryPage';
-import { MailSubsystemPage } from '@/pages/MailSubsystemPage';
-import { PrivateGitPage } from '@/pages/PrivateGitPage';
-import { VersionBackupPage } from '@/pages/VersionBackupPage';
-import { SettingsPage } from '@/pages/SettingsPage';
 import { DocumentStudioPage } from '@/features/document-studio/pages/DocumentStudioPage';
 
 // Route Guards
@@ -54,7 +43,7 @@ export function PublicAuthRoute({ children }: { children: React.ReactNode }) {
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
   if (user && token) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/projects" replace />;
   }
 
   return <>{children}</>;
@@ -72,7 +61,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           sidebar={
             <UnifiedSidebar
               menuGroups={NAVIGATION_MENU_GROUPS}
-              brandPath="/"
+              brandPath="/projects"
               user={user}
               onLogout={logout}
             />
@@ -98,204 +87,83 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 }
 
 export function AppRoutes() {
-  const navigate = useNavigate();
-  const { fleet } = useData();
-
-  // Global modals state
-  const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
-  const [isCreateClientOpen, setIsCreateClientOpen] = useState(false);
-  const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
-  const [createTaskStatus, setCreateTaskStatus] = useState<TaskStatus>('TODO');
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [isTriggerBackupOpen, setIsTriggerBackupOpen] = useState(false);
-  const [isSendEmailOpen, setIsSendEmailOpen] = useState(false);
-  const [sshNode, setSshNode] = useState<VPSNode | null>(null);
-
-  const handleOpenCreateTask = (status: TaskStatus = 'TODO') => {
-    setCreateTaskStatus(status);
-    setIsCreateTaskOpen(true);
-  };
-
-  const handleOpenSSH = () => {
-    setSshNode(fleet[0] || null);
-  };
-
-  const handleNavigate = (tab: NavTab) => {
-    if (tab === 'overview') navigate('/');
-    else navigate(`/${tab}`);
-  };
-
   return (
-    <>
-      <Routes>
-        {/* Public Auth Routes */}
-        <Route
-          path="/login"
-          element={
-            <PublicAuthRoute>
-              <LoginPage />
-            </PublicAuthRoute>
-          }
-        />
-
-        {/* Main Dashboard Shell Routes */}
-        <Route
-          path="/"
-          element={
-            <AppShell>
-              <OverviewPage
-                onNavigate={handleNavigate}
-                onOpenCreateProject={() => setIsCreateProjectOpen(true)}
-                onOpenCreateClient={() => setIsCreateClientOpen(true)}
-                onOpenCreateTask={() => handleOpenCreateTask('TODO')}
-                onOpenTriggerBackup={() => setIsTriggerBackupOpen(true)}
-                onOpenSendEmail={() => setIsSendEmailOpen(true)}
-                onOpenSSH={handleOpenSSH}
-                onOpenTaskDetail={task => setSelectedTask(task)}
-              />
-            </AppShell>
-          }
-        />
-        <Route
-          path="/projects"
-          element={
-            <AppShell>
-              <ProjectsKanbanPage />
-            </AppShell>
-          }
-        />
-        <Route
-          path="/clients"
-          element={
-            <AppShell>
-              <ClientsDirectoryPage />
-            </AppShell>
-          }
-        />
-        <Route
-          path="/timer"
-          element={
-            <AppShell>
-              <TimeTrackerPage />
-            </AppShell>
-          }
-        />
-        <Route
-          path="/team"
-          element={
-            <AppShell>
-              <AgencyTeamPage />
-            </AppShell>
-          }
-        />
-        <Route
-          path="/fleet"
-          element={
-            <AppShell>
-              <VPSFleetPage />
-            </AppShell>
-          }
-        />
-        <Route
-          path="/sre"
-          element={
-            <AppShell>
-              <SRETelemetryPage />
-            </AppShell>
-          }
-        />
-        <Route
-          path="/mail"
-          element={
-            <AppShell>
-              <MailSubsystemPage />
-            </AppShell>
-          }
-        />
-        <Route
-          path="/git"
-          element={
-            <AppShell>
-              <PrivateGitPage />
-            </AppShell>
-          }
-        />
-        <Route
-          path="/backups"
-          element={
-            <AppShell>
-              <VersionBackupPage />
-            </AppShell>
-          }
-        />
-        <Route
-          path="/documents"
-          element={
-            <AppShell>
-              <DocumentStudioPage />
-            </AppShell>
-          }
-        />
-        <Route
-          path="/documents/*"
-          element={
-            <AppShell>
-              <DocumentStudioPage />
-            </AppShell>
-          }
-        />
-        <Route
-          path="/settings"
-          element={
-            <AppShell>
-              <SettingsPage />
-            </AppShell>
-          }
-        />
-
-        {/* Catch-all fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-
-      {/* Global Shared Modals */}
-      <CreateProjectModal
-        isOpen={isCreateProjectOpen}
-        onClose={() => setIsCreateProjectOpen(false)}
+    <Routes>
+      {/* Public Auth Routes */}
+      <Route
+        path="/login"
+        element={
+          <PublicAuthRoute>
+            <LoginPage />
+          </PublicAuthRoute>
+        }
       />
 
-      <CreateClientModal
-        isOpen={isCreateClientOpen}
-        onClose={() => setIsCreateClientOpen(false)}
+      {/* Main Dashboard Shell Routes */}
+      <Route
+        path="/"
+        element={<Navigate to="/projects" replace />}
+      />
+      <Route
+        path="/users"
+        element={
+          <AppShell>
+            <UsersPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/projects"
+        element={
+          <AppShell>
+            <ProjectsPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/tasks"
+        element={
+          <AppShell>
+            <TasksPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/clients"
+        element={
+          <AppShell>
+            <ClientsDirectoryPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/team"
+        element={
+          <AppShell>
+            <AgencyTeamPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/documents"
+        element={
+          <AppShell>
+            <DocumentStudioPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/documents/*"
+        element={
+          <AppShell>
+            <DocumentStudioPage />
+          </AppShell>
+        }
       />
 
-      <CreateTaskModal
-        isOpen={isCreateTaskOpen}
-        onClose={() => setIsCreateTaskOpen(false)}
-        defaultStatus={createTaskStatus}
-      />
-
-      <TaskDetailModal
-        task={selectedTask}
-        isOpen={!!selectedTask}
-        onClose={() => setSelectedTask(null)}
-      />
-
-      <TriggerBackupModal
-        isOpen={isTriggerBackupOpen}
-        onClose={() => setIsTriggerBackupOpen(false)}
-      />
-
-      <SendTestEmailModal
-        isOpen={isSendEmailOpen}
-        onClose={() => setIsSendEmailOpen(false)}
-      />
-
-      <SSHConsoleModal
-        node={sshNode}
-        isOpen={!!sshNode}
-        onClose={() => setSshNode(null)}
-      />
-    </>
+      {/* Catch-all fallback */}
+      <Route path="*" element={<Navigate to="/projects" replace />} />
+    </Routes>
   );
 }
 

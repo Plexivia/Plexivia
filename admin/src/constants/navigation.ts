@@ -7,17 +7,12 @@ import {
   FileCheck,
   CreditCard,
   Banknote,
-  ReceiptText,
   Receipt,
   Coins,
   Award,
   ShieldCheck,
   HeartHandshake,
-  Medal,
   UserCheck,
-  BookOpen,
-  Globe,
-  UserPlus,
 } from 'lucide-react';
 import type { MenuGroup } from '@/types';
 
@@ -59,7 +54,7 @@ export const NAVIGATION_MENU_GROUPS: MenuGroup[] = [
         title: 'Document Studio',
         url: '/documents',
         icon: FileText,
-        badge: '15 Tools',
+        badge: '9 Tools',
         badgeVariant: 'secondary',
         items: [
           {
@@ -76,11 +71,6 @@ export const NAVIGATION_MENU_GROUPS: MenuGroup[] = [
             title: 'Salary / Payslip',
             url: '/documents/salary',
             icon: Banknote,
-          },
-          {
-            title: 'Tax Invoice',
-            url: '/documents/invoice',
-            icon: ReceiptText,
           },
           {
             title: 'Money Receipt',
@@ -108,34 +98,9 @@ export const NAVIGATION_MENU_GROUPS: MenuGroup[] = [
             icon: HeartHandshake,
           },
           {
-            title: 'General Certificate',
-            url: '/documents/certificate',
-            icon: Medal,
-          },
-          {
             title: 'Resume & Bio-Data',
             url: '/documents/resume',
             icon: UserCheck,
-          },
-          {
-            title: 'Job Verification',
-            url: '/documents/job-verification',
-            icon: CheckSquare,
-          },
-          {
-            title: 'Passport Submission',
-            url: '/documents/passport',
-            icon: BookOpen,
-          },
-          {
-            title: 'Indian Visa Application',
-            url: '/documents/indian-visa',
-            icon: Globe,
-          },
-          {
-            title: 'Client & Guardian Form',
-            url: '/documents/client-form',
-            icon: UserPlus,
           },
         ],
       },

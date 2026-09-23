@@ -56,62 +56,65 @@ export const ClientsDirectoryPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight font-mono">
-            Enterprise Clients Directory
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+          <div className="flex items-center gap-2">
+            <Building2 className="w-6 h-6 text-cyan-500" />
+            <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight font-mono">
+              Enterprise Clients Directory
+            </h1>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
             Multi-tenant eCommerce instances, dedicated domains, database tenancy models, and retainer management.
           </p>
         </div>
 
         <button
           onClick={() => setIsAddClientOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-purple-950/50 transition-all self-start sm:self-auto cursor-pointer"
+          className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-cyan-950/30 transition-all self-start sm:self-auto cursor-pointer"
         >
           <Plus className="w-4 h-4" />
-          Onboard New Client
+          <span>Onboard New Client</span>
         </button>
       </div>
 
       {/* Stats Summary Bar */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800">
-          <span className="text-xs font-semibold text-slate-400 font-mono uppercase">
+        <div className="p-4 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 shadow-xs">
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 font-mono uppercase">
             Total Enrolled Clients
           </span>
-          <div className="text-2xl font-bold text-white font-mono mt-2">{safeClients.length}</div>
-          <span className="text-[11px] text-slate-400 mt-0.5 block">Active contracts</span>
+          <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono mt-2">{safeClients.length}</div>
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 block">Active contracts</span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800">
-          <span className="text-xs font-semibold text-purple-400 font-mono uppercase">
+        <div className="p-4 rounded-2xl bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-500/20 shadow-xs">
+          <span className="text-xs font-semibold text-purple-700 dark:text-purple-400 font-mono uppercase">
             Multi-Tenant eCommerce
           </span>
-          <div className="text-2xl font-bold text-purple-300 font-mono mt-2">{multiTenantCount}</div>
-          <span className="text-[11px] text-slate-400 mt-0.5 block">Shared Postgres Cluster</span>
+          <div className="text-2xl font-bold text-purple-900 dark:text-purple-300 font-mono mt-2">{multiTenantCount}</div>
+          <span className="text-[11px] text-purple-600/70 dark:text-purple-400/70 mt-0.5 block">Shared Postgres Cluster</span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800">
-          <span className="text-xs font-semibold text-indigo-400 font-mono uppercase">
+        <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-500/20 shadow-xs">
+          <span className="text-xs font-semibold text-indigo-700 dark:text-indigo-400 font-mono uppercase">
             Dedicated Single-Tenant
           </span>
-          <div className="text-2xl font-bold text-indigo-300 font-mono mt-2">{singleTenantCount}</div>
-          <span className="text-[11px] text-slate-400 mt-0.5 block">Isolated VPS / DB</span>
+          <div className="text-2xl font-bold text-indigo-900 dark:text-indigo-300 font-mono mt-2">{singleTenantCount}</div>
+          <span className="text-[11px] text-indigo-600/70 dark:text-indigo-400/70 mt-0.5 block">Isolated VPS / DB</span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800">
-          <span className="text-xs font-semibold text-emerald-400 font-mono uppercase">
+        <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-500/20 shadow-xs">
+          <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 font-mono uppercase">
             Monthly Retainer Runrate
           </span>
-          <div className="text-2xl font-bold text-emerald-400 font-mono mt-2">
+          <div className="text-2xl font-bold text-emerald-800 dark:text-emerald-300 font-mono mt-2">
             ${totalMRR.toLocaleString()} / mo
           </div>
-          <span className="text-[11px] text-slate-400 mt-0.5 block">Recurring services</span>
+          <span className="text-[11px] text-emerald-600/70 dark:text-emerald-400/70 mt-0.5 block">Recurring services</span>
         </div>
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+      <div className="p-4 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3 flex-1">
           <div className="relative flex-1 max-w-md">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -120,14 +123,14 @@ export const ClientsDirectoryPage: React.FC = () => {
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="Search by business name, slug, or domain..."
-              className="w-full pl-10 pr-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 font-mono"
+              className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono"
             />
           </div>
 
           <select
             value={filterType}
             onChange={e => setFilterType(e.target.value)}
-            className="px-3.5 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-semibold text-slate-200 focus:outline-none focus:border-purple-500 font-mono"
+            className="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:border-cyan-500 font-mono"
           >
             <option value="ALL">All Architecture Types</option>
             <option value="MULTI_TENANT_ECOMMERCE">Multi-Tenant Only</option>
@@ -144,16 +147,16 @@ export const ClientsDirectoryPage: React.FC = () => {
           return (
             <div
               key={client.id}
-              className="p-5 rounded-2xl bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-purple-500/40 transition-all duration-300 shadow-sm flex flex-col justify-between space-y-4 group"
+              className="p-5 rounded-2xl bg-white dark:bg-slate-900/60 hover:bg-slate-50/80 dark:hover:bg-slate-900 border border-slate-200 dark:border-slate-800/80 hover:border-cyan-500/40 transition-all duration-300 shadow-xs flex flex-col justify-between space-y-4 group"
             >
               <div className="space-y-3">
                 {/* Header: Title & Badges */}
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <h3 className="text-base font-bold text-white group-hover:text-purple-300 transition-colors truncate">
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-300 transition-colors truncate">
                       {client.business_name}
                     </h3>
-                    <span className="text-[11px] font-mono text-cyan-400 block mt-0.5">
+                    <span className="text-[11px] font-mono text-cyan-600 dark:text-cyan-400 block mt-0.5">
                       slug: @{client.client_key}
                     </span>
                   </div>
@@ -169,14 +172,14 @@ export const ClientsDirectoryPage: React.FC = () => {
                 </div>
 
                 {/* Domain & Contact Info */}
-                <div className="space-y-1.5 text-xs text-slate-300 pt-2 border-t border-slate-800/80">
+                <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-300 pt-2 border-t border-slate-100 dark:border-slate-800/80">
                   <div className="flex items-center gap-2 font-mono">
                     <Globe className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                     <a
                       href={`https://${client.primary_domain}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-cyan-400 hover:underline truncate flex items-center gap-1"
+                      className="text-cyan-600 dark:text-cyan-400 hover:underline truncate flex items-center gap-1"
                     >
                       {client.primary_domain}
                       <ExternalLink className="w-3 h-3 shrink-0" />
@@ -185,38 +188,38 @@ export const ClientsDirectoryPage: React.FC = () => {
 
                   <div className="flex items-center gap-2">
                     <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                    <span className="truncate text-slate-400">{client.contact_email}</span>
+                    <span className="truncate text-slate-500 dark:text-slate-400">{client.contact_email}</span>
                   </div>
 
                   {client.contact_phone && (
                     <div className="flex items-center gap-2">
                       <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <span className="text-slate-400 font-mono">{client.contact_phone}</span>
+                      <span className="text-slate-500 dark:text-slate-400 font-mono">{client.contact_phone}</span>
                     </div>
                   )}
                 </div>
               </div>
 
               {/* Bottom Meta & Action */}
-              <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between">
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] text-slate-400 uppercase font-mono block">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-mono block">
                     Retainer
                   </span>
-                  <span className="text-sm font-bold text-emerald-400 font-mono">
+                  <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400 font-mono">
                     ${(client.monthly_retainer || 0).toLocaleString()} / mo
                   </span>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-300">
+                  <span className="text-xs font-mono px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
                     {clientProjects.length} Projects
                   </span>
 
                   <button
                     onClick={() => handleDelete(client)}
                     title="Remove client"
-                    className="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg hover:bg-rose-950/30 transition-colors cursor-pointer"
+                    className="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

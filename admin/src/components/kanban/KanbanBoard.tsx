@@ -282,7 +282,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
       {/* Main Board View */}
       {viewMode === 'board' && (
-        <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin">
+        <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-theme">
           {columns.map(col => (
             <KanbanColumn
               key={col.status}
