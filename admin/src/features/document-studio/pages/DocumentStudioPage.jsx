@@ -6,16 +6,15 @@ import { SalarySlip } from '../components/payroll/SalarySlip';
 import { MoneyReceipt } from '../components/receipt/MoneyReceipt';
 import { CashVoucher } from '../components/cash-voucher/CashVoucher';
 import { ExperienceCertificate } from '../components/certificate-experience/ExperienceCertificate';
-import { CharacterCertificate } from '../components/certificate-character/CharacterCertificate';
-import { MarriageCertificate } from '../components/certificate-marriage/MarriageCertificate';
 import { ResumeBuilder } from '../components/resume/ResumeBuilder';
 import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
 import { ShieldCheck, ArrowLeft, Lock, FileText, CheckCircle2, Loader2 } from 'lucide-react';
 
-export function DocumentStudioPage({
+// Main Document Studio routing and dossier wrapper page
+export const DocumentStudioPage = ({
   activeSubmodule: propSubmodule = undefined,
-} = {}) {
+} = {}) => {
   const location = useLocation();
   const params = useParams();
   const navigate = useNavigate();
@@ -144,40 +143,6 @@ export function DocumentStudioPage({
     const trade = caseFile.tradeSkill || 'General Worker';
 
     switch (resolvedSubmodule) {
-      case 'client-form':
-      case 'customer-form':
-        return {
-          _id: client._id || null,
-          clientId: client._id || client.did || null,
-          clientDid: client.did || client._id || null,
-          caseDid: caseFile.did || caseFile._id || null,
-          caseNumber: caseFile.caseNumber || caseNumberParam || '',
-          serviceType: destination,
-          client: {
-            fullName: applicantFullName,
-            mobileNumber: phone,
-            nidNumber,
-            passportNumber,
-            email: client.email || caseFile.email || '',
-            fatherName: client.fatherName || caseFile.fatherName || '',
-            motherName: client.motherName || caseFile.motherName || '',
-            countryRejected: client.countryRejected || '',
-            presentAddress: client.presentAddress || client.address || '',
-            permanentAddress: client.permanentAddress || '',
-          },
-          guardian: {
-            fullName: client.guardian?.name || client.guardian?.fullName || '',
-            relationship: client.guardian?.relationship || 'Father',
-            mobileNumber: client.guardian?.phone || client.guardian?.mobileNumber || '',
-            nidNumber: client.guardian?.nidNumber || '',
-            fatherName: client.guardian?.fatherName || '',
-            motherName: client.guardian?.motherName || '',
-            email: client.guardian?.email || '',
-            address: client.guardian?.address || '',
-          },
-          isLocked: false,
-        };
-
       case 'agreement':
         return {
           parties: {
@@ -475,26 +440,12 @@ export function DocumentStudioPage({
           isLocked={Boolean(dossierContext?.isLocked)}
         />
       )}
-      {(resolvedSubmodule === 'character-certificate' || resolvedSubmodule === 'certificate-char' || resolvedSubmodule === 'char-cert') && (
-        <CharacterCertificate
-          initialData={initialData}
-          onSavedSuccess={handleSavedSuccess}
-          isLocked={Boolean(dossierContext?.isLocked)}
-        />
-      )}
-      {(resolvedSubmodule === 'marriage-certificate' || resolvedSubmodule === 'certificate-marr' || resolvedSubmodule === 'marr-cert') && (
-        <MarriageCertificate
-          initialData={initialData}
-          onSavedSuccess={handleSavedSuccess}
-          isLocked={Boolean(dossierContext?.isLocked)}
-        />
-      )}
       {(resolvedSubmodule === 'resume' || resolvedSubmodule === 'cv') && (
         <ResumeBuilder />
       )}
     </div>
   );
-}
+};
 
 export default DocumentStudioPage;
 

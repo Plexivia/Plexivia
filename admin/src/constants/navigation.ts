@@ -11,10 +11,7 @@ import {
   Receipt,
   Coins,
   Award,
-  ShieldCheck,
-  HeartHandshake,
   UserCheck,
-  UserPlus,
 } from 'lucide-react';
 import type { MenuGroup } from '@/types';
 
@@ -87,21 +84,6 @@ export const NAVIGATION_MENU_GROUPS: MenuGroup[] = [
             title: 'Experience Certificate',
             url: '/documents/experience-certificate',
             icon: Award,
-          },
-          {
-            title: 'Character Certificate',
-            url: '/documents/character-certificate',
-            icon: ShieldCheck,
-          },
-          {
-            title: 'Marriage Certificate',
-            url: '/documents/marriage-certificate',
-            icon: HeartHandshake,
-          },
-          {
-            title: 'Client & Guardian Form',
-            url: '/documents/client-form',
-            icon: UserPlus,
           },
         ],
       },

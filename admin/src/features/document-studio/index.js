@@ -6,21 +6,6 @@ export { EmploymentAgreement } from './components/agreement/EmploymentAgreement'
 export { AgreementForm } from './components/agreement/AgreementForm';
 export { AgreementPreview } from './components/agreement/AgreementPreview';
 
-// Client Form
-export { ClientGuardian } from './components/client-form/ClientGuardian';
-export { ClientGuardianForm } from './components/client-form/ClientGuardianForm';
-export { ClientGuardianPreview } from './components/client-form/ClientGuardianPreview';
-export {
-  STATUS_OPTIONS as CUSTOMER_STATUS_OPTIONS,
-  STATUS_OPTIONS,
-  SERVICE_TYPES as CUSTOMER_SERVICE_TYPES,
-  SERVICE_TYPES,
-  getServiceLabel,
-  getStatusLabel,
-  getDefaultClientGuardianData,
-  generateApplicationNo
-} from './components/client-form/sampleData';
-
 // ID Card
 export { IdCard } from './components/idcard/IdCard';
 export { IdCardForm } from './components/idcard/IdCardForm';
@@ -54,14 +39,6 @@ export { CashVoucherPreview } from './components/cash-voucher/CashVoucherPreview
 export { ExperienceCertificate } from './components/certificate-experience/ExperienceCertificate';
 export { ExperienceCertificateForm } from './components/certificate-experience/ExperienceCertificateForm';
 export { ExperienceCertificatePreview } from './components/certificate-experience/ExperienceCertificatePreview';
-
-export { CharacterCertificate } from './components/certificate-character/CharacterCertificate';
-export { CharacterCertificateForm } from './components/certificate-character/CharacterCertificateForm';
-export { CharacterCertificatePreview } from './components/certificate-character/CharacterCertificatePreview';
-
-export { MarriageCertificate } from './components/certificate-marriage/MarriageCertificate';
-export { MarriageCertificateForm } from './components/certificate-marriage/MarriageCertificateForm';
-export { MarriageCertificatePreview } from './components/certificate-marriage/MarriageCertificatePreview';
 
 // Common
 export { PrintablePaper } from './components/common/PrintablePaper';

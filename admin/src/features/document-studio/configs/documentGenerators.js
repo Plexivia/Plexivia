@@ -1,14 +1,11 @@
 import {
   FileSignature,
-  UserCheck,
   Contact,
   Banknote,
   ReceiptText,
   Receipt,
   Wallet,
   Award,
-  ShieldCheck,
-  Heart,
 } from 'lucide-react';
 
 export const DOCUMENT_GENERATORS = [
@@ -24,19 +21,6 @@ export const DOCUMENT_GENERATORS = [
     color: 'from-blue-600 to-indigo-600',
     badge: 'Legal Contract',
     badgeStyle: 'bg-blue-50 text-blue-700 border-blue-200',
-  },
-  {
-    id: 'client-form',
-    title: 'Client & Guardian Form',
-    bnTitle: '',
-    category: 'contracts',
-    categoryLabel: 'Contracts & Forms',
-    description: 'Applicant profile, guardian guarantee, emergency contacts and legal declaration.',
-    bnDescription: '',
-    icon: UserCheck,
-    color: 'from-sky-600 to-cyan-600',
-    badge: 'Application Form',
-    badgeStyle: 'bg-sky-50 text-sky-700 border-sky-200',
   },
   {
     id: 'idcard',
@@ -116,50 +100,23 @@ export const DOCUMENT_GENERATORS = [
     badge: 'Certificate',
     badgeStyle: 'bg-rose-50 text-rose-700 border-rose-200',
   },
-  {
-    id: 'character-certificate',
-    title: 'Character Certificate',
-    bnTitle: '',
-    category: 'certificates',
-    categoryLabel: 'Certificates',
-    description: 'Formal character, conduct and moral standing testimonial certificate.',
-    bnDescription: '',
-    icon: ShieldCheck,
-    color: 'from-emerald-600 to-green-600',
-    badge: 'Certificate',
-    badgeStyle: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  },
-  {
-    id: 'marriage-certificate',
-    title: 'Marriage Certificate',
-    bnTitle: '',
-    category: 'certificates',
-    categoryLabel: 'Certificates',
-    description: 'Official marital status verification certificate letter for embassy and visa.',
-    bnDescription: '',
-    icon: Heart,
-    color: 'from-pink-600 to-rose-600',
-    badge: 'Certificate',
-    badgeStyle: 'bg-pink-50 text-pink-700 border-pink-200',
-  },
 ];
 
 export const CATEGORIES = [
-  { id: 'all', label: 'All Documents', bnLabel: '', count: 10 },
-  { id: 'contracts', label: 'Contracts & Forms', bnLabel: '', count: 2 },
+  { id: 'all', label: 'All Documents', bnLabel: '', count: 7 },
+  { id: 'contracts', label: 'Contracts & Forms', bnLabel: '', count: 1 },
   { id: 'accounts', label: 'Accounts & Billing', bnLabel: '', count: 3 },
   { id: 'hr', label: 'HR & Payroll', bnLabel: '', count: 2 },
-  { id: 'certificates', label: 'Certificates', bnLabel: '', count: 3 },
+  { id: 'certificates', label: 'Certificates', bnLabel: '', count: 1 },
 ];
 
+// Retrieve document generator configuration by unique ID
 export const getGeneratorById = (id) => {
   if (!id) return null;
   return DOCUMENT_GENERATORS.find(
     (g) =>
       g.id === id ||
       (id === 'receipt' && g.id === 'money-receipt') ||
-      (id === 'certificate-exp' && g.id === 'experience-certificate') ||
-      (id === 'certificate-char' && g.id === 'character-certificate') ||
-      (id === 'certificate-marr' && g.id === 'marriage-certificate')
+      (id === 'certificate-exp' && g.id === 'experience-certificate')
   );
 };
