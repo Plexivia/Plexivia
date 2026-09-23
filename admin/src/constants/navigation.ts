@@ -1,16 +1,9 @@
 import {
-  LayoutDashboard,
   FolderKanban,
   Building2,
-  Timer,
   Users,
-  Server,
-  Activity,
-  Mail,
-  GitBranch,
-  Archive,
+  CheckSquare,
   FileText,
-  Settings,
   FileCheck,
   CreditCard,
   Banknote,
@@ -22,7 +15,6 @@ import {
   HeartHandshake,
   Medal,
   UserCheck,
-  CheckSquare,
   BookOpen,
   Globe,
   UserPlus,
@@ -31,69 +23,37 @@ import type { MenuGroup } from '@/types';
 
 export const NAVIGATION_MENU_GROUPS: MenuGroup[] = [
   {
-    label: 'Agency Operations',
+    label: 'Agency Management',
     items: [
       {
-        title: 'Overview',
-        url: '/',
-        icon: LayoutDashboard,
+        title: 'Users',
+        url: '/users',
+        icon: UserCheck,
       },
       {
-        title: 'Projects & Tasks',
+        title: 'Projects',
         url: '/projects',
         icon: FolderKanban,
       },
       {
-        title: 'Clients Directory',
+        title: 'Tasks',
+        url: '/tasks',
+        icon: CheckSquare,
+      },
+      {
+        title: 'Clients',
         url: '/clients',
         icon: Building2,
       },
       {
-        title: 'Time Tracker',
-        url: '/timer',
-        icon: Timer,
-      },
-      {
-        title: 'Agency Team',
+        title: 'Team',
         url: '/team',
         icon: Users,
       },
     ],
   },
   {
-    label: 'Infrastructure & SRE',
-    items: [
-      {
-        title: 'VPS Fleet',
-        url: '/fleet',
-        icon: Server,
-        badge: 'Fleet',
-        badgeVariant: 'default',
-      },
-      {
-        title: 'SRE Telemetry',
-        url: '/sre',
-        icon: Activity,
-      },
-      {
-        title: 'Mail Subsystem',
-        url: '/mail',
-        icon: Mail,
-      },
-      {
-        title: 'Private Git & CI',
-        url: '/git',
-        icon: GitBranch,
-      },
-      {
-        title: 'Backups & Storage',
-        url: '/backups',
-        icon: Archive,
-      },
-    ],
-  },
-  {
-    label: 'Tools & Studio',
+    label: 'Document Studio',
     items: [
       {
         title: 'Document Studio',
@@ -179,12 +139,6 @@ export const NAVIGATION_MENU_GROUPS: MenuGroup[] = [
           },
         ],
       },
-      {
-        title: 'Settings',
-        url: '/settings',
-        icon: Settings,
-      },
     ],
   },
 ];
-
