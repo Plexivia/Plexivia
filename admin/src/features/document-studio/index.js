@@ -21,26 +21,10 @@ export {
   generateApplicationNo
 } from './components/client-form/sampleData';
 
-// Indian Visa
-export { IndianVisa } from './components/indian-visa/IndianVisa';
-export { IndianVisaForm } from './components/indian-visa/IndianVisaForm';
-export { IndianVisaPreview } from './components/indian-visa/IndianVisaPreview';
-
-// Passport Submission
-export { PassportSubmission } from './components/passport/PassportSubmission';
-export { PassportSubmissionForm } from './components/passport/PassportSubmissionForm';
-export { PassportSubmissionPreview } from './components/passport/PassportSubmissionPreview';
-
 // ID Card
 export { IdCard } from './components/idcard/IdCard';
 export { IdCardForm } from './components/idcard/IdCardForm';
 export { IdCardPreview } from './components/idcard/IdCardPreview';
-
-// Job Verification
-export { JobVerification } from './components/job-verification/JobVerification';
-export { JobVerificationForm } from './components/job-verification/JobVerificationForm';
-export { JobVerificationPreview } from './components/job-verification/JobVerificationPreview';
-export { getDefaultJobVerificationData, generateUniqueJobVerificationId } from './components/job-verification/sampleData';
 
 // Payroll
 export { SalarySlip } from './components/payroll/SalarySlip';
@@ -85,4 +69,3 @@ export { ExportModal } from './components/common/ExportModal';
 export { ExistingClientAlertModal, ExistingClientAlertModal as ClientUniqueCheckModal, default as ExistingClientAlertModalDefault } from './components/common/ExistingClientAlertModal';
 export { StudioFloatingViewSwitcher } from './components/common/StudioFloatingViewSwitcher';
 export { useClientLookup } from './components/common/useClientLookup';
-

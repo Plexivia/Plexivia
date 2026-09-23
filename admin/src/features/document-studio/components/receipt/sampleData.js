@@ -54,7 +54,7 @@ export function numberToWords(amount) {
 
 export const PAYMENT_METHODS = [
   { id: 'Cash', label: 'Cash' },
-  { id: 'Bank Transfer / Cheque', label: 'Bank Transfer / Cheque' },
+  { id: 'Bank Transfer', label: 'Bank Transfer' },
   { id: 'Online Payment', label: 'Online Payment' },
 ];
 

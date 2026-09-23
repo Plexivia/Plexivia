@@ -10,9 +10,11 @@ import {
   ShieldCheck,
   Building,
   CheckCircle2,
-  Briefcase
+  Briefcase,
+  User as UserIcon
 } from 'lucide-react';
 
+// Render user management page with roster filters and creation modal
 export const UsersPage: React.FC = () => {
   const { users, tasks } = useData();
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
@@ -45,7 +47,6 @@ export const UsersPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header & Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
@@ -68,7 +69,6 @@ export const UsersPage: React.FC = () => {
         </button>
       </div>
 
-      {/* Quick Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="p-4 bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 rounded-2xl shadow-xs space-y-1">
           <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-mono">
@@ -96,7 +96,7 @@ export const UsersPage: React.FC = () => {
             <Building className="w-4 h-4 text-purple-500" />
           </div>
           <div className="text-2xl font-bold font-mono text-purple-800 dark:text-purple-300">
-            {new Set(safeUsers.map((u) => u.department).filter(Boolean)).size || 1}
+            {new Set(safeUsers.map((u) => u.department).filter(Boolean)).size}
           </div>
         </div>
 
@@ -106,12 +106,11 @@ export const UsersPage: React.FC = () => {
             <ShieldCheck className="w-4 h-4 text-amber-500" />
           </div>
           <div className="text-2xl font-bold font-mono text-amber-800 dark:text-amber-300">
-            {allRoles.length || 1}
+            {allRoles.length}
           </div>
         </div>
       </div>
 
-      {/* Filter & Search Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white dark:bg-slate-900/60 p-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-xs">
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -151,7 +150,6 @@ export const UsersPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Users Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {filteredUsers.map((u) => {
           const userActiveTasks = safeTasks.filter(
@@ -169,34 +167,40 @@ export const UsersPage: React.FC = () => {
               <div className="space-y-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <img
-                      src={
-                        u.avatar ||
-                        u.avatar_url ||
-                        `https://api.dicebear.com/7.x/bottts/svg?seed=${u.id}`
-                      }
-                      alt={u.full_name || u.name || 'User'}
-                      className="w-12 h-12 rounded-2xl object-cover ring-2 ring-slate-200 dark:ring-slate-800 group-hover:ring-cyan-500/50 transition-all"
-                    />
+                    {u.avatar || u.avatar_url ? (
+                      <img
+                        src={u.avatar || u.avatar_url}
+                        alt={u.full_name || u.name || 'User'}
+                        className="w-12 h-12 rounded-2xl object-cover ring-2 ring-slate-200 dark:ring-slate-800 group-hover:ring-cyan-500/50 transition-all"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-500 flex items-center justify-center font-bold text-sm ring-2 ring-slate-200 dark:ring-slate-800">
+                        {u.full_name ? u.full_name.charAt(0).toUpperCase() : <UserIcon className="w-6 h-6" />}
+                      </div>
+                    )}
                     <div>
                       <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-300 transition-colors">
-                        {u.full_name || u.name || 'User'}
+                        {u.full_name || u.name}
                       </h3>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">
-                        {u.department || 'Operations'}
-                      </p>
+                      {u.department && (
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">
+                          {u.department}
+                        </p>
+                      )}
                     </div>
                   </div>
-                  <RoleBadge role={u.role} />
+                  {u.role && <RoleBadge role={u.role} />}
                 </div>
 
                 <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-300 pt-2 border-t border-slate-100 dark:border-slate-800/80 font-mono">
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                    <span className="truncate text-slate-500 dark:text-slate-400">
-                      {u.email || 'No email provided'}
-                    </span>
-                  </div>
+                  {u.email && (
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <span className="truncate text-slate-500 dark:text-slate-400">
+                        {u.email}
+                      </span>
+                    </div>
+                  )}
 
                   {u.hourly_rate !== undefined && (
                     <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
@@ -228,12 +232,11 @@ export const UsersPage: React.FC = () => {
 
         {filteredUsers.length === 0 && (
           <div className="col-span-full py-12 text-center text-slate-400 font-mono text-xs">
-            No users match your filter or search query.
+            No users available.
           </div>
         )}
       </div>
 
-      {/* Add User Modal */}
       <CreateTeamMemberModal
         isOpen={isAddUserOpen}
         onClose={() => setIsAddUserOpen(false)}

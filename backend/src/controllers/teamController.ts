@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Store } from '../data/mockStore.js';
+import { Store } from '../data/store.js';
 import { Team, TeamMember } from '../types/index.js';
 
 export const getTeams = (req: Request, res: Response) => {

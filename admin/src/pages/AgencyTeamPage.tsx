@@ -7,7 +7,8 @@ import {
   Mail,
   KanbanSquare,
   CheckCircle2,
-  Lock
+  Lock,
+  User as UserIcon
 } from 'lucide-react';
 
 export const AgencyTeamPage: React.FC = () => {
@@ -54,34 +55,46 @@ export const AgencyTeamPage: React.FC = () => {
                 {/* Avatar & Role Header */}
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <img
-                      src={member.avatar}
-                      alt={member.full_name}
-                      className="w-12 h-12 rounded-2xl object-cover ring-2 ring-slate-200 dark:ring-slate-800 group-hover:ring-cyan-500/50 transition-all"
-                    />
+                    {member.avatar || member.avatar_url ? (
+                      <img
+                        src={member.avatar || member.avatar_url}
+                        alt={member.full_name || member.name || 'Member'}
+                        className="w-12 h-12 rounded-2xl object-cover ring-2 ring-slate-200 dark:ring-slate-800 group-hover:ring-cyan-500/50 transition-all"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-500 flex items-center justify-center font-bold text-sm ring-2 ring-slate-200 dark:ring-slate-800">
+                        {member.full_name ? member.full_name.charAt(0).toUpperCase() : <UserIcon className="w-6 h-6" />}
+                      </div>
+                    )}
                     <div>
                       <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-300 transition-colors">
-                        {member.full_name}
+                        {member.full_name || member.name}
                       </h3>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">
-                        {member.department}
-                      </p>
+                      {member.department && (
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">
+                          {member.department}
+                        </p>
+                      )}
                     </div>
                   </div>
-                  <RoleBadge role={member.role} />
+                  {member.role && <RoleBadge role={member.role} />}
                 </div>
 
                 {/* Email & Details */}
                 <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-300 pt-2 border-t border-slate-100 dark:border-slate-800/80 font-mono">
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                    <span className="truncate text-slate-500 dark:text-slate-400">{member.email}</span>
-                  </div>
+                  {member.email && (
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <span className="truncate text-slate-500 dark:text-slate-400">{member.email}</span>
+                    </div>
+                  )}
 
-                  <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
-                    <span>Hourly Billing:</span>
-                    <strong className="text-slate-900 dark:text-white font-mono">${member.hourly_rate} / hr</strong>
-                  </div>
+                  {member.hourly_rate !== undefined && (
+                    <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
+                      <span>Hourly Billing:</span>
+                      <strong className="text-slate-900 dark:text-white font-mono">${member.hourly_rate} / hr</strong>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -102,6 +115,12 @@ export const AgencyTeamPage: React.FC = () => {
             </div>
           );
         })}
+
+        {safeUsers.length === 0 && (
+          <div className="col-span-full py-12 text-center text-slate-400 font-mono text-xs">
+            No team members available.
+          </div>
+        )}
       </div>
 
       {/* Role-Based Permissions Matrix */}
@@ -118,11 +137,10 @@ export const AgencyTeamPage: React.FC = () => {
             <thead className="bg-slate-50 dark:bg-slate-950/60 text-slate-500 dark:text-slate-400 font-mono uppercase text-[10px] border-b border-slate-200 dark:border-slate-800">
               <tr>
                 <th className="p-3">Role</th>
-                <th className="p-3">Projects & Kanban</th>
+                <th className="p-3">Projects & Tasks</th>
                 <th className="p-3">Clients & Billing</th>
-                <th className="p-3">VPS Fleet & SSH</th>
-                <th className="p-3">Cloudflare R2 Backups</th>
-                <th className="p-3">Telemetry & SRE</th>
+                <th className="p-3">User Management</th>
+                <th className="p-3">Document Studio</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-mono text-[11px]">
@@ -130,25 +148,22 @@ export const AgencyTeamPage: React.FC = () => {
                 <td className="p-3 font-bold text-rose-500 dark:text-rose-400">SUPER_ADMIN</td>
                 <td className="p-3 text-emerald-600 dark:text-emerald-400">Full Read/Write</td>
                 <td className="p-3 text-emerald-600 dark:text-emerald-400">Full Manage</td>
-                <td className="p-3 text-emerald-600 dark:text-emerald-400">Root SSH Access</td>
-                <td className="p-3 text-emerald-600 dark:text-emerald-400">Trigger / Restore</td>
-                <td className="p-3 text-emerald-600 dark:text-emerald-400">Full Telemetry</td>
+                <td className="p-3 text-emerald-600 dark:text-emerald-400">Full Control</td>
+                <td className="p-3 text-emerald-600 dark:text-emerald-400">Full Access</td>
               </tr>
               <tr>
                 <td className="p-3 font-bold text-purple-600 dark:text-purple-400">PM (Project Manager)</td>
                 <td className="p-3 text-emerald-600 dark:text-emerald-400">Full Manage</td>
                 <td className="p-3 text-emerald-600 dark:text-emerald-400">View & Edit</td>
-                <td className="p-3 text-slate-400 dark:text-slate-500">No Access</td>
-                <td className="p-3 text-slate-500 dark:text-slate-400">View Status</td>
-                <td className="p-3 text-slate-500 dark:text-slate-400">Service Health</td>
+                <td className="p-3 text-slate-400 dark:text-slate-500">View Only</td>
+                <td className="p-3 text-emerald-600 dark:text-emerald-400">Generate & Edit</td>
               </tr>
               <tr>
                 <td className="p-3 font-bold text-cyan-600 dark:text-cyan-400">DEV (Developer)</td>
                 <td className="p-3 text-emerald-600 dark:text-emerald-400">Manage Tasks</td>
                 <td className="p-3 text-slate-500 dark:text-slate-400">View Client Info</td>
-                <td className="p-3 text-slate-500 dark:text-slate-400">Read Logs Only</td>
                 <td className="p-3 text-slate-400 dark:text-slate-500">No Access</td>
-                <td className="p-3 text-slate-500 dark:text-slate-400">Container Metrics</td>
+                <td className="p-3 text-slate-500 dark:text-slate-400">View Only</td>
               </tr>
               <tr>
                 <td className="p-3 font-bold text-amber-600 dark:text-amber-400">DESIGNER</td>
@@ -156,15 +171,6 @@ export const AgencyTeamPage: React.FC = () => {
                 <td className="p-3 text-slate-400 dark:text-slate-500">No Access</td>
                 <td className="p-3 text-slate-400 dark:text-slate-500">No Access</td>
                 <td className="p-3 text-slate-400 dark:text-slate-500">No Access</td>
-                <td className="p-3 text-slate-400 dark:text-slate-500">No Access</td>
-              </tr>
-              <tr>
-                <td className="p-3 font-bold text-emerald-600 dark:text-emerald-400">SRE / DEVOPS</td>
-                <td className="p-3 text-slate-500 dark:text-slate-400">Infra Tasks</td>
-                <td className="p-3 text-slate-400 dark:text-slate-500">No Access</td>
-                <td className="p-3 text-emerald-600 dark:text-emerald-400">Root SSH Access</td>
-                <td className="p-3 text-emerald-600 dark:text-emerald-400">Trigger / Restore</td>
-                <td className="p-3 text-emerald-600 dark:text-emerald-400">Full Telemetry</td>
               </tr>
             </tbody>
           </table>
@@ -179,3 +185,5 @@ export const AgencyTeamPage: React.FC = () => {
     </div>
   );
 };
+
+export default AgencyTeamPage;

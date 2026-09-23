@@ -1,8 +1,6 @@
 import {
   FileSignature,
   UserCheck,
-  Stamp,
-  BookOpen,
   Contact,
   Banknote,
   ReceiptText,
@@ -11,7 +9,6 @@ import {
   Award,
   ShieldCheck,
   Heart,
-  FileCheck2,
 } from 'lucide-react';
 
 export const DOCUMENT_GENERATORS = [
@@ -40,45 +37,6 @@ export const DOCUMENT_GENERATORS = [
     color: 'from-sky-600 to-cyan-600',
     badge: 'Application Form',
     badgeStyle: 'bg-sky-50 text-sky-700 border-sky-200',
-  },
-  {
-    id: 'indian-visa',
-    title: 'Indian Visa Submission File',
-    bnTitle: '',
-    category: 'contracts',
-    categoryLabel: 'Visa & Passport',
-    description: 'Applicant profile, port details, appointment tracking and submission slip.',
-    bnDescription: '',
-    icon: Stamp,
-    color: 'from-amber-600 to-orange-600',
-    badge: 'Visa File',
-    badgeStyle: 'bg-amber-50 text-amber-700 border-amber-200',
-  },
-  {
-    id: 'passport-sub',
-    title: 'Passport Submission Slip',
-    bnTitle: '',
-    category: 'contracts',
-    categoryLabel: 'Visa & Passport',
-    description: 'Passport custody handover voucher with barcode and tracking identifier.',
-    bnDescription: '',
-    icon: BookOpen,
-    color: 'from-emerald-600 to-teal-600',
-    badge: 'Custody Slip',
-    badgeStyle: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  },
-  {
-    id: 'job-verification',
-    title: 'Job Verification Form',
-    bnTitle: '',
-    category: 'contracts',
-    categoryLabel: 'Verification & Jobs',
-    description: 'Company, Client & Job Verification Details Form for overseas employment and stay.',
-    bnDescription: '',
-    icon: FileCheck2,
-    color: 'from-blue-600 to-cyan-600',
-    badge: 'Verification Form',
-    badgeStyle: 'bg-cyan-50 text-cyan-700 border-cyan-200',
   },
   {
     id: 'idcard',
@@ -187,8 +145,8 @@ export const DOCUMENT_GENERATORS = [
 ];
 
 export const CATEGORIES = [
-  { id: 'all', label: 'All Documents', bnLabel: '', count: 12 },
-  { id: 'contracts', label: 'Contracts & Forms', bnLabel: '', count: 4 },
+  { id: 'all', label: 'All Documents', bnLabel: '', count: 10 },
+  { id: 'contracts', label: 'Contracts & Forms', bnLabel: '', count: 2 },
   { id: 'accounts', label: 'Accounts & Billing', bnLabel: '', count: 3 },
   { id: 'hr', label: 'HR & Payroll', bnLabel: '', count: 2 },
   { id: 'certificates', label: 'Certificates', bnLabel: '', count: 3 },

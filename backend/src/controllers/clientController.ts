@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Store } from '../data/mockStore.js';
+import { Store } from '../data/store.js';
 import { Client } from '../types/index.js';
 
 export const getClients = (req: Request, res: Response) => {

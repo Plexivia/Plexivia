@@ -1,6 +1,6 @@
 {
-  "name": "plexi-hub-backend",
-  "version": "1.0.3",
+  "name": "Plexivia-backend",
+  "version": "1.0.4",
   "private": true,
   "type": "module",
   "scripts": {

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Store } from '../data/mockStore.js';
+import { Store } from '../data/store.js';
 
 export const login = async (req: Request, res: Response) => {
   try {
@@ -24,7 +24,6 @@ export const login = async (req: Request, res: Response) => {
         role: isSuperAdmin ? 'SUPER_ADMIN' : 'DEV',
         department: 'Engineering',
         designation: isSuperAdmin ? 'Principal Architect' : 'Engineer',
-        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(emailClean)}&background=0284c7&color=ffffff&bold=true`,
         is_active: true,
         status: 'ACTIVE',
         created_at: new Date().toISOString(),
@@ -37,7 +36,7 @@ export const login = async (req: Request, res: Response) => {
 
     return res.json({
       success: true,
-      token: accessToken, // for legacy clients expecting res.token
+      token: accessToken,
       user,
       message: 'Logged in successfully',
       data: {
@@ -54,8 +53,12 @@ export const login = async (req: Request, res: Response) => {
 export const verify2fa = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
-    const userEmail = email ? String(email).trim().toLowerCase() : 'admin@plexivia.com';
-    const user = Store.users.find(u => u.email.toLowerCase() === userEmail) || Store.users[0];
+    const userEmail = email ? String(email).trim().toLowerCase() : '';
+    const user = Store.users.find(u => u.email.toLowerCase() === userEmail) || Store.users[0] || null;
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
 
     return res.json({
       success: true,
@@ -72,7 +75,7 @@ export const verify2fa = async (req: Request, res: Response) => {
 };
 
 export const getMe = async (_req: Request, res: Response) => {
-  const user = Store.users[0];
+  const user = Store.users[0] || null;
   return res.json({
     success: true,
     data: {

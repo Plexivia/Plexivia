@@ -7,13 +7,14 @@ import {
   FileCheck,
   CreditCard,
   Banknote,
+  ReceiptText,
   Receipt,
   Coins,
   Award,
   ShieldCheck,
   HeartHandshake,
   UserCheck,
-  Wallet,
+  UserPlus,
 } from 'lucide-react';
 import type { MenuGroup } from '@/types';
 
@@ -32,33 +33,19 @@ export const NAVIGATION_MENU_GROUPS: MenuGroup[] = [
         icon: FolderKanban,
       },
       {
+        title: 'Tasks',
+        url: '/tasks',
+        icon: CheckSquare,
+      },
+      {
         title: 'Clients',
         url: '/clients',
         icon: Building2,
       },
       {
-        title: 'Accounts',
-        url: '/accounts',
-        icon: Wallet,
-      },
-      {
         title: 'Team',
         url: '/team',
         icon: Users,
-        badge: '2 Sub',
-        badgeVariant: 'secondary',
-        items: [
-          {
-            title: 'Employees',
-            url: '/team',
-            icon: Users,
-          },
-          {
-            title: 'Tasks',
-            url: '/tasks',
-            icon: CheckSquare,
-          },
-        ],
       },
     ],
   },
@@ -69,7 +56,7 @@ export const NAVIGATION_MENU_GROUPS: MenuGroup[] = [
         title: 'Document Studio',
         url: '/documents',
         icon: FileText,
-        badge: '9 Tools',
+        badge: 'Tools',
         badgeVariant: 'secondary',
         items: [
           {
@@ -86,6 +73,11 @@ export const NAVIGATION_MENU_GROUPS: MenuGroup[] = [
             title: 'Salary / Payslip',
             url: '/documents/salary',
             icon: Banknote,
+          },
+          {
+            title: 'Tax Invoice',
+            url: '/documents/invoice',
+            icon: ReceiptText,
           },
           {
             title: 'Money Receipt',
@@ -113,9 +105,9 @@ export const NAVIGATION_MENU_GROUPS: MenuGroup[] = [
             icon: HeartHandshake,
           },
           {
-            title: 'Resume & Bio-Data',
-            url: '/documents/resume',
-            icon: UserCheck,
+            title: 'Client & Guardian Form',
+            url: '/documents/client-form',
+            icon: UserPlus,
           },
         ],
       },
