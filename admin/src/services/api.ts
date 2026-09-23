@@ -4,6 +4,8 @@ import {
   Task,
   TaskStatus,
   User,
+  Team,
+  TeamMember,
   VPSNode,
   ServiceHealth,
   MailLog,
@@ -47,6 +49,7 @@ function extractArray<T>(res: any): T[] {
     if (Array.isArray(res.projects)) return res.projects;
     if (Array.isArray(res.tasks)) return res.tasks;
     if (Array.isArray(res.users)) return res.users;
+    if (Array.isArray(res.teams)) return res.teams;
     if (Array.isArray(res.nodes)) return res.nodes;
     if (Array.isArray(res.services)) return res.services;
     if (Array.isArray(res.backups)) return res.backups;
@@ -113,6 +116,12 @@ export interface ApiClient {
   // Users
   getUsers(): Promise<User[]>;
   createUser(userData: Omit<User, 'id' | 'created_at' | 'active_tasks_count'>): Promise<User>;
+
+  // Teams
+  getTeams(): Promise<Team[]>;
+  createTeam(teamData: Partial<Team>): Promise<Team>;
+  updateTeam(id: string, updates: Partial<Team>): Promise<Team>;
+  deleteTeam(id: string): Promise<void>;
 
   // Time Logs
   getTimeLogs(): Promise<TimeLog[]>;
@@ -361,6 +370,47 @@ export const apiClient: ApiClient = {
       return created;
     }
     throw new Error('User creation failed');
+  },
+
+  // Teams
+  async getTeams(): Promise<Team[]> {
+    try {
+      const res = await apiFetch<any>('/teams');
+      return extractArray<Team>(res);
+    } catch {
+      return [];
+    }
+  },
+
+  async createTeam(teamData: Partial<Team>): Promise<Team> {
+    const res = await apiFetch<any>('/teams', {
+      method: 'POST',
+      body: JSON.stringify(teamData),
+    });
+    const created = extractItem<Team>(res);
+    if (created) {
+      this.logActivity('created team', created.name || 'Team', 'SYSTEM');
+      return created;
+    }
+    throw new Error('Team creation failed');
+  },
+
+  async updateTeam(id: string, updates: Partial<Team>): Promise<Team> {
+    const res = await apiFetch<any>('/teams/' + id, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    });
+    const updated = extractItem<Team>(res);
+    if (updated) {
+      this.logActivity('updated team', updated.name || 'Team', 'SYSTEM');
+      return updated;
+    }
+    throw new Error('Team update failed');
+  },
+
+  async deleteTeam(id: string): Promise<void> {
+    await apiFetch('/teams/' + id, { method: 'DELETE' });
+    this.logActivity('deleted team', 'ID: ' + id, 'SYSTEM');
   },
 
   // Time Logs

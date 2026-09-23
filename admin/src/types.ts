@@ -137,6 +137,35 @@ export interface User {
   created_at?: string;
 }
 
+export interface TeamMember {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  avatar?: string;
+  designation?: string;
+  department?: string;
+  joined_at?: string;
+}
+
+export interface Team {
+  id: string;
+  name: string;
+  code?: string;
+  description?: string;
+  department?: string;
+  lead_id?: string;
+  lead_name?: string;
+  lead_avatar?: string;
+  members?: TeamMember[];
+  members_count?: number;
+  membersCount?: number;
+  projects_count?: number;
+  projectsCount?: number;
+  status?: 'ACTIVE' | 'ARCHIVED';
+  created_at?: string;
+}
+
 export interface VPSNode {
   id: string;
   name?: string;

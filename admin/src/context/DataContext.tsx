@@ -5,6 +5,7 @@ import {
   Task,
   TaskStatus,
   User,
+  Team,
   VPSNode,
   ServiceHealth,
   CloudflareBackup,
@@ -22,6 +23,7 @@ interface DataContextType {
   projects: Project[];
   tasks: Task[];
   users: User[];
+  teams: Team[];
   fleet: VPSNode[];
   services: ServiceHealth[];
   backups: CloudflareBackup[];
@@ -57,6 +59,10 @@ interface DataContextType {
   updateTaskStatus: (id: string, status: TaskStatus) => Promise<Task>;
   deleteTask: (id: string) => Promise<void>;
 
+  createTeam: (data: Partial<Team>) => Promise<Team>;
+  updateTeam: (id: string, data: Partial<Team>) => Promise<Team>;
+  deleteTeam: (id: string) => Promise<void>;
+
   createUser: (data: Omit<User, 'id' | 'created_at' | 'active_tasks_count'>) => Promise<User>;
   createTimeLog: (data: Omit<TimeLog, 'id' | 'created_at'>) => Promise<TimeLog>;
   triggerBackup: () => Promise<CloudflareBackup>;
@@ -72,6 +78,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
   const [fleet, setFleet] = useState<VPSNode[]>([]);
   const [services, setServices] = useState<ServiceHealth[]>([]);
   const [backups, setBackups] = useState<CloudflareBackup[]>([]);
@@ -96,11 +103,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshAll = useCallback(async () => {
     try {
-      const [c, p, t, u, f, s, b, r, m, tl, a, st] = await Promise.all([
+      const [c, p, t, u, tm, f, s, b, r, m, tl, a, st] = await Promise.all([
         apiClient.getClients(),
         apiClient.getProjects(),
         apiClient.getTasks(),
         apiClient.getUsers(),
+        apiClient.getTeams(),
         apiClient.getFleet(),
         apiClient.getServices(),
         apiClient.getBackups(),
@@ -115,6 +123,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setProjects(Array.isArray(p) ? p : []);
       setTasks(Array.isArray(t) ? t : []);
       setUsers(Array.isArray(u) ? u : []);
+      setTeams(Array.isArray(tm) ? tm : []);
       setFleet(Array.isArray(f) ? f : []);
       setServices(Array.isArray(s) ? s : []);
       setBackups(Array.isArray(b) ? b : []);
@@ -325,6 +334,42 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Team actions
+  const createTeam = async (data: Partial<Team>) => {
+    try {
+      const created = await apiClient.createTeam(data);
+      showToast('success', 'Team Created', `${created.name} formed successfully.`);
+      await refreshAll();
+      return created;
+    } catch (err: any) {
+      showToast('error', 'Team Creation Failed', err.message);
+      throw err;
+    }
+  };
+
+  const updateTeam = async (id: string, data: Partial<Team>) => {
+    try {
+      const updated = await apiClient.updateTeam(id, data);
+      showToast('success', 'Team Updated', `${updated.name} saved.`);
+      await refreshAll();
+      return updated;
+    } catch (err: any) {
+      showToast('error', 'Team Update Failed', err.message);
+      throw err;
+    }
+  };
+
+  const deleteTeam = async (id: string) => {
+    try {
+      await apiClient.deleteTeam(id);
+      showToast('info', 'Team Deleted', 'Team removed successfully.');
+      await refreshAll();
+    } catch (err: any) {
+      showToast('error', 'Delete Team Failed', err.message);
+      throw err;
+    }
+  };
+
   // User actions
   const createUser = async (data: Omit<User, 'id' | 'created_at' | 'active_tasks_count'>) => {
     try {
@@ -384,6 +429,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         projects,
         tasks,
         users,
+        teams,
         fleet,
         services,
         backups,
@@ -408,6 +454,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateTask,
         updateTaskStatus,
         deleteTask,
+        createTeam,
+        updateTeam,
+        deleteTeam,
         createUser,
         createTimeLog,
         triggerBackup,
