@@ -20,7 +20,6 @@ import type { MenuGroup } from '@/types';
 
 export const NAVIGATION_MENU_GROUPS: MenuGroup[] = [
   {
-    label: 'Agency Management',
     items: [
       {
         title: 'Users',
@@ -47,11 +46,6 @@ export const NAVIGATION_MENU_GROUPS: MenuGroup[] = [
         url: '/team',
         icon: Users,
       },
-    ],
-  },
-  {
-    label: 'Document Studio',
-    items: [
       {
         title: 'Document Studio',
         url: '/documents',
