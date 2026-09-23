@@ -24,6 +24,7 @@ import { ProjectsPage } from '@/pages/ProjectsPage';
 import { TasksPage } from '@/pages/TasksPage';
 import { ClientsDirectoryPage } from '@/pages/ClientsDirectoryPage';
 import { AgencyTeamPage } from '@/pages/AgencyTeamPage';
+import { AccountsPage } from '@/pages/AccountsPage';
 import { DocumentStudioPage } from '@/features/document-studio/pages/DocumentStudioPage';
 
 // Route Guards
@@ -141,6 +142,14 @@ export function AppRoutes() {
         element={
           <AppShell>
             <AgencyTeamPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/accounts"
+        element={
+          <AppShell>
+            <AccountsPage />
           </AppShell>
         }
       />

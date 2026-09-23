@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   HeartHandshake,
   UserCheck,
+  Wallet,
 } from 'lucide-react';
 import type { MenuGroup } from '@/types';
 
@@ -31,19 +32,33 @@ export const NAVIGATION_MENU_GROUPS: MenuGroup[] = [
         icon: FolderKanban,
       },
       {
-        title: 'Tasks',
-        url: '/tasks',
-        icon: CheckSquare,
-      },
-      {
         title: 'Clients',
         url: '/clients',
         icon: Building2,
       },
       {
+        title: 'Accounts',
+        url: '/accounts',
+        icon: Wallet,
+      },
+      {
         title: 'Team',
         url: '/team',
         icon: Users,
+        badge: '2 Sub',
+        badgeVariant: 'secondary',
+        items: [
+          {
+            title: 'Employees',
+            url: '/team',
+            icon: Users,
+          },
+          {
+            title: 'Tasks',
+            url: '/tasks',
+            icon: CheckSquare,
+          },
+        ],
       },
     ],
   },

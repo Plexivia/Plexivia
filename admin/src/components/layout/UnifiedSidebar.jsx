@@ -25,7 +25,7 @@ import {
   SidebarMenuSubItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 import brandLogoImg from '@/assets/brand-dark.png';
 import { APP_NAME, APP_VERSION } from '@/configs/appConfig';
@@ -252,192 +252,212 @@ export function UnifiedSidebar({
           }
 
           const groupLabel = lang === 'BN' ? (group.groupLabelBn || group.labelBn || group.groupLabel || group.label) : (group.groupLabel || group.label);
+          const groupId = group.id || `group-${groupLabel || groupIdx}`;
+          const isGroupOpen = openMenus[groupId] ?? true;
 
           return (
-            <SidebarGroup key={groupIdx} className="p-0">
-              {groupLabel && (
-                <SidebarGroupLabel className="px-3 pt-2 pb-1 text-[11px] font-extrabold tracking-widest text-sky-400 uppercase">
-                  {groupLabel}
-                </SidebarGroupLabel>
-              )}
-              <SidebarGroupContent>
-                {/* Applied space-y-3 between menu items */}
-                <SidebarMenu className="space-y-3">
-                  {group.items?.map((item, itemIdx) => {
-                    // Role filtering for items
-                    if (item.roles && item.roles.length > 0) {
-                      const hasRole = item.roles.includes(userRole) || item.roles.includes(userSubRole);
-                      if (!hasRole) return null;
-                    }
-                    if (item.excludeRoles && item.excludeRoles.length > 0) {
-                      const isExcluded = item.excludeRoles.includes(userRole) || item.excludeRoles.includes(userSubRole);
-                      if (isExcluded) return null;
-                    }
+            <Collapsible
+              key={groupIdx}
+              open={isGroupOpen}
+              onOpenChange={() => toggleGroup(groupId)}
+              className="group/collapsible-group"
+            >
+              <SidebarGroup className="p-0">
+                {groupLabel && (
+                  <CollapsibleTrigger asChild>
+                    <SidebarGroupLabel className="px-3 pt-2 pb-1 text-[11px] font-extrabold tracking-widest text-sky-400 uppercase flex items-center justify-between cursor-pointer hover:text-sky-300 select-none group/label">
+                      <span>{groupLabel}</span>
+                      <ChevronRight
+                        className={cn(
+                          'w-3.5 h-3.5 text-sky-400 transition-transform duration-200 group-hover/label:text-sky-200',
+                          isGroupOpen && 'rotate-90',
+                          'group-data-[collapsible=icon]:hidden'
+                        )}
+                      />
+                    </SidebarGroupLabel>
+                  </CollapsibleTrigger>
+                )}
+                <CollapsibleContent>
+                  <SidebarGroupContent>
+                    {/* Applied space-y-3 between menu items */}
+                    <SidebarMenu className="space-y-3">
+                      {group.items?.map((item, itemIdx) => {
+                        // Role filtering for items
+                        if (item.roles && item.roles.length > 0) {
+                          const hasRole = item.roles.includes(userRole) || item.roles.includes(userSubRole);
+                          if (!hasRole) return null;
+                        }
+                        if (item.excludeRoles && item.excludeRoles.length > 0) {
+                          const isExcluded = item.excludeRoles.includes(userRole) || item.excludeRoles.includes(userSubRole);
+                          if (isExcluded) return null;
+                        }
 
-                    const childList = item.childItems || item.items;
-                    const hasChildren = Array.isArray(childList) && childList.length > 0;
-                    const itemLabel = lang === 'BN' ? (item.nameBn || item.titleBn || item.name || item.title || item.label) : (item.name || item.title || item.label);
-                    const itemId = item.id || item.url || item.path || item.name || item.title || `item-${groupIdx}-${itemIdx}`;
+                        const childList = item.childItems || item.items;
+                        const hasChildren = Array.isArray(childList) && childList.length > 0;
+                        const itemLabel = lang === 'BN' ? (item.nameBn || item.titleBn || item.name || item.title || item.label) : (item.name || item.title || item.label);
+                        const itemId = item.id || item.url || item.path || item.name || item.title || `item-${groupIdx}-${itemIdx}`;
 
-                    if (hasChildren) {
-                      const isAnyChildActive = childList.some((child) => isItemActive(child));
-                      const isCollapsibleOpen = openMenus[itemId] ?? isAnyChildActive;
+                        if (hasChildren) {
+                          const isAnyChildActive = childList.some((child) => isItemActive(child));
+                          const isCollapsibleOpen = openMenus[itemId] ?? isAnyChildActive;
 
-                      return (
-                        <Collapsible
-                          key={itemIdx}
-                          open={isCollapsibleOpen}
-                          onOpenChange={() => toggleGroup(itemId)}
-                          className="group/collapsible"
-                        >
-                          <SidebarMenuItem>
+                          return (
+                            <Collapsible
+                              key={itemIdx}
+                              open={isCollapsibleOpen}
+                              onOpenChange={() => toggleGroup(itemId)}
+                              className="group/collapsible"
+                            >
+                              <SidebarMenuItem>
+                                <SidebarMenuButton
+                                  tooltip={itemLabel}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    handleGroupClick(itemId);
+                                  }}
+                                  className={cn(
+                                    'group w-full justify-between cursor-pointer font-medium text-sm py-2 px-3 rounded-xl transition-all duration-200 text-sidebar-foreground hover:text-white hover:bg-sidebar-accent',
+                                    isAnyChildActive &&
+                                      'bg-white/20 text-white font-bold border border-white/30 shadow-xs'
+                                  )}
+                                >
+                                  <div className="flex items-center gap-2.5 min-w-0">
+                                    {renderIcon(
+                                      item.icon,
+                                      cn(
+                                        isAnyChildActive
+                                          ? 'text-white'
+                                          : 'text-sky-300 group-hover:text-white'
+                                      )
+                                    )}
+                                    <span className="truncate group-hover:text-white">{itemLabel}</span>
+                                  </div>
+                                  <ChevronRight
+                                    className={cn(
+                                      'w-4 h-4 transition-transform duration-200',
+                                      isAnyChildActive
+                                        ? 'text-white'
+                                        : 'text-sky-300 group-hover:text-white',
+                                      isCollapsibleOpen && 'rotate-90',
+                                      'group-data-[collapsible=icon]:hidden'
+                                    )}
+                                  />
+                                </SidebarMenuButton>
+                                <CollapsibleContent>
+                                  {/* Submenu with space-y-2 */}
+                                  <SidebarMenuSub className="ml-5 border-l-2 border-sky-400/30 pl-3 my-2 space-y-2">
+                                    {childList.map((subItem, subIdx) => {
+                                      if (subItem.roles && subItem.roles.length > 0) {
+                                        const hasRole = subItem.roles.includes(userRole) || subItem.roles.includes(userSubRole);
+                                        if (!hasRole) return null;
+                                      }
+                                      if (subItem.excludeRoles && subItem.excludeRoles.length > 0) {
+                                        const isExcluded = subItem.excludeRoles.includes(userRole) || subItem.excludeRoles.includes(userSubRole);
+                                        if (isExcluded) return null;
+                                      }
+                                      const isSubActive = isItemActive(subItem);
+                                      const subLabel = lang === 'BN' ? (subItem.nameBn || subItem.titleBn || subItem.name || subItem.title || subItem.label) : (subItem.name || subItem.title || subItem.label);
+
+                                      return (
+                                        <SidebarMenuSubItem key={subIdx}>
+                                          <SidebarMenuSubButton
+                                            isActive={isSubActive}
+                                            onClick={(e) => handleNavClick(e, subItem)}
+                                            className={cn(
+                                              'group cursor-pointer text-[13px] rounded-lg py-2 px-2.5 flex items-center gap-2 transition-all duration-200',
+                                              isSubActive
+                                                ? '!bg-white !text-black font-bold shadow-xs hover:!bg-white hover:!text-black focus:!text-black focus:!bg-white active:!bg-white active:!text-black'
+                                                : 'text-sidebar-foreground/85 hover:text-white hover:bg-sidebar-accent font-medium'
+                                            )}
+                                          >
+                                            {subItem.icon &&
+                                              renderIcon(
+                                                subItem.icon,
+                                                cn(
+                                                  'w-4 h-4 shrink-0 transition-colors',
+                                                  isSubActive
+                                                    ? '!text-black group-hover:!text-black'
+                                                    : 'text-sky-300 group-hover:text-white'
+                                                )
+                                              )}
+                                            <span
+                                              className={cn(
+                                                'truncate transition-colors',
+                                                isSubActive
+                                                  ? '!text-black group-hover:!text-black font-bold'
+                                                  : 'group-hover:text-white'
+                                              )}
+                                            >
+                                              {subLabel}
+                                            </span>
+                                          </SidebarMenuSubButton>
+                                        </SidebarMenuSubItem>
+                                      );
+                                    })}
+                                  </SidebarMenuSub>
+                                </CollapsibleContent>
+                              </SidebarMenuItem>
+                            </Collapsible>
+                          );
+                        }
+
+                        const isActive = isItemActive(item);
+
+                        return (
+                          <SidebarMenuItem key={itemIdx}>
                             <SidebarMenuButton
+                              isActive={isActive}
                               tooltip={itemLabel}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                handleGroupClick(itemId);
-                              }}
+                              onClick={(e) => handleNavClick(e, item)}
                               className={cn(
-                                'group w-full justify-between cursor-pointer font-medium text-sm py-2 px-3 rounded-xl transition-all duration-200 text-sidebar-foreground hover:text-white hover:bg-sidebar-accent',
-                                isAnyChildActive &&
-                                  'bg-white/20 text-white font-bold border border-white/30 shadow-xs'
+                                'group cursor-pointer text-sm font-medium py-2 px-3 rounded-xl transition-all duration-200 flex items-center justify-between',
+                                isActive
+                                  ? '!bg-white !text-black font-bold shadow-xs hover:!bg-white hover:!text-black focus:!text-black focus:!bg-white active:!bg-white active:!text-black'
+                                  : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-white'
                               )}
                             >
                               <div className="flex items-center gap-2.5 min-w-0">
                                 {renderIcon(
                                   item.icon,
                                   cn(
-                                    isAnyChildActive
-                                      ? 'text-white'
+                                    'w-4.5 h-4.5 shrink-0 transition-colors',
+                                    isActive
+                                      ? '!text-black group-hover:!text-black'
                                       : 'text-sky-300 group-hover:text-white'
                                   )
                                 )}
-                                <span className="truncate group-hover:text-white">{itemLabel}</span>
+                                <span
+                                  className={cn(
+                                    'truncate transition-colors',
+                                    isActive
+                                      ? '!text-black group-hover:!text-black font-bold'
+                                      : 'group-hover:text-white'
+                                  )}
+                                >
+                                  {itemLabel}
+                                </span>
                               </div>
-                              <ChevronRight
-                                className={cn(
-                                  'w-4 h-4 transition-transform duration-200',
-                                  isAnyChildActive
-                                    ? 'text-white'
-                                    : 'text-sky-300 group-hover:text-white',
-                                  isCollapsibleOpen && 'rotate-90',
-                                  'group-data-[collapsible=icon]:hidden'
-                                )}
-                              />
+                              {item.badge && (
+                                <span
+                                  className={cn(
+                                    'text-[10px] font-bold px-1.5 py-0.5 rounded-md leading-none shrink-0',
+                                    item.badgeVariant === 'secondary'
+                                      ? 'bg-slate-700/60 text-slate-300 border border-slate-600/40'
+                                      : 'bg-sky-500/20 text-sky-300 border border-sky-400/30'
+                                  )}
+                                >
+                                  {item.badge}
+                                </span>
+                              )}
                             </SidebarMenuButton>
-                            <CollapsibleContent>
-                              {/* Submenu with space-y-2 */}
-                              <SidebarMenuSub className="ml-5 border-l-2 border-sky-400/30 pl-3 my-2 space-y-2">
-                                {childList.map((subItem, subIdx) => {
-                                  if (subItem.roles && subItem.roles.length > 0) {
-                                    const hasRole = subItem.roles.includes(userRole) || subItem.roles.includes(userSubRole);
-                                    if (!hasRole) return null;
-                                  }
-                                  if (subItem.excludeRoles && subItem.excludeRoles.length > 0) {
-                                    const isExcluded = subItem.excludeRoles.includes(userRole) || subItem.excludeRoles.includes(userSubRole);
-                                    if (isExcluded) return null;
-                                  }
-                                  const isSubActive = isItemActive(subItem);
-                                  const subLabel = lang === 'BN' ? (subItem.nameBn || subItem.titleBn || subItem.name || subItem.title || subItem.label) : (subItem.name || subItem.title || subItem.label);
-
-                                  return (
-                                    <SidebarMenuSubItem key={subIdx}>
-                                      <SidebarMenuSubButton
-                                        isActive={isSubActive}
-                                        onClick={(e) => handleNavClick(e, subItem)}
-                                        className={cn(
-                                          'group cursor-pointer text-[13px] rounded-lg py-2 px-2.5 flex items-center gap-2 transition-all duration-200',
-                                          isSubActive
-                                            ? '!bg-white !text-black font-bold shadow-xs hover:!bg-white hover:!text-black focus:!text-black focus:!bg-white active:!bg-white active:!text-black'
-                                            : 'text-sidebar-foreground/85 hover:text-white hover:bg-sidebar-accent font-medium'
-                                        )}
-                                      >
-                                        {subItem.icon &&
-                                          renderIcon(
-                                            subItem.icon,
-                                            cn(
-                                              'w-4 h-4 shrink-0 transition-colors',
-                                              isSubActive
-                                                ? '!text-black group-hover:!text-black'
-                                                : 'text-sky-300 group-hover:text-white'
-                                            )
-                                          )}
-                                        <span
-                                          className={cn(
-                                            'truncate transition-colors',
-                                            isSubActive
-                                              ? '!text-black group-hover:!text-black font-bold'
-                                              : 'group-hover:text-white'
-                                          )}
-                                        >
-                                          {subLabel}
-                                        </span>
-                                      </SidebarMenuSubButton>
-                                    </SidebarMenuSubItem>
-                                  );
-                                })}
-                              </SidebarMenuSub>
-                            </CollapsibleContent>
                           </SidebarMenuItem>
-                        </Collapsible>
-                      );
-                    }
-
-                    const isActive = isItemActive(item);
-
-                    return (
-                      <SidebarMenuItem key={itemIdx}>
-                        <SidebarMenuButton
-                          isActive={isActive}
-                          tooltip={itemLabel}
-                          onClick={(e) => handleNavClick(e, item)}
-                          className={cn(
-                            'group cursor-pointer text-sm font-medium py-2 px-3 rounded-xl transition-all duration-200 flex items-center justify-between',
-                            isActive
-                              ? '!bg-white !text-black font-bold shadow-xs hover:!bg-white hover:!text-black focus:!text-black focus:!bg-white active:!bg-white active:!text-black'
-                              : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-white'
-                          )}
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            {renderIcon(
-                              item.icon,
-                              cn(
-                                'w-4.5 h-4.5 shrink-0 transition-colors',
-                                isActive
-                                  ? '!text-black group-hover:!text-black'
-                                  : 'text-sky-300 group-hover:text-white'
-                              )
-                            )}
-                            <span
-                              className={cn(
-                                'truncate transition-colors',
-                                isActive
-                                  ? '!text-black group-hover:!text-black font-bold'
-                                  : 'group-hover:text-white'
-                              )}
-                            >
-                              {itemLabel}
-                            </span>
-                          </div>
-                          {item.badge && (
-                            <span
-                              className={cn(
-                                'text-[10px] font-bold px-1.5 py-0.5 rounded-md leading-none shrink-0',
-                                item.badgeVariant === 'secondary'
-                                  ? 'bg-slate-700/60 text-slate-300 border border-slate-600/40'
-                                  : 'bg-sky-500/20 text-sky-300 border border-sky-400/30'
-                              )}
-                            >
-                              {item.badge}
-                            </span>
-                          )}
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
+                        );
+                      })}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </CollapsibleContent>
+              </SidebarGroup>
+            </Collapsible>
           );
         })}
       </SidebarContent>
