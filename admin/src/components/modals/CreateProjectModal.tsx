@@ -20,7 +20,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
   const [gitRepoUrl, setGitRepoUrl] = useState('');
   const [productionUrl, setProductionUrl] = useState('');
   const [leadId, setLeadId] = useState(safeUsers[0]?.id || '');
-  const [dueDate, setDueDate] = useState('2026-11-01');
+  const [dueDate, setDueDate] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleNameChange = (name: string) => {

@@ -29,11 +29,11 @@ export function getDefaultInvoiceData() {
 
     biller: {
       name: agencyInfo.agencyName?.toUpperCase() || "PLEXIVIA",
-      subtitle: agencyInfo.tagline || "Your Trusted Travel Partner",
-      address: agencyInfo.address?.full || "Mominpur Jagannathpur Road, Sunamganj, Post Code 3060",
-      city: `${agencyInfo.address?.district || 'Sunamganj'}, ${agencyInfo.address?.country || 'Bangladesh'}`,
-      phone: agencyInfo.phone || "+8801345579534",
-      email: agencyInfo.email || "contact@plexivia.com"
+      subtitle: agencyInfo.tagline || "",
+      address: agencyInfo.address?.full || "",
+      city: agencyInfo.address ? `${agencyInfo.address.district || ''}, ${agencyInfo.address.country || ''}` : '',
+      phone: agencyInfo.phone || "",
+      email: agencyInfo.email || ""
     },
 
     client: {

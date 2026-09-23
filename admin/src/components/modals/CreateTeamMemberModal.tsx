@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Modal } from '../common/Modal';
 import { useData } from '../../context/DataContext';
 import { UserRole, UserStatus } from '../../types';
@@ -17,11 +17,9 @@ export const CreateTeamMemberModal: React.FC<CreateTeamMemberModalProps> = ({
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<UserRole>('DEV');
-  const [department, setDepartment] = useState('Fullstack Engineering');
-  const [hourlyRate, setHourlyRate] = useState(120);
-  const [avatar, setAvatar] = useState(
-    'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80'
-  );
+  const [department, setDepartment] = useState('');
+  const [hourlyRate, setHourlyRate] = useState<number | string>('');
+  const [avatar, setAvatar] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleRoleChange = (selectedRole: UserRole) => {

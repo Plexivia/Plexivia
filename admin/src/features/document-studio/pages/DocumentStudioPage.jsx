@@ -3,6 +3,7 @@ import { useLocation, useParams, useNavigate, Navigate } from 'react-router-dom'
 import { EmploymentAgreement } from '../components/agreement/EmploymentAgreement';
 import { IdCard } from '../components/idcard/IdCard';
 import { SalarySlip } from '../components/payroll/SalarySlip';
+import { Invoice } from '../components/invoice/Invoice';
 import { MoneyReceipt } from '../components/receipt/MoneyReceipt';
 import { CashVoucher } from '../components/cash-voucher/CashVoucher';
 import { ExperienceCertificate } from '../components/certificate-experience/ExperienceCertificate';
@@ -414,6 +415,13 @@ export const DocumentStudioPage = ({
       )}
       {(resolvedSubmodule === 'payroll' || resolvedSubmodule === 'salary-slip' || resolvedSubmodule === 'salary') && (
         <SalarySlip
+          initialData={initialData}
+          onSavedSuccess={handleSavedSuccess}
+          isLocked={Boolean(dossierContext?.isLocked)}
+        />
+      )}
+      {(resolvedSubmodule === 'invoice' || resolvedSubmodule === 'invoices') && (
+        <Invoice
           initialData={initialData}
           onSavedSuccess={handleSavedSuccess}
           isLocked={Boolean(dossierContext?.isLocked)}

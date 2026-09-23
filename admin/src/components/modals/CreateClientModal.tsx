@@ -18,7 +18,7 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
   const [databaseShared, setDatabaseShared] = useState<boolean>(true);
   const [contactEmail, setContactEmail] = useState('');
   const [contactPhone, setContactPhone] = useState('');
-  const [monthlyRetainer, setMonthlyRetainer] = useState<number>(4500);
+  const [monthlyRetainer, setMonthlyRetainer] = useState<number | string>('');
   const [loading, setLoading] = useState(false);
 
   const handleNameChange = (name: string) => {

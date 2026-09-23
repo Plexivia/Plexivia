@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 
 export class GlobalErrorBoundary extends React.Component {
@@ -22,7 +22,7 @@ export class GlobalErrorBoundary extends React.Component {
 
   handleReset = () => {
     this.setState({ hasError: false, error: null, errorInfo: null });
-    window.location.href = '/dashboard/agency/tasks';
+    window.location.href = '/projects';
   };
 
   render() {

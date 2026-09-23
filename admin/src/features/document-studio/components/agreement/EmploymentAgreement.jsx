@@ -22,10 +22,10 @@ export function getDefaultAgreementData() {
     _id: null,
     agreementId: generateUniqueAgreementId(),
     header: {
-      companyName: agencyInfoJson.agencyName ? `${agencyInfoJson.agencyName} (PLEXIVIA)` : 'PLEXIVIA',
-      officeAddress: agencyInfoJson.address?.full || 'Mominpur Jagannathpur Road, Sunamganj, Post Code 3060',
-      phone: agencyInfoJson.phone || '+8801345579534',
-      email: agencyInfoJson.email || 'contact@plexivia.com'
+      companyName: agencyInfoJson.agencyName || 'PLEXIVIA',
+      officeAddress: agencyInfoJson.address?.full || '',
+      phone: agencyInfoJson.phone || '',
+      email: agencyInfoJson.email || ''
     },
     parties: {
       agreementDate: new Date().toISOString().split('T')[0],

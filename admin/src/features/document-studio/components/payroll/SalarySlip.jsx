@@ -32,10 +32,10 @@ export function getDefaultSalarySlipData() {
 
     // Employee Bio
     employeeName: '',
-    employeeId: 'EMP-001',
-    designation: 'Staff',
-    department: 'Operations',
-    paymentMethod: 'Bank Transfer',
+    employeeId: '',
+    designation: '',
+    department: '',
+    paymentMethod: '',
     bankAccountNo: '',
 
     // Earnings

@@ -30,7 +30,7 @@ export const AccountsPage: React.FC = () => {
   }, [safeClients]);
 
   const totalMonthlyPayroll = useMemo(() => {
-    return safeUsers.reduce((acc, u) => acc + ((u.hourly_rate || 40) * 160), 0);
+    return safeUsers.reduce((acc, u) => acc + ((u.hourly_rate || 0) * 160), 0);
   }, [safeUsers]);
 
   const netMonthlyCashflow = totalMonthlyRetainers - totalMonthlyPayroll;

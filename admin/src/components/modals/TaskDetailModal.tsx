@@ -57,8 +57,8 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, 
   const [priority, setPriority] = useState<TaskPriority>(task?.priority || 'MEDIUM');
   const [assigneeId, setAssigneeId] = useState(task?.assignee_id || '');
   const [projectId, setProjectId] = useState(task?.project_id || '');
-  const [estimatePoints, setEstimatePoints] = useState<number>(task?.estimate_points || 3);
-  const [estimatedHours, setEstimatedHours] = useState<number>(task?.estimated_hours || 8);
+  const [estimatePoints, setEstimatePoints] = useState<number>(task?.estimate_points || 0);
+  const [estimatedHours, setEstimatedHours] = useState<number>(task?.estimated_hours || 0);
   const [dueDate, setDueDate] = useState(task?.due_date || '');
   const [tags, setTags] = useState<string[]>(Array.isArray(task?.tags) ? task.tags : []);
   const [newTagInput, setNewTagInput] = useState('');
@@ -79,7 +79,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, 
 
   // Manual Time Log Form
   const [showTimeLogForm, setShowTimeLogForm] = useState(false);
-  const [manualTimeMinutes, setManualTimeMinutes] = useState(60);
+  const [manualTimeMinutes, setManualTimeMinutes] = useState(0);
   const [manualTimeNotes, setManualTimeNotes] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -92,8 +92,8 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, 
       setPriority(task.priority || 'MEDIUM');
       setAssigneeId(task.assignee_id || '');
       setProjectId(task.project_id || '');
-      setEstimatePoints(task.estimate_points ?? 3);
-      setEstimatedHours(task.estimated_hours ?? 8);
+      setEstimatePoints(task.estimate_points ?? 0);
+      setEstimatedHours(task.estimated_hours ?? 0);
       setDueDate(task.due_date || '');
       setTags(Array.isArray(task.tags) ? task.tags : []);
       setChecklist(Array.isArray(task.checklist) ? task.checklist : []);

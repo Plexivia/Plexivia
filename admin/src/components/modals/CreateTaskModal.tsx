@@ -24,10 +24,10 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState<TaskStatus>(defaultStatus);
   const [priority, setPriority] = useState<TaskPriority>('MEDIUM');
-  const [dueDate, setDueDate] = useState('2026-09-30');
-  const [estimatedHours, setEstimatedHours] = useState(8);
-  const [estimatePoints, setEstimatePoints] = useState<number>(3);
-  const [tagsString, setTagsString] = useState('Feature, Frontend');
+  const [dueDate, setDueDate] = useState('');
+  const [estimatedHours, setEstimatedHours] = useState<number | string>('');
+  const [estimatePoints, setEstimatePoints] = useState<number | string>('');
+  const [tagsString, setTagsString] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
