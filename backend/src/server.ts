@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import apiRoutes from './routes/index.js';
+import { initDatabases } from './config/database.js';
 
 dotenv.config();
 
@@ -23,15 +24,11 @@ const allowedOrigins = [
 // Single line comment before CORS configuration
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin) || origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
-      callback(null, true);
-    } else {
-      callback(null, true);
-    }
+    callback(null, true);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'X-Two-Factor-Token'],
 }));
 
 app.use(express.json());
@@ -40,14 +37,14 @@ app.use(express.json());
 app.get('/api/health', (_req, res) => {
   res.json({
     status: 'ok',
-    service: 'backend-core',
-    version: '2.1.0',
+    service: 'backend-gateway',
+    version: '2.0.0',
     timestamp: new Date().toISOString(),
     services: [
-      { id: 'auth-service', name: 'Auth Service (IAM & Vault)', base: '/api/auth' },
-      { id: 'hub-service', name: 'Hub Service (Core & Telemetry)', base: '/api/hub' },
-      { id: 'agency-service', name: 'Agency Service (Clients, Projects, Tasks, Teams)', base: '/api/agency' },
-      { id: 'finance-service', name: 'Finance Service (Invoices, Payments, Bills, Payroll)', base: '/api/finance' },
+      { id: 'auth-service', name: 'Auth Service (IAM & Vault)', port: 5001, base: '/api/v1/auth' },
+      { id: 'hub-service', name: 'Hub Service (Core & Telemetry)', port: 5002, base: '/api/v1/hub' },
+      { id: 'agency-service', name: 'Agency Service (Clients, Projects, Tasks, Teams)', port: 5003, base: '/api/v1/agency' },
+      { id: 'finance-service', name: 'Finance Service (Invoices, Payments, Bills, Payroll)', port: 5004, base: '/api/v1/finance' },
     ],
   });
 });
@@ -55,12 +52,18 @@ app.get('/api/health', (_req, res) => {
 // Mount modular core router
 app.use('/api', apiRoutes);
 
-app.listen(PORT, () => {
-  console.log(`===================================================`);
-  console.log(`🚀 Modular Micro-Backend Services v2.1.0`);
-  console.log(`📡 HTTP Server listening on http://127.0.0.1:${PORT}`);
-  console.log(`📦 Services: auth-service, hub-service, agency-service, finance-service`);
-  console.log(`===================================================`);
-});
+// Start unified gateway server
+const startServer = async () => {
+  await initDatabases();
+  app.listen(PORT, () => {
+    console.log(`===================================================`);
+    console.log(`🚀 Plexivia Backend Gateway & Microservices v2.0.0`);
+    console.log(`📡 HTTP Server listening on http://127.0.0.1:${PORT}`);
+    console.log(`📦 Services: auth-service, hub-service, agency-service, finance-service`);
+    console.log(`===================================================`);
+  });
+};
+
+startServer();
 
 export { app };

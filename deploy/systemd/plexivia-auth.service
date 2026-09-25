@@ -1,0 +1,21 @@
+[Unit]
+Description=Plexivia Auth Service (Port 5001)
+After=network.target mongodb.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/plexivia/services/auth-service
+ExecStart=/usr/bin/node dist/server.js
+Restart=always
+RestartSec=5
+Environment=NODE_ENV=production
+Environment=PORT=5001
+Environment=AUTH_SERVICE_PORT=5001
+Environment=MONGODB_SECURE_URI=mongodb://127.0.0.1:27017/plexivia_secure_db
+
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,21 @@
+[Unit]
+Description=Plexivia Finance Service (Port 5004)
+After=network.target mongodb.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/plexivia/services/finance-service
+ExecStart=/usr/bin/node dist/server.js
+Restart=always
+RestartSec=5
+Environment=NODE_ENV=production
+Environment=PORT=5004
+Environment=FINANCE_SERVICE_PORT=5004
+Environment=MONGODB_SECURE_URI=mongodb://127.0.0.1:27017/plexivia_secure_db
+
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

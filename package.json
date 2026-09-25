@@ -1,0 +1,23 @@
+{
+  "name": "plexivia-monorepo",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "backend",
+    "admin",
+    "website",
+    "services/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=backend",
+    "dev:all": "npm run dev --workspaces",
+    "dev:auth": "npm run dev --workspace=@plexivia/auth-service",
+    "dev:hub": "npm run dev --workspace=@plexivia/hub-service",
+    "dev:agency": "npm run dev --workspace=@plexivia/agency-service",
+    "dev:finance": "npm run dev --workspace=@plexivia/finance-service",
+    "dev:admin": "npm run dev --workspace=plexivia-admin",
+    "build": "npm run build --workspace=backend && npm run build --workspace=admin",
+    "build:services": "npm run build --workspace=@plexivia/auth-service && npm run build --workspace=@plexivia/hub-service && npm run build --workspace=@plexivia/agency-service && npm run build --workspace=@plexivia/finance-service"
+  }
+}
