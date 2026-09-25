@@ -28,7 +28,7 @@ export const getHubOverview = (_req: Request, res: Response) => {
       success: true,
       status: 'success',
       data: {
-        service: 'PlexiHub Core',
+        service: 'hub-service',
         version: '2.1.0',
         counts: {
           clients: totalClients,
