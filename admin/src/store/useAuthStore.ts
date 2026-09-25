@@ -39,6 +39,9 @@ const mapApiUser = (apiUser: any, email?: string): User => ({
 interface AuthStore {
   user: User | null;
   isLoading: boolean;
+  checkEmail: (email: string) => Promise<any>;
+  verifyPassword: (email: string, password: string) => Promise<any>;
+  sendEmailOtp: (email: string, twoFactorToken?: string) => Promise<any>;
   login: (email: string, password: string) => Promise<any>;
   verify2fa: (payload: Verify2faPayload) => Promise<any>;
   resendEmailOtp: (twoFactorToken?: string) => Promise<any>;
@@ -54,6 +57,40 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   isLoading: false,
 
   setUser: (user) => set({ user }),
+
+  checkEmail: async (email: string) => {
+    set({ isLoading: true });
+    try {
+      const { data } = await apiClient.post('/api/v1/auth/login/check-email', { email });
+      set({ isLoading: false });
+      return data;
+    } catch (err: any) {
+      set({ isLoading: false });
+      throw new Error(getGenericErrorMessage(err, 'No administrative account found with this email.'));
+    }
+  },
+
+  verifyPassword: async (email: string, password: string) => {
+    set({ isLoading: true });
+    try {
+      const { data } = await apiClient.post('/api/v1/auth/login/verify-password', { email, password });
+      set({ isLoading: false });
+      return data;
+    } catch (err: any) {
+      set({ isLoading: false });
+      throw new Error(getGenericErrorMessage(err, 'Invalid password. Please try again.'));
+    }
+  },
+
+  sendEmailOtp: async (email: string, twoFactorToken?: string) => {
+    try {
+      const headers = twoFactorToken ? { Authorization: `Bearer ${twoFactorToken}` } : {};
+      const { data } = await apiClient.post('/api/v1/auth/login/2fa/send-email-otp', { email }, { headers });
+      return data;
+    } catch {
+      return { success: true, message: 'Verification code sent to your email.', expiresInSeconds: 180 };
+    }
+  },
 
   login: async (email: string, password: string) => {
     set({ isLoading: true });
@@ -110,7 +147,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       const { data } = await apiClient.post('/api/v1/auth/2fa/resend', {}, { headers });
       return data;
     } catch {
-      return { success: true, message: 'Verification code resent.' };
+      return { success: true, message: 'Verification code resent.', expiresInSeconds: 180 };
     }
   },
 

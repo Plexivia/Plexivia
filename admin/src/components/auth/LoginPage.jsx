@@ -14,6 +14,10 @@ import {
   Smartphone,
   QrCode,
   Loader2,
+  ArrowRight,
+  ChevronLeft,
+  Clock,
+  RefreshCw,
 } from 'lucide-react';
 import { useAuth as useDefaultAuth } from '@/store/useAuthStore';
 import { apiClient } from '@/lib/api-client';
@@ -21,15 +25,25 @@ import { handleGlobalError } from '@/lib/error-handler';
 import { toast } from 'sonner';
 import plexiviaLogo from '@/assets/brand-dark.png';
 
-export function LoginPage({
+// Format seconds to mm:ss display
+const formatTimer = (seconds) => {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+};
+
+// Render multi-step admin authentication portal
+export const LoginPage = ({
   portalType = 'admin',
   portalTitle = 'Plexivia Dashboard',
   logoSrc = plexiviaLogo,
   useAuthHook = useDefaultAuth,
-}) {
+}) => {
   const {
     user,
-    login,
+    checkEmail,
+    verifyPassword,
+    sendEmailOtp,
     verify2fa,
     resendEmailOtp,
     sendQrCodeEmail,
@@ -38,40 +52,44 @@ export function LoginPage({
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Mode: 'login' | '2fa_verify' | 'forgot_request' | 'forgot_reset' | 'forgot_success'
-  const [viewMode, setViewMode] = useState('login');
-
-  // Login State
+  const [viewMode, setViewMode] = useState('email');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 2FA Verification State
   const [twoFactorToken, setTwoFactorToken] = useState('');
   const [twoFactorEmail, setTwoFactorEmail] = useState('');
-  const [twoFactorMethod, setTwoFactorMethod] = useState('authenticator'); // Default: 'authenticator'
+  const [twoFactorMethod, setTwoFactorMethod] = useState('email');
   const [twoFactorCode, setTwoFactorCode] = useState('');
   const [is2faSubmitting, setIs2faSubmitting] = useState(false);
   const [isSendingQr, setIsSendingQr] = useState(false);
   const [isSendingOtp, setIsSendingOtp] = useState(false);
-  const [resendCooldown, setResendCooldown] = useState(0);
+  const [otpTimer, setOtpTimer] = useState(0);
 
-  // Forgot Password State
   const [resetEmail, setResetEmail] = useState('');
   const [resetOtp, setResetOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [isResetSubmitting, setIsResetSubmitting] = useState(false);
+  const [resetTimer, setResetTimer] = useState(0);
 
   useEffect(() => {
     let timer;
-    if (resendCooldown > 0) {
-      timer = setTimeout(() => setResendCooldown((c) => c - 1), 1000);
+    if (otpTimer > 0) {
+      timer = setTimeout(() => setOtpTimer((c) => c - 1), 1000);
     }
     return () => clearTimeout(timer);
-  }, [resendCooldown]);
+  }, [otpTimer]);
+
+  useEffect(() => {
+    let timer;
+    if (resetTimer > 0) {
+      timer = setTimeout(() => setResetTimer((c) => c - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [resetTimer]);
 
   useEffect(() => {
     if (!isAuthLoading && user) {
@@ -80,29 +98,22 @@ export function LoginPage({
     }
   }, [user, isAuthLoading, navigate, location.state]);
 
-  // Step 1: Handle primary login submission (initiates 2FA)
-  const handleSubmit = async (e) => {
+  // Handle email verification step 1
+  const handleEmailSubmit = async (e) => {
     e.preventDefault();
-    if (!email.trim() || !password) {
-      toast.error('Please enter both email and password.');
+    const cleanEmail = email.trim();
+    if (!cleanEmail) {
+      toast.error('Please enter your email address.');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const res = await login(email.trim(), password);
-
-      if (res?.requires2fa) {
-        setTwoFactorToken(res.twoFactorToken || '');
-        setTwoFactorEmail(res.email || email.trim());
-        setTwoFactorMethod('authenticator'); // Default to authenticator
-        setTwoFactorCode('');
-        setViewMode('2fa_verify');
-        toast.info('Please enter the 6-digit code from your Authenticator app.');
-        return;
+      const res = await checkEmail(cleanEmail);
+      if (res?.success) {
+        setViewMode('password');
+        toast.success('Account found. Please enter your password.');
       }
-
-      toast.success('Logged in successfully.');
     } catch (err) {
       handleGlobalError(err);
     } finally {
@@ -110,11 +121,64 @@ export function LoginPage({
     }
   };
 
-  // Step 2: Handle 2FA Code Verification
+  // Handle password verification step 2
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    if (!password) {
+      toast.error('Please enter your password.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const res = await verifyPassword(email.trim(), password);
+      if (res?.requires2fa || res?.success) {
+        setTwoFactorToken(res?.twoFactorToken || '');
+        setTwoFactorEmail(res?.email || email.trim());
+        setTwoFactorCode('');
+        setViewMode('2fa_verify');
+        setTwoFactorMethod('email');
+        setOtpTimer(180);
+        await sendEmailOtp(email.trim(), res?.twoFactorToken);
+        toast.info('Verification code sent to your email (valid for 3 minutes).');
+      }
+    } catch (err) {
+      handleGlobalError(err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Switch 2FA method
+  const handleSelectMethod = async (method) => {
+    setTwoFactorMethod(method);
+    setTwoFactorCode('');
+    if (method === 'email') {
+      if (otpTimer <= 0) {
+        setIsSendingOtp(true);
+        try {
+          await sendEmailOtp(twoFactorEmail || email.trim(), twoFactorToken);
+          setOtpTimer(180);
+          toast.success('Verification code dispatched to your email.');
+        } catch (err) {
+          handleGlobalError(err);
+        } finally {
+          setIsSendingOtp(false);
+        }
+      }
+    }
+  };
+
+  // Handle 2FA verification submission
   const handleVerify2fa = async (e) => {
     e.preventDefault();
     if (!twoFactorCode.trim()) {
       toast.error('Please enter the 6-digit verification code.');
+      return;
+    }
+
+    if (twoFactorMethod === 'email' && otpTimer === 0) {
+      toast.error('Your verification code has expired. Please request a new code.');
       return;
     }
 
@@ -134,14 +198,15 @@ export function LoginPage({
     }
   };
 
-  // Action: Send OTP Email on demand
-  const handleSendEmailOtp = async () => {
-    if (resendCooldown > 0 || isSendingOtp) return;
+  // Handle manual resend of email OTP
+  const handleResendOtp = async () => {
+    if (isSendingOtp || otpTimer > 0) return;
     setIsSendingOtp(true);
     try {
       await resendEmailOtp(twoFactorToken);
-      toast.success('A 6-digit verification code has been sent to your email.');
-      setResendCooldown(60);
+      setOtpTimer(180);
+      setTwoFactorCode('');
+      toast.success('A new 6-digit verification code has been sent (valid for 3 minutes).');
     } catch (err) {
       handleGlobalError(err);
     } finally {
@@ -149,13 +214,13 @@ export function LoginPage({
     }
   };
 
-  // Action: Send QR Code directly to user's registered email
+  // Dispatch QR code instructions to user email
   const handleGetQrCodeEmail = async () => {
     if (isSendingQr) return;
     setIsSendingQr(true);
     try {
       const res = await sendQrCodeEmail(twoFactorToken);
-      toast.success(res?.message || 'Authenticator QR code has been emailed to you successfully!');
+      toast.success(res?.message || 'Authenticator QR code has been emailed to you.');
     } catch (err) {
       handleGlobalError(err);
     } finally {
@@ -163,7 +228,7 @@ export function LoginPage({
     }
   };
 
-  // Forgot Password: Request OTP
+  // Request password reset verification code
   const handleRequestResetOtp = async (e) => {
     e.preventDefault();
     const targetEmail = resetEmail.trim() || email.trim();
@@ -178,7 +243,7 @@ export function LoginPage({
       setResetEmail(targetEmail);
       toast.success(res.data?.message || 'Verification code sent to your email.');
       setViewMode('forgot_reset');
-      setResendCooldown(60);
+      setResetTimer(180);
     } catch (err) {
       handleGlobalError(err);
     } finally {
@@ -186,7 +251,7 @@ export function LoginPage({
     }
   };
 
-  // Forgot Password: Submit Reset
+  // Complete password reset with code and new password
   const handleResetPassword = async (e) => {
     e.preventDefault();
     if (!resetOtp.trim()) {
@@ -234,11 +299,8 @@ export function LoginPage({
 
   return (
     <div className="dark min-h-screen w-screen bg-[#09090b] text-zinc-100 flex items-center justify-center p-4 relative overflow-hidden font-sans select-none">
-      {/* Subtle Background Lighting */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] h-[420px] bg-sky-500/5 rounded-full blur-[140px] pointer-events-none opacity-30" />
       <div className="absolute top-1/4 left-1/3 w-[220px] h-[220px] bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none opacity-20" />
-
-      {/* Grid Pattern */}
       <div className="absolute inset-0 bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none opacity-30" />
 
       <motion.div
@@ -248,7 +310,6 @@ export function LoginPage({
         className="w-full max-w-[420px] relative z-10 my-auto"
       >
         <div className="bg-[#121214]/95 border border-zinc-800/90 shadow-xl backdrop-blur-2xl rounded-2xl p-6 sm:p-7 space-y-6">
-          {/* Top Branding Header */}
           <div className="flex flex-col items-center justify-center pt-1 pb-1">
             <img
               src={logoSrc}
@@ -258,17 +319,15 @@ export function LoginPage({
           </div>
 
           <AnimatePresence mode="wait">
-            {/* VIEW 1: Standard Login Form */}
-            {viewMode === 'login' && (
+            {viewMode === 'email' && (
               <motion.form
-                key="login-form"
+                key="email-step-form"
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 10 }}
-                onSubmit={handleSubmit}
+                onSubmit={handleEmailSubmit}
                 className="flex flex-col gap-4"
               >
-                {/* Email Field */}
                 <div className="space-y-1.5 text-left">
                   <label className="block text-xs font-semibold text-zinc-300">
                     Email Address
@@ -286,12 +345,54 @@ export function LoginPage({
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full pl-10 pr-3.5 h-10 text-xs bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-zinc-500 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all font-medium"
                       placeholder="name@example.com"
+                      autoFocus
                       required
                     />
                   </div>
                 </div>
 
-                {/* Password Field */}
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full h-10 flex items-center justify-center font-bold text-xs bg-sky-500 hover:bg-sky-400 text-white rounded-xl transition-all cursor-pointer shadow-sm active:scale-[0.99] disabled:opacity-60"
+                  style={{ marginTop: '16px' }}
+                >
+                  {isSubmitting ? (
+                    <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                  ) : (
+                    <ArrowRight className="h-4 w-4 mr-1.5" />
+                  )}
+                  {isSubmitting ? 'Checking Account…' : 'Continue'}
+                </button>
+              </motion.form>
+            )}
+
+            {viewMode === 'password' && (
+              <motion.form
+                key="password-step-form"
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                onSubmit={handlePasswordSubmit}
+                className="flex flex-col gap-4"
+              >
+                <div className="flex items-center justify-between p-2.5 bg-zinc-900/90 border border-zinc-800 rounded-xl">
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    <div className="w-7 h-7 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 shrink-0">
+                      <Mail className="w-3.5 h-3.5" />
+                    </div>
+                    <span className="text-xs font-medium text-zinc-200 truncate">{email}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('email')}
+                    className="text-[11px] text-sky-400 hover:text-sky-300 transition-colors font-medium shrink-0 flex items-center gap-1 cursor-pointer"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                    <span>Change</span>
+                  </button>
+                </div>
+
                 <div className="space-y-1.5 text-left">
                   <div className="flex items-center justify-between">
                     <label className="block text-xs font-semibold text-zinc-300">
@@ -321,6 +422,7 @@ export function LoginPage({
                       onChange={(e) => setPassword(e.target.value)}
                       className="w-full pl-10 pr-10 h-10 text-xs bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-zinc-500 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all font-medium"
                       placeholder="••••••••"
+                      autoFocus
                       required
                     />
                     <button
@@ -334,27 +436,25 @@ export function LoginPage({
                   </div>
                 </div>
 
-                {/* Log In Button with explicit 20px margin-top */}
                 <button
                   type="submit"
                   disabled={isSubmitting}
                   className="w-full h-10 flex items-center justify-center font-bold text-xs bg-sky-500 hover:bg-sky-400 text-white rounded-xl transition-all cursor-pointer shadow-sm active:scale-[0.99] disabled:opacity-60"
-                  style={{ marginTop: '20px' }}
+                  style={{ marginTop: '16px' }}
                 >
                   {isSubmitting ? (
                     <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
                   ) : (
                     <LogIn className="h-4 w-4 mr-1.5" />
                   )}
-                  {isSubmitting ? 'Verifying Credentials…' : 'Log In'}
+                  {isSubmitting ? 'Verifying Password…' : 'Sign In'}
                 </button>
               </motion.form>
             )}
 
-            {/* VIEW 2: Two-Factor Authentication (2FA) */}
             {viewMode === '2fa_verify' && (
               <motion.form
-                key="2fa-verify-form"
+                key="2fa-verify-step-form"
                 initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}
@@ -362,31 +462,10 @@ export function LoginPage({
                 className="flex flex-col gap-4"
                 autoComplete="off"
               >
-                {/* 2FA Method Selector Tabs */}
-                {/* Method Switcher Tabs (Authenticator first, Email OTP second) */}
                 <div className="grid grid-cols-2 gap-1.5 p-1 bg-[#09090b] border border-zinc-800 rounded-xl">
                   <button
                     type="button"
-                    onClick={() => {
-                      setTwoFactorMethod('authenticator');
-                      setTwoFactorCode('');
-                    }}
-                    className={`h-8 flex items-center justify-center gap-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                      twoFactorMethod === 'authenticator'
-                        ? 'bg-sky-500 text-white shadow-xs'
-                        : 'text-zinc-400 hover:text-zinc-200'
-                    }`}
-                  >
-                    <Smartphone className="size-3.5" />
-                    <span>Authenticator</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setTwoFactorMethod('email');
-                      setTwoFactorCode('');
-                    }}
+                    onClick={() => handleSelectMethod('email')}
                     className={`h-8 flex items-center justify-center gap-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                       twoFactorMethod === 'email'
                         ? 'bg-sky-500 text-white shadow-xs'
@@ -396,44 +475,37 @@ export function LoginPage({
                     <Mail className="size-3.5" />
                     <span>Email OTP</span>
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleSelectMethod('authenticator')}
+                    className={`h-8 flex items-center justify-center gap-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      twoFactorMethod === 'authenticator'
+                        ? 'bg-sky-500 text-white shadow-xs'
+                        : 'text-zinc-400 hover:text-zinc-200'
+                    }`}
+                  >
+                    <Smartphone className="size-3.5" />
+                    <span>Authenticator</span>
+                  </button>
                 </div>
 
-                {/* GOOGLE AUTHENTICATOR TAB (Default) */}
-                {twoFactorMethod === 'authenticator' && (
-                  <div className="space-y-3">
-                    <div className="text-left bg-[#09090b] border border-sky-900/40 rounded-xl p-3 text-xs text-sky-400 font-medium shadow-inner">
-                      Enter the current 6-digit code from your Google Authenticator or TOTP app.
-                    </div>
-
-                    <div className="space-y-1.5 text-left">
-                      <label className="block text-xs font-semibold text-zinc-300">
-                        Authenticator Code
-                      </label>
-                      <div className="relative">
-                        <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-600 pointer-events-none">
-                          <Smartphone className="h-4 w-4" />
-                        </span>
-                        <input
-                          type="text"
-                          maxLength={6}
-                          value={twoFactorCode}
-                          onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ''))}
-                          className="w-full pl-10 pr-3.5 h-10 text-sm font-mono tracking-widest bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-zinc-500 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all text-center font-bold"
-                          placeholder="123456"
-                          autoFocus
-                          required
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* EMAIL 2FA TAB */}
                 {twoFactorMethod === 'email' && (
-                  <div className="space-y-3.5">
-                    <div className="text-left bg-[#09090b] border border-sky-900/40 rounded-xl p-3 text-xs text-zinc-300 font-medium shadow-inner">
-                      <span>Click <strong className="text-sky-400">"Send OTP"</strong> below to receive a 6-digit code at:</span>
-                      <span className="font-bold text-sky-200 block mt-0.5">{twoFactorEmail}</span>
+                  <div className="space-y-3">
+                    <div className="text-left bg-[#09090b] border border-sky-900/40 rounded-xl p-3 text-xs text-zinc-300 font-medium shadow-inner flex flex-col gap-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-zinc-400">Code sent to:</span>
+                        <div className="flex items-center gap-1 font-mono text-xs text-sky-400 font-bold bg-sky-950/60 px-2 py-0.5 rounded-md border border-sky-800/40">
+                          <Clock className="w-3 h-3" />
+                          <span>{formatTimer(otpTimer)}</span>
+                        </div>
+                      </div>
+                      <span className="font-bold text-sky-200 truncate">{twoFactorEmail || email}</span>
+                      {otpTimer === 0 && (
+                        <span className="text-[11px] text-rose-400 font-medium mt-1">
+                          Code expired. Click 'Resend OTP' below for a new 3-minute code.
+                        </span>
+                      )}
                     </div>
 
                     <div className="space-y-1.5 text-left">
@@ -459,56 +531,67 @@ export function LoginPage({
                   </div>
                 )}
 
-                {/* Vertical 3 Action Buttons (Verify -> Cancel -> Send OTP / Get QR Code) */}
+                {twoFactorMethod === 'authenticator' && (
+                  <div className="space-y-3">
+                    <div className="text-left bg-[#09090b] border border-sky-900/40 rounded-xl p-3 text-xs text-sky-400 font-medium shadow-inner">
+                      Enter the current 6-digit code generated in your Authenticator or TOTP app.
+                    </div>
+
+                    <div className="space-y-1.5 text-left">
+                      <label className="block text-xs font-semibold text-zinc-300">
+                        Authenticator Code
+                      </label>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-600 pointer-events-none">
+                          <Smartphone className="h-4 w-4" />
+                        </span>
+                        <input
+                          type="text"
+                          maxLength={6}
+                          value={twoFactorCode}
+                          onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ''))}
+                          className="w-full pl-10 pr-3.5 h-10 text-sm font-mono tracking-widest bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-zinc-500 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all text-center font-bold"
+                          placeholder="123456"
+                          autoFocus
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex flex-col gap-2.5 pt-2">
-                  {/* Button 1: Verify */}
                   <button
                     type="submit"
-                    disabled={is2faSubmitting}
-                    className="w-full h-10 flex items-center justify-center font-bold text-xs bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-xl transition-all cursor-pointer shadow-sm active:scale-[0.99] disabled:opacity-60"
+                    disabled={is2faSubmitting || (twoFactorMethod === 'email' && otpTimer === 0)}
+                    className="w-full h-10 flex items-center justify-center font-bold text-xs bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-xl transition-all cursor-pointer shadow-sm active:scale-[0.99] disabled:opacity-50"
                   >
                     {is2faSubmitting ? (
                       <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
                     ) : (
                       <ShieldCheck className="h-4 w-4 mr-1.5" />
                     )}
-                    {is2faSubmitting ? 'Verifying…' : 'Verify'}
+                    {is2faSubmitting ? 'Verifying…' : 'Verify & Continue'}
                   </button>
 
-                  {/* Button 2: Cancel */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setViewMode('login');
-                      setTwoFactorCode('');
-                      setTwoFactorToken('');
-                    }}
-                    className="w-full h-10 flex items-center justify-center font-bold text-xs bg-rose-500 hover:bg-rose-600 text-white rounded-xl transition-all cursor-pointer shadow-sm active:scale-[0.99]"
-                  >
-                    <X className="h-4 w-4 mr-1.5" />
-                    <span>Cancel</span>
-                  </button>
-
-                  {/* Button 3: Contextual Action (Send OTP when in Email tab, Get QR Code when in Authenticator tab) */}
                   {twoFactorMethod === 'email' ? (
                     <button
                       type="button"
-                      disabled={isSendingOtp || resendCooldown > 0}
-                      onClick={handleSendEmailOtp}
-                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-gradient-to-r from-sky-600/30 to-indigo-600/30 hover:from-sky-600/45 hover:to-indigo-600/45 text-sky-200 border border-sky-500/40 hover:border-sky-400/60 rounded-xl transition-all cursor-pointer shadow-md active:scale-[0.99] disabled:opacity-50"
-                      title="Send 6-digit OTP code to your registered email"
+                      disabled={isSendingOtp || otpTimer > 0}
+                      onClick={handleResendOtp}
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-gradient-to-r from-sky-600/30 to-indigo-600/30 hover:from-sky-600/45 hover:to-indigo-600/45 text-sky-200 border border-sky-500/40 hover:border-sky-400/60 rounded-xl transition-all cursor-pointer shadow-md active:scale-[0.99] disabled:opacity-40"
                     >
                       {isSendingOtp ? (
                         <Loader2 className="h-4 w-4 mr-1.5 animate-spin text-sky-300" />
                       ) : (
-                        <Mail className="h-4 w-4 mr-1.5 text-sky-300" />
+                        <RefreshCw className="h-4 w-4 mr-1.5 text-sky-300" />
                       )}
                       <span>
                         {isSendingOtp
                           ? 'Sending OTP…'
-                          : resendCooldown > 0
-                          ? `Resend OTP (${resendCooldown}s)`
-                          : 'Send OTP'}
+                          : otpTimer > 0
+                          ? `Resend OTP in ${formatTimer(otpTimer)}`
+                          : 'Resend OTP'}
                       </span>
                     </button>
                   ) : (
@@ -517,7 +600,6 @@ export function LoginPage({
                       disabled={isSendingQr}
                       onClick={handleGetQrCodeEmail}
                       className="w-full h-10 flex items-center justify-center font-bold text-xs bg-gradient-to-r from-sky-600/30 to-indigo-600/30 hover:from-sky-600/45 hover:to-indigo-600/45 text-sky-200 border border-sky-500/40 hover:border-sky-400/60 rounded-xl transition-all cursor-pointer shadow-md active:scale-[0.99] disabled:opacity-50"
-                      title="Send Authenticator QR Code to your registered email"
                     >
                       {isSendingQr ? (
                         <Loader2 className="h-4 w-4 mr-1.5 animate-spin text-sky-300" />
@@ -527,11 +609,22 @@ export function LoginPage({
                       <span>{isSendingQr ? 'Sending QR Code to Email…' : 'Get QR Code'}</span>
                     </button>
                   )}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setViewMode('password');
+                      setTwoFactorCode('');
+                    }}
+                    className="w-full h-10 flex items-center justify-center font-bold text-xs bg-rose-500 hover:bg-rose-600 text-white rounded-xl transition-all cursor-pointer shadow-sm active:scale-[0.99]"
+                  >
+                    <X className="h-4 w-4 mr-1.5" />
+                    <span>Back</span>
+                  </button>
                 </div>
               </motion.form>
             )}
 
-            {/* VIEW 3: Forgot Password - Request Email OTP */}
             {viewMode === 'forgot_request' && (
               <motion.form
                 key="forgot-request-form"
@@ -567,7 +660,6 @@ export function LoginPage({
                   </div>
                 </div>
 
-                {/* Send Verification Code Action */}
                 <button
                   type="submit"
                   disabled={isResetSubmitting}
@@ -582,10 +674,9 @@ export function LoginPage({
                   {isResetSubmitting ? 'Sending Verification Code…' : 'Send Verification Code'}
                 </button>
 
-                {/* Light Red (Rose) Cancel Button */}
                 <button
                   type="button"
-                  onClick={() => setViewMode('login')}
+                  onClick={() => setViewMode('password')}
                   className="w-full h-10 flex items-center justify-center font-bold text-xs bg-rose-500 hover:bg-rose-400 text-white rounded-xl transition-all cursor-pointer shadow-sm active:scale-[0.99]"
                 >
                   <X className="h-4 w-4 mr-1.5" />
@@ -594,7 +685,6 @@ export function LoginPage({
               </motion.form>
             )}
 
-            {/* VIEW 4: Forgot Password - Verify OTP & Set New Password */}
             {viewMode === 'forgot_reset' && (
               <motion.form
                 key="forgot-reset-form"
@@ -610,7 +700,6 @@ export function LoginPage({
                   <span className="font-bold text-sky-200 block mt-0.5">{resetEmail}</span>
                 </div>
 
-                {/* 6-Digit OTP Field */}
                 <div className="space-y-1.5 text-left">
                   <div className="flex items-center justify-between">
                     <label className="block text-xs font-semibold text-zinc-300">
@@ -618,11 +707,11 @@ export function LoginPage({
                     </label>
                     <button
                       type="button"
-                      disabled={resendCooldown > 0 || isResetSubmitting}
+                      disabled={resetTimer > 0 || isResetSubmitting}
                       onClick={handleRequestResetOtp}
                       className="text-[11px] text-zinc-400 hover:text-white disabled:opacity-50 transition cursor-pointer"
                     >
-                      {resendCooldown > 0 ? `Resend code (${resendCooldown}s)` : 'Resend code'}
+                      {resetTimer > 0 ? `Resend code (${resetTimer}s)` : 'Resend code'}
                     </button>
                   </div>
                   <div className="relative">
@@ -641,7 +730,6 @@ export function LoginPage({
                   </div>
                 </div>
 
-                {/* New Password Field */}
                 <div className="space-y-1.5 text-left">
                   <label className="block text-xs font-semibold text-zinc-300">
                     New Password
@@ -668,7 +756,6 @@ export function LoginPage({
                   </div>
                 </div>
 
-                {/* Confirm Password Field */}
                 <div className="space-y-1.5 text-left">
                   <label className="block text-xs font-semibold text-zinc-300">
                     Confirm New Password
@@ -688,7 +775,6 @@ export function LoginPage({
                   </div>
                 </div>
 
-                {/* Submit Reset Button */}
                 <button
                   type="submit"
                   disabled={isResetSubmitting}
@@ -703,10 +789,9 @@ export function LoginPage({
                   {isResetSubmitting ? 'Updating Password…' : 'Reset & Save Password'}
                 </button>
 
-                {/* Light Red (Rose) Cancel Button */}
                 <button
                   type="button"
-                  onClick={() => setViewMode('login')}
+                  onClick={() => setViewMode('password')}
                   className="w-full h-10 flex items-center justify-center font-bold text-xs bg-rose-500 hover:bg-rose-400 text-white rounded-xl transition-all cursor-pointer shadow-sm active:scale-[0.99]"
                 >
                   <X className="h-4 w-4 mr-1.5" />
@@ -715,7 +800,6 @@ export function LoginPage({
               </motion.form>
             )}
 
-            {/* VIEW 5: Success State */}
             {viewMode === 'forgot_success' && (
               <motion.div
                 key="forgot-success-view"
@@ -736,25 +820,23 @@ export function LoginPage({
                 </div>
                 <button
                   type="button"
-                  onClick={() => setViewMode('login')}
+                  onClick={() => setViewMode('email')}
                   className="w-full h-10 flex items-center justify-center font-bold text-xs bg-sky-500 hover:bg-sky-400 text-white rounded-xl transition-all cursor-pointer shadow-sm active:scale-[0.99]"
                   style={{ marginTop: '10px' }}
                 >
                   <LogIn className="h-4 w-4 mr-1.5" />
-                  <span>Proceed to Log In</span>
+                  <span>Proceed to Sign In</span>
                 </button>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        {/* Footer info */}
         <p className="text-[11px] text-zinc-400 text-center mt-4">
           © 2026 Plexivia. All rights reserved.
         </p>
       </motion.div>
 
-      {/* Powered by Plexivia badge: Centered on mobile, Bottom-Right on sm+ desktop */}
       <div className="fixed bottom-4 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-6 sm:bottom-6 z-[999] flex items-center justify-center pointer-events-auto">
         <a
           href="https://plexivia.com"
@@ -775,7 +857,7 @@ export function LoginPage({
       </div>
     </div>
   );
-}
+};
 
 export default LoginPage;
 export { LoginPage as SharedLoginPage };

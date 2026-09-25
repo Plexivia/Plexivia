@@ -4,9 +4,14 @@ import * as userController from '../controllers/userController.js';
 
 const router = Router();
 
-// Authentication lifecycle
-router.post('/login', authController.login);
+// Multi-step Authentication Lifecycle
+router.post('/login/check-email', authController.checkEmail);
+router.post('/login/verify-password', authController.verifyPassword);
+router.post('/login/2fa/send-email-otp', authController.sendEmailOtp);
+router.post('/2fa/resend', authController.resendEmailOtp);
+router.post('/2fa/send-qr', authController.sendEmailOtp);
 router.post('/2fa/verify', authController.verify2fa);
+router.post('/login', authController.login);
 router.post('/refresh-token', authController.refreshToken);
 router.post('/logout', authController.logout);
 router.post('/forgot-password', authController.forgotPassword);
