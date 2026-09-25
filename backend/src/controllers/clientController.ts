@@ -275,3 +275,62 @@ export const updateClientDomains = (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: error.message || 'Failed to update client domains' });
   }
 };
+
+// Retrieve comprehensive 360 degree relational view of a client across all microservices
+export const getClient360 = (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const client = Store.clients.find(c => c.id === id || c.client_key === id || c.clientKey === id);
+
+    if (!client) {
+      return res.status(404).json({ success: false, message: `Client '${id}' not found` });
+    }
+
+    const clientId = client.id;
+    const clientKey = client.client_key || client.clientKey;
+
+    const projects = Store.projects.filter(p => p.client_id === clientId || p.clientId === clientId);
+    const invoices = Store.invoices.filter(i => i.client_id === clientId);
+    const payments = Store.payments.filter(p => p.client_id === clientId);
+    const supportTickets = Store.supportTickets.filter(t => t.client_id === clientId);
+    const projectDocs = Store.projectDocs.filter(d => d.client_id === clientId);
+    const vaultItem = Store.clientVault.find(v => v.client_id === clientId || v.client_key === clientKey);
+
+    const totalPaid = payments.filter(p => p.status === 'COMPLETED').reduce((acc, p) => acc + p.amount, 0);
+    const unpaidInvoices = invoices.filter(i => i.status === 'UNPAID' || i.status === 'OVERDUE');
+    const unpaidAmount = unpaidInvoices.reduce((acc, i) => acc + i.amount, 0);
+
+    const client360 = {
+      client,
+      projects,
+      financials: {
+        monthly_retainer: client.monthly_retainer || client.monthly_revenue || 0,
+        total_paid: totalPaid,
+        unpaid_invoices_amount: unpaidAmount,
+        unpaid_invoices_count: unpaidInvoices.length,
+        invoices,
+        payments,
+      },
+      support: {
+        open_tickets_count: supportTickets.filter(t => t.status === 'OPEN' || t.status === 'IN_PROGRESS').length,
+        total_tickets_count: supportTickets.length,
+        tickets: supportTickets,
+        docs_count: projectDocs.length,
+        docs: projectDocs,
+      },
+      vault: {
+        vps_configured: Boolean(vaultItem?.vps_ip),
+        db_configured: Boolean(vaultItem?.db_connection_uri),
+        ssh_configured: Boolean(vaultItem?.vps_ssh_private_key),
+      },
+    };
+
+    return res.json({
+      success: true,
+      status: 'success',
+      data: client360,
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message || 'Failed to generate client 360 overview' });
+  }
+};

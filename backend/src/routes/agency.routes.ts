@@ -28,6 +28,8 @@ router.patch('/clients/:id/modules', clientController.updateClientModules);
 router.get('/clients/:id/domains', clientController.getClientDomains);
 router.put('/clients/:id/domains', clientController.updateClientDomains);
 router.patch('/clients/:id/domains', clientController.updateClientDomains);
+router.get('/clients/:id/360', clientController.getClient360);
+router.get('/clients/:id/overview', clientController.getClient360);
 
 // Internal Projects
 router.get('/projects', projectController.getProjects);

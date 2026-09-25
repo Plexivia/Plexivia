@@ -18,6 +18,11 @@ router.get('/vault/clients/:clientId', authController.getClientVault);
 router.put('/vault/clients/:clientId', authController.updateClientVault);
 router.patch('/vault/clients/:clientId', authController.updateClientVault);
 
+// Admin Role & Module Permissions Management
+router.get('/admins/:id/permissions', authController.getAdminPermissions);
+router.put('/admins/:id/permissions', authController.updateAdminPermissions);
+router.patch('/admins/:id/permissions', authController.updateAdminPermissions);
+
 // Legacy admin user list compatibility
 router.get('/users', userController.getUsers);
 router.post('/users', userController.createUser);

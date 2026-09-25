@@ -217,3 +217,73 @@ export const updateClientVault = (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: error.message || 'Failed to update client vault' });
   }
 };
+
+// Retrieve granular service and module permissions for an administrative user
+export const getAdminPermissions = (req: Request, res: Response) => {
+  try {
+    const adminId = req.params.id as string;
+    const admin = Store.admins.find(a => a.id === adminId || a.email.toLowerCase() === adminId.toLowerCase());
+
+    if (!admin) {
+      return res.status(404).json({ success: false, message: `Admin user '${adminId}' not found` });
+    }
+
+    const defaultPermissions = {
+      services: {
+        auth: admin.role === 'OWNER' || admin.role === 'ADMIN',
+        hub: admin.role === 'OWNER' || admin.role === 'ADMIN',
+        agency: admin.role === 'OWNER' || admin.role === 'ADMIN',
+        finance: admin.role === 'OWNER' || admin.role === 'ADMIN' || admin.role === 'ACCOUNTANT',
+      },
+      modules: {
+        invoices: admin.role === 'ACCOUNTANT' || admin.role === 'OWNER' ? ['read', 'write'] : ['read'],
+        payments: admin.role === 'ACCOUNTANT' || admin.role === 'OWNER' ? ['read', 'write'] : ['read'],
+        bills: admin.role === 'ACCOUNTANT' || admin.role === 'OWNER' ? ['read', 'write'] : ['read'],
+        payroll: admin.role === 'ACCOUNTANT' || admin.role === 'OWNER' ? ['read', 'write'] : ['none'],
+        clientVault: admin.role === 'OWNER' ? ['read', 'write'] : ['none'],
+      },
+    };
+
+    return res.json({
+      success: true,
+      status: 'success',
+      data: admin.permissions || defaultPermissions,
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message || 'Failed to retrieve admin permissions' });
+  }
+};
+
+// Update granular service and module permissions for an administrative user
+export const updateAdminPermissions = (req: Request, res: Response) => {
+  try {
+    const adminId = req.params.id as string;
+    const { permissions } = req.body;
+    const admin = Store.admins.find(a => a.id === adminId || a.email.toLowerCase() === adminId.toLowerCase());
+
+    if (!admin) {
+      return res.status(404).json({ success: false, message: `Admin user '${adminId}' not found` });
+    }
+
+    admin.permissions = {
+      services: {
+        ...(admin.permissions?.services || {}),
+        ...(permissions?.services || {}),
+      },
+      modules: {
+        ...(admin.permissions?.modules || {}),
+        ...(permissions?.modules || {}),
+      },
+    };
+    admin.updated_at = new Date().toISOString();
+
+    return res.json({
+      success: true,
+      status: 'success',
+      message: `Permissions for admin '${admin.full_name}' updated successfully`,
+      data: admin.permissions,
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message || 'Failed to update admin permissions' });
+  }
+};

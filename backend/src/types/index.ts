@@ -7,6 +7,31 @@
 export type AdminRole = 'OWNER' | 'ADMIN' | 'ACCOUNTANT' | 'SUPER_ADMIN' | 'PM' | 'DEV' | 'DESIGNER' | 'SRE' | 'MEMBER' | string;
 export type AdminStatus = 'ACTIVE' | 'INACTIVE' | 'AWAY' | 'OFFLINE' | 'SUSPENDED' | 'LOCKED' | string;
 
+export interface ServicePermissions {
+  auth?: boolean;
+  hub?: boolean;
+  agency?: boolean;
+  finance?: boolean;
+}
+
+export interface ModulePermissions {
+  invoices?: string[];
+  payments?: string[];
+  bills?: string[];
+  payroll?: string[];
+  clientVault?: string[];
+  vpsTelemetry?: string[];
+  projects?: string[];
+  tasks?: string[];
+  teams?: string[];
+  [key: string]: string[] | undefined;
+}
+
+export interface AdminPermissions {
+  services: ServicePermissions;
+  modules: ModulePermissions;
+}
+
 export interface Admin {
   id: string;
   email: string;
@@ -24,6 +49,7 @@ export interface Admin {
   status?: AdminStatus;
   two_factor_enabled?: boolean;
   two_factor_secret?: string;
+  permissions?: AdminPermissions;
   hourly_rate?: number;
   active_tasks_count?: number;
   total_logged_hours?: number;
@@ -406,6 +432,31 @@ export interface Client {
   vps?: ClientVPSConfig;
   created_at: string;
   updated_at?: string;
+}
+
+export interface Client360View {
+  client: Client;
+  projects: Project[];
+  financials: {
+    monthly_retainer: number;
+    total_paid: number;
+    unpaid_invoices_amount: number;
+    unpaid_invoices_count: number;
+    invoices: Invoice[];
+    payments: Payment[];
+  };
+  support: {
+    open_tickets_count: number;
+    total_tickets_count: number;
+    tickets: SupportTicket[];
+    docs_count: number;
+    docs: ProjectDoc[];
+  };
+  vault: {
+    vps_configured: boolean;
+    db_configured: boolean;
+    ssh_configured: boolean;
+  };
 }
 
 // Legacy User reference alias
