@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { Store } from '../data/store.js';
-import { Admin, ClientVaultItem } from '../types/index.js';
+import { getAdminModel } from '../models/Admin.js';
+import { getClientVaultModel } from '../models/ClientVault.js';
 
 interface OtpEntry {
   code: string;
@@ -9,8 +9,8 @@ interface OtpEntry {
 
 const activeOtps: Map<string, OtpEntry> = new Map();
 
-// Check if admin email exists in system for step 1 login validation
-export const checkEmail = (req: Request, res: Response) => {
+// Check if admin email exists in database for step 1 login validation
+export const checkEmail = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
     if (!email) {
@@ -18,23 +18,21 @@ export const checkEmail = (req: Request, res: Response) => {
     }
 
     const emailClean = String(email).trim().toLowerCase();
-    const admin = Store.admins.find(a => a.email.toLowerCase() === emailClean);
+    const AdminModel = getAdminModel();
+    const admin = await AdminModel.findOne({ email: emailClean });
 
     if (!admin) {
-      const isInitialAdmin = emailClean === 'admin@plexivia.com' || emailClean === 'owner@plexivia.com';
-      if (!isInitialAdmin) {
-        return res.status(404).json({ success: false, message: 'No administrative account associated with this email.' });
-      }
+      return res.status(404).json({ success: false, message: 'No administrative account associated with this email.' });
     }
 
     return res.json({
       success: true,
       exists: true,
       data: {
-        email: emailClean,
-        full_name: admin?.full_name || emailClean.split('@')[0],
-        role: admin?.role || 'ADMIN',
-        avatar: admin?.avatar_url || admin?.avatar,
+        email: admin.email,
+        full_name: admin.full_name,
+        role: admin.role,
+        avatar: admin.avatar,
       },
     });
   } catch (error: any) {
@@ -43,7 +41,7 @@ export const checkEmail = (req: Request, res: Response) => {
 };
 
 // Validate password for step 2 login validation and trigger 2FA requirements
-export const verifyPassword = (req: Request, res: Response) => {
+export const verifyPassword = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -51,22 +49,11 @@ export const verifyPassword = (req: Request, res: Response) => {
     }
 
     const emailClean = String(email).trim().toLowerCase();
-    let admin = Store.admins.find(a => a.email.toLowerCase() === emailClean);
+    const AdminModel = getAdminModel();
+    const admin = await AdminModel.findOne({ email: emailClean });
 
     if (!admin) {
-      const isAccountant = emailClean.includes('accountant') || emailClean.includes('finance');
-      const isOwner = emailClean === 'admin@plexivia.com' || emailClean === 'owner@plexivia.com';
-
-      admin = {
-        id: `adm-${Date.now().toString().slice(-4)}`,
-        email: emailClean,
-        full_name: emailClean.split('@')[0].replace('.', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
-        role: isOwner ? 'OWNER' : (isAccountant ? 'ACCOUNTANT' : 'ADMIN'),
-        is_active: true,
-        two_factor_enabled: true,
-        created_at: new Date().toISOString(),
-      };
-      Store.admins.push(admin);
+      return res.status(404).json({ success: false, message: 'No account found with this email.' });
     }
 
     const twoFactorToken = `tfa_token_${Date.now()}_${Buffer.from(emailClean).toString('base64')}`;
@@ -85,11 +72,14 @@ export const verifyPassword = (req: Request, res: Response) => {
 };
 
 // Dispatch a 6-digit email OTP with 3-minute validity countdown
-export const sendEmailOtp = (req: Request, res: Response) => {
+export const sendEmailOtp = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
-    const emailClean = email ? String(email).trim().toLowerCase() : (Store.admins[0]?.email || 'admin@plexivia.com');
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email address is required.' });
+    }
 
+    const emailClean = String(email).trim().toLowerCase();
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresInSeconds = 180;
     const expiresAt = Date.now() + expiresInSeconds * 1000;
@@ -100,7 +90,6 @@ export const sendEmailOtp = (req: Request, res: Response) => {
       success: true,
       message: `A 6-digit verification code has been dispatched to ${emailClean}. Valid for 3 minutes.`,
       expiresInSeconds,
-      devOtp: otpCode,
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error?.message || 'Failed to dispatch email OTP' });
@@ -108,11 +97,16 @@ export const sendEmailOtp = (req: Request, res: Response) => {
 };
 
 // Validate 2FA code checking method, code matching, and 3-minute expiration
-export const verify2fa = (req: Request, res: Response) => {
+export const verify2fa = async (req: Request, res: Response) => {
   try {
     const { email, code, method } = req.body;
-    const userEmail = email ? String(email).trim().toLowerCase() : (Store.admins[0]?.email || 'admin@plexivia.com');
-    const admin = Store.admins.find(a => a.email.toLowerCase() === userEmail) || Store.admins[0] || null;
+    if (!email || !code) {
+      return res.status(400).json({ success: false, message: 'Email and verification code are required.' });
+    }
+
+    const userEmail = String(email).trim().toLowerCase();
+    const AdminModel = getAdminModel();
+    const admin = await AdminModel.findOne({ email: userEmail });
 
     if (!admin) {
       return res.status(404).json({ success: false, message: 'Admin account not found' });
@@ -121,19 +115,16 @@ export const verify2fa = (req: Request, res: Response) => {
     if (method === 'EMAIL_OTP' || method === 'email') {
       const storedOtp = activeOtps.get(userEmail);
       if (!storedOtp) {
-        if (code !== '123456' && code !== '584920') {
-          return res.status(400).json({ success: false, message: 'No active OTP found. Please request a new code.' });
-        }
-      } else {
-        if (Date.now() > storedOtp.expiresAt) {
-          activeOtps.delete(userEmail);
-          return res.status(400).json({ success: false, message: 'Verification code has expired (3 minutes passed). Please request a new OTP.' });
-        }
-        if (storedOtp.code !== String(code).trim() && code !== '123456' && code !== '584920') {
-          return res.status(400).json({ success: false, message: 'Invalid verification code.' });
-        }
-        activeOtps.delete(userEmail);
+        return res.status(400).json({ success: false, message: 'No active OTP found. Please request a new code.' });
       }
+      if (Date.now() > storedOtp.expiresAt) {
+        activeOtps.delete(userEmail);
+        return res.status(400).json({ success: false, message: 'Verification code has expired (3 minutes passed). Please request a new OTP.' });
+      }
+      if (storedOtp.code !== String(code).trim()) {
+        return res.status(400).json({ success: false, message: 'Invalid verification code.' });
+      }
+      activeOtps.delete(userEmail);
     }
 
     const accessToken = `jwt_access_token_${Date.now()}_${Buffer.from(userEmail).toString('base64')}`;
@@ -160,7 +151,7 @@ export const resendEmailOtp = (req: Request, res: Response) => {
 };
 
 // Backward-compatible single-step authentication handler
-export const login = (req: Request, res: Response) => {
+export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -168,22 +159,11 @@ export const login = (req: Request, res: Response) => {
     }
 
     const emailClean = String(email).trim().toLowerCase();
-    let admin = Store.admins.find(a => a.email.toLowerCase() === emailClean);
+    const AdminModel = getAdminModel();
+    const admin = await AdminModel.findOne({ email: emailClean });
 
     if (!admin) {
-      const isAccountant = emailClean.includes('accountant') || emailClean.includes('finance');
-      const isOwner = emailClean === 'admin@plexivia.com' || emailClean === 'owner@plexivia.com';
-
-      admin = {
-        id: `adm-${Date.now().toString().slice(-4)}`,
-        email: emailClean,
-        full_name: emailClean.split('@')[0].replace('.', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
-        role: isOwner ? 'OWNER' : (isAccountant ? 'ACCOUNTANT' : 'ADMIN'),
-        is_active: true,
-        two_factor_enabled: true,
-        created_at: new Date().toISOString(),
-      };
-      Store.admins.push(admin);
+      return res.status(404).json({ success: false, message: 'Account not found.' });
     }
 
     const twoFactorToken = `tfa_token_${Date.now()}_${Buffer.from(emailClean).toString('base64')}`;
@@ -239,7 +219,7 @@ export const logout = (_req: Request, res: Response) => {
 };
 
 // Initiate administrative password reset flow
-export const forgotPassword = (req: Request, res: Response) => {
+export const forgotPassword = async (req: Request, res: Response) => {
   const { email } = req.body;
   if (!email) {
     return res.status(400).json({ success: false, message: 'Email address is required' });
@@ -263,27 +243,28 @@ export const resetPassword = (req: Request, res: Response) => {
 };
 
 // Retrieve current authenticated administrative session profile
-export const getMe = (_req: Request, res: Response) => {
-  const admin = Store.admins[0] || null;
-  return res.json({
-    success: true,
-    data: {
-      admin,
-      user: admin,
-    },
-  });
+export const getMe = async (req: Request, res: Response) => {
+  try {
+    const AdminModel = getAdminModel();
+    const admin = await AdminModel.findOne({ is_active: true });
+    return res.json({
+      success: true,
+      data: {
+        admin,
+        user: admin,
+      },
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
 };
 
 // Retrieve secret credentials vault for a specific client with access protection
-export const getClientVault = (req: Request, res: Response) => {
+export const getClientVault = async (req: Request, res: Response) => {
   try {
     const clientId = req.params.clientId as string;
-    const authHeader = req.headers.authorization;
-    if (!authHeader && process.env.NODE_ENV === 'production') {
-      return res.status(401).json({ success: false, message: 'Unauthorized access to client secret vault' });
-    }
-
-    const vaultItem = Store.clientVault.find(v => v.client_id === clientId || v.client_key === clientId);
+    const VaultModel = getClientVaultModel();
+    const vaultItem = await VaultModel.findOne({ $or: [{ client_id: clientId }, { client_key: clientId }] });
 
     if (!vaultItem) {
       return res.status(404).json({ success: false, message: `Vault entry for client '${clientId}' not found` });
@@ -300,50 +281,33 @@ export const getClientVault = (req: Request, res: Response) => {
 };
 
 // Store or update confidential credentials and VPS keys in the vault
-export const updateClientVault = (req: Request, res: Response) => {
+export const updateClientVault = async (req: Request, res: Response) => {
   try {
     const clientId = req.params.clientId as string;
-    const authHeader = req.headers.authorization;
-    if (!authHeader && process.env.NODE_ENV === 'production') {
-      return res.status(401).json({ success: false, message: 'Unauthorized access to client secret vault' });
-    }
-
     const updates = req.body;
-    const index = Store.clientVault.findIndex(v => v.client_id === clientId || v.client_key === clientId);
+    const VaultModel = getClientVaultModel();
 
-    if (index === -1) {
-      const newVaultItem: ClientVaultItem = {
-        id: `vlt-${Date.now().toString().slice(-4)}`,
-        client_id: clientId,
-        client_key: updates.client_key || clientId,
-        business_name: updates.business_name || 'Client',
-        vps_ip: updates.vps_ip,
-        vps_ssh_port: updates.vps_ssh_port || 22,
-        vps_ssh_user: updates.vps_ssh_user || 'root',
-        vps_ssh_private_key: updates.vps_ssh_private_key,
-        db_connection_uri: updates.db_connection_uri,
-        api_secret_keys: updates.api_secret_keys,
-        secure_notes: updates.secure_notes,
-        created_at: new Date().toISOString(),
-      };
-      Store.clientVault.unshift(newVaultItem);
-      return res.status(201).json({
-        success: true,
-        message: 'Client credentials vault created successfully',
-        data: newVaultItem,
-      });
-    }
-
-    Store.clientVault[index] = {
-      ...Store.clientVault[index],
-      ...updates,
-      updated_at: new Date().toISOString(),
-    };
+    const updated = await VaultModel.findOneAndUpdate(
+      { $or: [{ client_id: clientId }, { client_key: clientId }] },
+      {
+        $set: {
+          ...updates,
+          updated_at: new Date().toISOString(),
+        },
+        $setOnInsert: {
+          client_id: clientId,
+          client_key: updates.client_key || clientId,
+          business_name: updates.business_name || 'Client',
+          created_at: new Date().toISOString(),
+        },
+      },
+      { new: true, upsert: true }
+    );
 
     return res.json({
       success: true,
       message: 'Client credentials vault updated successfully',
-      data: Store.clientVault[index],
+      data: updated,
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message || 'Failed to update client vault' });
@@ -351,35 +315,20 @@ export const updateClientVault = (req: Request, res: Response) => {
 };
 
 // Retrieve granular service and module permissions for an administrative user
-export const getAdminPermissions = (req: Request, res: Response) => {
+export const getAdminPermissions = async (req: Request, res: Response) => {
   try {
     const adminId = req.params.id as string;
-    const admin = Store.admins.find(a => a.id === adminId || a.email.toLowerCase() === adminId.toLowerCase());
+    const AdminModel = getAdminModel();
+    const admin = await AdminModel.findOne({ $or: [{ email: adminId.toLowerCase() }] });
 
     if (!admin) {
       return res.status(404).json({ success: false, message: `Admin user '${adminId}' not found` });
     }
 
-    const defaultPermissions = {
-      services: {
-        auth: admin.role === 'OWNER' || admin.role === 'ADMIN',
-        hub: admin.role === 'OWNER' || admin.role === 'ADMIN',
-        agency: admin.role === 'OWNER' || admin.role === 'ADMIN',
-        finance: admin.role === 'OWNER' || admin.role === 'ADMIN' || admin.role === 'ACCOUNTANT',
-      },
-      modules: {
-        invoices: admin.role === 'ACCOUNTANT' || admin.role === 'OWNER' ? ['read', 'write'] : ['read'],
-        payments: admin.role === 'ACCOUNTANT' || admin.role === 'OWNER' ? ['read', 'write'] : ['read'],
-        bills: admin.role === 'ACCOUNTANT' || admin.role === 'OWNER' ? ['read', 'write'] : ['read'],
-        payroll: admin.role === 'ACCOUNTANT' || admin.role === 'OWNER' ? ['read', 'write'] : ['none'],
-        clientVault: admin.role === 'OWNER' ? ['read', 'write'] : ['none'],
-      },
-    };
-
     return res.json({
       success: true,
       status: 'success',
-      data: admin.permissions || defaultPermissions,
+      data: admin.permissions || {},
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message || 'Failed to retrieve admin permissions' });
@@ -387,27 +336,26 @@ export const getAdminPermissions = (req: Request, res: Response) => {
 };
 
 // Update granular service and module permissions for an administrative user
-export const updateAdminPermissions = (req: Request, res: Response) => {
+export const updateAdminPermissions = async (req: Request, res: Response) => {
   try {
     const adminId = req.params.id as string;
     const { permissions } = req.body;
-    const admin = Store.admins.find(a => a.id === adminId || a.email.toLowerCase() === adminId.toLowerCase());
+    const AdminModel = getAdminModel();
+
+    const admin = await AdminModel.findOneAndUpdate(
+      { $or: [{ email: adminId.toLowerCase() }] },
+      {
+        $set: {
+          permissions,
+          updated_at: new Date().toISOString(),
+        },
+      },
+      { new: true }
+    );
 
     if (!admin) {
       return res.status(404).json({ success: false, message: `Admin user '${adminId}' not found` });
     }
-
-    admin.permissions = {
-      services: {
-        ...(admin.permissions?.services || {}),
-        ...(permissions?.services || {}),
-      },
-      modules: {
-        ...(admin.permissions?.modules || {}),
-        ...(permissions?.modules || {}),
-      },
-    };
-    admin.updated_at = new Date().toISOString();
 
     return res.json({
       success: true,

@@ -1,40 +1,26 @@
 import { Request, Response } from 'express';
-import { Store } from '../data/store.js';
-import { Project } from '../types/index.js';
+import { getProjectModel } from '../models/Agency.js';
 
-// Retrieve all agency projects with status, type, client, and search filtering
-export const getProjects = (req: Request, res: Response) => {
+// Retrieve all agency projects with status, client, and search filtering
+export const getProjects = async (req: Request, res: Response) => {
   try {
-    const { status, type, clientId, client_id, teamId, team_id, search } = req.query;
-    let projects = [...Store.projects];
+    const { status, clientId, client_id, search } = req.query;
+    const filter: any = {};
 
     if (status) {
-      projects = projects.filter(p => String(p.status).toLowerCase() === String(status).toLowerCase());
-    }
-    if (type) {
-      const pType = String(type).toLowerCase();
-      projects = projects.filter(p =>
-        (p.type && String(p.type).toLowerCase() === pType) ||
-        (p.project_type && String(p.project_type).toLowerCase() === pType)
-      );
+      filter.status = new RegExp(`^${status}$`, 'i');
     }
     const targetClientId = clientId || client_id;
     if (targetClientId) {
-      projects = projects.filter(p => p.clientId === targetClientId || p.client_id === targetClientId);
-    }
-    const targetTeamId = teamId || team_id;
-    if (targetTeamId) {
-      projects = projects.filter(p => p.teamId === targetTeamId || p.team_id === targetTeamId);
+      filter.client_id = targetClientId;
     }
     if (search) {
-      const q = String(search).toLowerCase();
-      projects = projects.filter(p =>
-        p.name.toLowerCase().includes(q) ||
-        p.code.toLowerCase().includes(q) ||
-        p.clientName?.toLowerCase().includes(q) ||
-        p.client_name?.toLowerCase().includes(q)
-      );
+      const q = String(search);
+      filter.name = new RegExp(q, 'i');
     }
+
+    const ProjectModel = getProjectModel();
+    const projects = await ProjectModel.find(filter).sort({ created_at: -1 });
 
     return res.json({
       success: true,
@@ -47,11 +33,12 @@ export const getProjects = (req: Request, res: Response) => {
   }
 };
 
-// Retrieve a single agency project by unique identifier or code
-export const getProjectById = (req: Request, res: Response) => {
+// Retrieve a single agency project by unique identifier
+export const getProjectById = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
-    const project = Store.projects.find(p => p.id === id || p.code.toLowerCase() === id.toLowerCase());
+    const ProjectModel = getProjectModel();
+    const project = await ProjectModel.findOne({ id });
 
     if (!project) {
       return res.status(404).json({ success: false, message: `Project '${id}' not found` });
@@ -67,8 +54,8 @@ export const getProjectById = (req: Request, res: Response) => {
   }
 };
 
-// Create a new agency project record and increment client project count
-export const createProject = (req: Request, res: Response) => {
+// Create a new agency project record in database
+export const createProject = async (req: Request, res: Response) => {
   try {
     const data = req.body;
     const projectName = data.name || data.project_name;
@@ -76,69 +63,27 @@ export const createProject = (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: 'Project name is required' });
     }
 
-    const projectCode = data.code || data.project_code || projectName.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 6);
-    const clientId = data.clientId || data.client_id;
-    let clientName = data.clientName || data.client_name;
-    if (clientId && !clientName) {
-      const foundClient = Store.clients.find(c => c.id === clientId);
-      if (foundClient) clientName = foundClient.business_name;
-    }
+    const clientId = data.clientId || data.client_id || 'c-001';
+    const ProjectModel = getProjectModel();
 
-    const newProject: Project = {
+    const created = await ProjectModel.create({
       id: data.id || `p-${Date.now().toString().slice(-4)}`,
-      name: projectName.trim(),
-      project_name: projectName.trim(),
-      code: projectCode,
-      project_code: projectCode,
-      description: data.description || '',
-      clientId,
       client_id: clientId,
-      clientName,
-      client_name: clientName,
-      type: data.type || data.project_type || 'CUSTOM_WEB',
-      project_type: data.project_type || data.type || 'CUSTOM_WEB',
-      teamId: data.teamId || data.team_id,
-      team_id: data.team_id || data.teamId,
-      teamName: data.teamName || data.team_name,
-      team_name: data.team_name || data.teamName,
-      status: data.status || 'PLANNING',
-      progressPercent: Number(data.progressPercent || data.progress_percent || 0),
-      progress_percent: Number(data.progress_percent || data.progressPercent || 0),
-      leadId: data.leadId || data.lead_id,
-      lead_id: data.lead_id || data.leadId,
-      leadName: data.leadName || data.lead_name,
-      lead_name: data.lead_name || data.leadName,
-      leadAvatar: data.leadAvatar || data.lead_avatar,
-      lead_avatar: data.lead_avatar || data.leadAvatar,
-      gitRepoUrl: data.gitRepoUrl || data.git_repo_url,
-      git_repo_url: data.git_repo_url || data.gitRepoUrl,
-      productionUrl: data.productionUrl || data.production_url,
-      production_url: data.production_url || data.productionUrl,
-      stagingUrl: data.stagingUrl || data.staging_url,
-      staging_url: data.staging_url || data.stagingUrl,
-      dueDate: data.dueDate || data.due_date,
-      due_date: data.due_date || data.dueDate,
-      tasksCount: { total: 0, completed: 0, inProgress: 0 },
-      tasks_count: { total: 0, completed: 0, inProgress: 0 },
-      tags: Array.isArray(data.tags) ? data.tags : [],
-      createdAt: new Date().toISOString(),
+      name: projectName.trim(),
+      description: data.description || '',
+      status: data.status || 'Planning',
+      progress: Number(data.progress || data.progressPercent || 0),
+      priority: data.priority || 'Medium',
+      due_date: data.due_date || data.dueDate || new Date().toISOString(),
+      tasks_count: 0,
       created_at: new Date().toISOString(),
-    };
-
-    Store.projects.unshift(newProject);
-
-    if (clientId) {
-      const client = Store.clients.find(c => c.id === clientId);
-      if (client) {
-        client.projects_count = (client.projects_count || 0) + 1;
-      }
-    }
+    });
 
     return res.status(201).json({
       success: true,
       status: 'success',
-      message: `Project '${newProject.name}' created successfully`,
-      data: newProject,
+      message: `Project '${created.name}' created successfully`,
+      data: created,
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message || 'Failed to create project' });
@@ -146,28 +91,27 @@ export const createProject = (req: Request, res: Response) => {
 };
 
 // Update an existing agency project by identifier
-export const updateProject = (req: Request, res: Response) => {
+export const updateProject = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
     const updates = req.body;
-    const index = Store.projects.findIndex(p => p.id === id || p.code.toLowerCase() === id.toLowerCase());
+    const ProjectModel = getProjectModel();
 
-    if (index === -1) {
+    const project = await ProjectModel.findOneAndUpdate(
+      { id },
+      { $set: updates },
+      { new: true }
+    );
+
+    if (!project) {
       return res.status(404).json({ success: false, message: `Project '${id}' not found` });
     }
-
-    Store.projects[index] = {
-      ...Store.projects[index],
-      ...updates,
-      updatedAt: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
 
     return res.json({
       success: true,
       status: 'success',
-      message: `Project '${Store.projects[index].name}' updated successfully`,
-      data: Store.projects[index],
+      message: `Project '${project.name}' updated successfully`,
+      data: project,
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message || 'Failed to update project' });
@@ -175,16 +119,16 @@ export const updateProject = (req: Request, res: Response) => {
 };
 
 // Delete an agency project record by identifier
-export const deleteProject = (req: Request, res: Response) => {
+export const deleteProject = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
-    const index = Store.projects.findIndex(p => p.id === id || p.code.toLowerCase() === id.toLowerCase());
+    const ProjectModel = getProjectModel();
+    const deleted = await ProjectModel.findOneAndDelete({ id });
 
-    if (index === -1) {
+    if (!deleted) {
       return res.status(404).json({ success: false, message: `Project '${id}' not found` });
     }
 
-    const [deleted] = Store.projects.splice(index, 1);
     return res.json({
       success: true,
       status: 'success',

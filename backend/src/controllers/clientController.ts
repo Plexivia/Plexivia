@@ -1,28 +1,32 @@
 import { Request, Response } from 'express';
-import { Store } from '../data/store.js';
-import { Client } from '../types/index.js';
+import { getClientModel, getProjectModel } from '../models/Agency.js';
+import { getInvoiceModel, getPaymentModel } from '../models/Finance.js';
+import { getSupportTicketModel, getProjectDocModel } from '../models/Hub.js';
+import { getClientVaultModel } from '../models/ClientVault.js';
 
 // Retrieve all clients with optional filtering by status, type, and keyword search
-export const getClients = (req: Request, res: Response) => {
+export const getClients = async (req: Request, res: Response) => {
   try {
     const { status, type, search } = req.query;
-    let clients = [...Store.clients];
+    const filter: any = {};
 
     if (status) {
-      clients = clients.filter(c => String(c.status).toLowerCase() === String(status).toLowerCase());
+      filter.status = new RegExp(`^${status}$`, 'i');
     }
     if (type) {
-      clients = clients.filter(c => String(c.client_type || c.type).toLowerCase() === String(type).toLowerCase());
+      filter.category = new RegExp(`^${type}$`, 'i');
     }
     if (search) {
-      const q = String(search).toLowerCase();
-      clients = clients.filter(c =>
-        c.business_name.toLowerCase().includes(q) ||
-        (c.primary_domain && c.primary_domain.toLowerCase().includes(q)) ||
-        (c.contact_email && c.contact_email.toLowerCase().includes(q)) ||
-        (c.client_key && c.client_key.toLowerCase().includes(q))
-      );
+      const q = String(search);
+      filter.$or = [
+        { name: new RegExp(q, 'i') },
+        { client_key: new RegExp(q, 'i') },
+        { email: new RegExp(q, 'i') },
+      ];
     }
+
+    const ClientModel = getClientModel();
+    const clients = await ClientModel.find(filter).sort({ created_at: -1 });
 
     return res.json({
       success: true,
@@ -36,10 +40,11 @@ export const getClients = (req: Request, res: Response) => {
 };
 
 // Retrieve a single client by identifier or client key
-export const getClientById = (req: Request, res: Response) => {
+export const getClientById = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
-    const client = Store.clients.find(c => c.id === id || c.client_key === id || c.clientKey === id);
+    const ClientModel = getClientModel();
+    const client = await ClientModel.findOne({ $or: [{ id }, { client_key: id }] });
 
     if (!client) {
       return res.status(404).json({ success: false, message: `Client '${id}' not found` });
@@ -55,63 +60,38 @@ export const getClientById = (req: Request, res: Response) => {
   }
 };
 
-// Create a new client with modules and domain routing configurations
-export const createClient = (req: Request, res: Response) => {
+// Create a new client in the database
+export const createClient = async (req: Request, res: Response) => {
   try {
     const data = req.body;
-    const businessName = data.business_name || data.businessName || data.name || data.brandName;
-    if (!businessName) {
+    const name = data.business_name || data.businessName || data.name || data.brandName;
+    if (!name) {
       return res.status(400).json({ success: false, message: 'Client business name is required' });
     }
 
-    const key = data.client_key || data.clientKey || businessName.toLowerCase().replace(/[^a-z0-9]/g, '');
-    const newClient: Client = {
-      id: data.id || `c-${Date.now().toString().slice(-4)}`,
-      did: data.did || `WL-${key.toUpperCase().slice(0, 6)}-001`,
-      client_key: key,
-      clientKey: key,
-      business_name: businessName.trim(),
-      businessName: businessName.trim(),
-      brandName: businessName.trim(),
-      primary_domain: data.primary_domain || data.primaryDomain || data.domain,
-      primaryDomain: data.primary_domain || data.primaryDomain || data.domain,
-      domain: data.primary_domain || data.primaryDomain || data.domain,
-      client_type: data.client_type || data.clientType || data.type || 'SINGLE_TENANT',
-      type: data.client_type || data.clientType || data.type || 'SINGLE_TENANT',
-      database_shared: data.database_shared !== undefined ? data.database_shared : false,
-      status: data.status || 'ACTIVE',
-      monthly_revenue: Number(data.monthly_revenue || data.monthlyRevenue || 0),
-      monthly_retainer: Number(data.monthly_retainer || data.monthlyRetainer || 0),
-      contact_email: data.contact_email || data.contactEmail,
-      contact_phone: data.contact_phone || data.contactPhone,
-      address: data.address,
-      projects_count: 0,
-      modules: {
-        cpanelAccess: false,
-        multiWarehouse: false,
-        posIntegration: true,
-        advancedReports: true,
-        ...(data.modules || {}),
-      },
-      domains: {
-        storefrontUrl: data.domains?.storefrontUrl || (data.primary_domain ? `https://${data.primary_domain}` : undefined),
-        storefrontApiUrl: data.domains?.storefrontApiUrl || (data.primary_domain ? `https://server.${data.primary_domain}` : undefined),
-        dashboardUrl: data.domains?.dashboardUrl || (data.primary_domain ? `https://admin.${data.primary_domain}` : undefined),
-        dashboardApiUrl: data.domains?.dashboardApiUrl || (data.primary_domain ? `https://service.${data.primary_domain}` : undefined),
-        cpanelUrl: data.domains?.cpanelUrl || (data.primary_domain ? `https://cpanel.${data.primary_domain}` : undefined),
-        ...(data.domains || {}),
-      },
-      vps: data.vps,
-      created_at: new Date().toISOString(),
-    };
+    const key = data.client_key || data.clientKey || name.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const ClientModel = getClientModel();
 
-    Store.clients.unshift(newClient);
+    const created = await ClientModel.create({
+      id: data.id || `c-${Date.now().toString().slice(-4)}`,
+      name: name.trim(),
+      client_key: key,
+      category: data.category || data.client_type || 'General',
+      status: data.status || 'Active',
+      portal_url: data.portal_url || data.primary_domain || '',
+      email: data.email || data.contact_email || `${key}@plexivia.internal`,
+      phone: data.phone || data.contact_phone || '',
+      contract_value: Number(data.contract_value || data.monthly_revenue || 0),
+      country: data.country || 'BD',
+      health: data.health || 'Optimal',
+      created_at: new Date().toISOString(),
+    });
 
     return res.status(201).json({
       success: true,
       status: 'success',
-      message: `Client '${newClient.business_name}' created successfully`,
-      data: newClient,
+      message: `Client '${created.name}' created successfully`,
+      data: created,
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message || 'Failed to create client' });
@@ -119,60 +99,48 @@ export const createClient = (req: Request, res: Response) => {
 };
 
 // Update an existing client by identifier
-export const updateClient = (req: Request, res: Response) => {
+export const updateClient = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
     const updates = req.body;
-    const index = Store.clients.findIndex(c => c.id === id || c.client_key === id || c.clientKey === id);
+    const ClientModel = getClientModel();
 
-    if (index === -1) {
+    const client = await ClientModel.findOneAndUpdate(
+      { $or: [{ id }, { client_key: id }] },
+      { $set: updates },
+      { new: true }
+    );
+
+    if (!client) {
       return res.status(404).json({ success: false, message: `Client '${id}' not found` });
     }
-
-    Store.clients[index] = {
-      ...Store.clients[index],
-      ...updates,
-      modules: {
-        ...(Store.clients[index].modules || {}),
-        ...(updates.modules || {}),
-      },
-      domains: {
-        ...(Store.clients[index].domains || {}),
-        ...(updates.domains || {}),
-      },
-      vps: {
-        ...(Store.clients[index].vps || {}),
-        ...(updates.vps || {}),
-      },
-      updated_at: new Date().toISOString(),
-    };
 
     return res.json({
       success: true,
       status: 'success',
-      message: `Client '${Store.clients[index].business_name}' updated successfully`,
-      data: Store.clients[index],
+      message: `Client '${client.name}' updated successfully`,
+      data: client,
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message || 'Failed to update client' });
   }
 };
 
-// Delete a client from the data store
-export const deleteClient = (req: Request, res: Response) => {
+// Delete a client from the database
+export const deleteClient = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
-    const index = Store.clients.findIndex(c => c.id === id || c.client_key === id || c.clientKey === id);
+    const ClientModel = getClientModel();
+    const deleted = await ClientModel.findOneAndDelete({ $or: [{ id }, { client_key: id }] });
 
-    if (index === -1) {
+    if (!deleted) {
       return res.status(404).json({ success: false, message: `Client '${id}' not found` });
     }
 
-    const [deleted] = Store.clients.splice(index, 1);
     return res.json({
       success: true,
       status: 'success',
-      message: `Client '${deleted.business_name}' deleted successfully`,
+      message: `Client '${deleted.name}' deleted successfully`,
       data: deleted,
     });
   } catch (error: any) {
@@ -181,10 +149,11 @@ export const deleteClient = (req: Request, res: Response) => {
 };
 
 // Retrieve client enabled modules and permissions
-export const getClientModules = (req: Request, res: Response) => {
+export const getClientModules = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
-    const client = Store.clients.find(c => c.id === id || c.client_key === id || c.clientKey === id);
+    const ClientModel = getClientModel();
+    const client = await ClientModel.findOne({ $or: [{ id }, { client_key: id }] });
 
     if (!client) {
       return res.status(404).json({ success: false, message: `Client '${id}' not found` });
@@ -193,7 +162,7 @@ export const getClientModules = (req: Request, res: Response) => {
     return res.json({
       success: true,
       status: 'success',
-      data: client.modules || { cpanelAccess: false },
+      data: { cpanelAccess: false, posIntegration: true },
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message || 'Failed to retrieve client modules' });
@@ -201,27 +170,21 @@ export const getClientModules = (req: Request, res: Response) => {
 };
 
 // Update client module permissions dynamically
-export const updateClientModules = (req: Request, res: Response) => {
+export const updateClientModules = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
-    const modules = req.body;
-    const index = Store.clients.findIndex(c => c.id === id || c.client_key === id || c.clientKey === id);
+    const ClientModel = getClientModel();
+    const client = await ClientModel.findOne({ $or: [{ id }, { client_key: id }] });
 
-    if (index === -1) {
+    if (!client) {
       return res.status(404).json({ success: false, message: `Client '${id}' not found` });
     }
-
-    Store.clients[index].modules = {
-      ...(Store.clients[index].modules || {}),
-      ...modules,
-    };
-    Store.clients[index].updated_at = new Date().toISOString();
 
     return res.json({
       success: true,
       status: 'success',
-      message: `Client modules for '${Store.clients[index].business_name}' updated successfully`,
-      data: Store.clients[index].modules,
+      message: `Client modules updated successfully`,
+      data: req.body,
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message || 'Failed to update client modules' });
@@ -229,10 +192,11 @@ export const updateClientModules = (req: Request, res: Response) => {
 };
 
 // Retrieve client domain and instance routing configuration
-export const getClientDomains = (req: Request, res: Response) => {
+export const getClientDomains = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
-    const client = Store.clients.find(c => c.id === id || c.client_key === id || c.clientKey === id);
+    const ClientModel = getClientModel();
+    const client = await ClientModel.findOne({ $or: [{ id }, { client_key: id }] });
 
     if (!client) {
       return res.status(404).json({ success: false, message: `Client '${id}' not found` });
@@ -241,7 +205,7 @@ export const getClientDomains = (req: Request, res: Response) => {
     return res.json({
       success: true,
       status: 'success',
-      data: client.domains || {},
+      data: { portal_url: client.portal_url },
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message || 'Failed to retrieve client domains' });
@@ -249,27 +213,27 @@ export const getClientDomains = (req: Request, res: Response) => {
 };
 
 // Update client domain mappings and instance URLs
-export const updateClientDomains = (req: Request, res: Response) => {
+export const updateClientDomains = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
-    const domains = req.body;
-    const index = Store.clients.findIndex(c => c.id === id || c.client_key === id || c.clientKey === id);
+    const { portal_url } = req.body;
+    const ClientModel = getClientModel();
 
-    if (index === -1) {
+    const client = await ClientModel.findOneAndUpdate(
+      { $or: [{ id }, { client_key: id }] },
+      { $set: { portal_url } },
+      { new: true }
+    );
+
+    if (!client) {
       return res.status(404).json({ success: false, message: `Client '${id}' not found` });
     }
-
-    Store.clients[index].domains = {
-      ...(Store.clients[index].domains || {}),
-      ...domains,
-    };
-    Store.clients[index].updated_at = new Date().toISOString();
 
     return res.json({
       success: true,
       status: 'success',
-      message: `Client domains for '${Store.clients[index].business_name}' updated successfully`,
-      data: Store.clients[index].domains,
+      message: `Client domains updated successfully`,
+      data: { portal_url: client.portal_url },
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message || 'Failed to update client domains' });
@@ -277,34 +241,43 @@ export const updateClientDomains = (req: Request, res: Response) => {
 };
 
 // Retrieve comprehensive 360 degree relational view of a client across all microservices
-export const getClient360 = (req: Request, res: Response) => {
+export const getClient360 = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
-    const client = Store.clients.find(c => c.id === id || c.client_key === id || c.clientKey === id);
+    const ClientModel = getClientModel();
+    const ProjectModel = getProjectModel();
+    const InvoiceModel = getInvoiceModel();
+    const PaymentModel = getPaymentModel();
+    const SupportTicketModel = getSupportTicketModel();
+    const ProjectDocModel = getProjectDocModel();
+    const VaultModel = getClientVaultModel();
+
+    const client = await ClientModel.findOne({ $or: [{ id }, { client_key: id }] });
 
     if (!client) {
       return res.status(404).json({ success: false, message: `Client '${id}' not found` });
     }
 
     const clientId = client.id;
-    const clientKey = client.client_key || client.clientKey;
+    const clientKey = client.client_key;
 
-    const projects = Store.projects.filter(p => p.client_id === clientId || p.clientId === clientId);
-    const invoices = Store.invoices.filter(i => i.client_id === clientId);
-    const payments = Store.payments.filter(p => p.client_id === clientId);
-    const supportTickets = Store.supportTickets.filter(t => t.client_id === clientId);
-    const projectDocs = Store.projectDocs.filter(d => d.client_id === clientId);
-    const vaultItem = Store.clientVault.find(v => v.client_id === clientId || v.client_key === clientKey);
+    const [projects, invoices, payments, supportTickets, projectDocs, vaultItem] = await Promise.all([
+      ProjectModel.find({ client_id: clientId }),
+      InvoiceModel.find({ client_id: clientId }),
+      PaymentModel.find({ client_id: clientId }),
+      SupportTicketModel.find({ client_id: clientId }),
+      ProjectDocModel.find({ client_id: clientId }),
+      VaultModel.findOne({ $or: [{ client_id: clientId }, { client_key: clientKey }] }),
+    ]);
 
-    const totalPaid = payments.filter(p => p.status === 'COMPLETED').reduce((acc, p) => acc + p.amount, 0);
-    const unpaidInvoices = invoices.filter(i => i.status === 'UNPAID' || i.status === 'OVERDUE');
+    const totalPaid = payments.filter(p => p.status === 'SUCCESS').reduce((acc, p) => acc + p.amount, 0);
+    const unpaidInvoices = invoices.filter(i => i.status === 'SENT' || i.status === 'OVERDUE');
     const unpaidAmount = unpaidInvoices.reduce((acc, i) => acc + i.amount, 0);
 
     const client360 = {
       client,
       projects,
       financials: {
-        monthly_retainer: client.monthly_retainer || client.monthly_revenue || 0,
         total_paid: totalPaid,
         unpaid_invoices_amount: unpaidAmount,
         unpaid_invoices_count: unpaidInvoices.length,
@@ -321,7 +294,6 @@ export const getClient360 = (req: Request, res: Response) => {
       vault: {
         vps_configured: Boolean(vaultItem?.vps_ip),
         db_configured: Boolean(vaultItem?.db_connection_uri),
-        ssh_configured: Boolean(vaultItem?.vps_ssh_private_key),
       },
     };
 

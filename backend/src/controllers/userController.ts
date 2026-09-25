@@ -1,30 +1,25 @@
 import { Request, Response } from 'express';
-import { Store } from '../data/store.js';
-import { User } from '../types/index.js';
+import { getAdminModel } from '../models/Admin.js';
 
 // Retrieve all administrative users with role, department, and search filtering
-export const getUsers = (req: Request, res: Response) => {
+export const getUsers = async (req: Request, res: Response) => {
   try {
-    const { role, department, status, search } = req.query;
-    let users = [...Store.users];
+    const { role, department, search } = req.query;
+    const filter: any = {};
 
     if (role) {
-      users = users.filter(u => String(u.role).toLowerCase() === String(role).toLowerCase());
+      filter.role = new RegExp(`^${role}$`, 'i');
     }
     if (department) {
-      users = users.filter(u => u.department?.toLowerCase().includes(String(department).toLowerCase()));
-    }
-    if (status) {
-      users = users.filter(u => String(u.status).toLowerCase() === String(status).toLowerCase());
+      filter.department = new RegExp(String(department), 'i');
     }
     if (search) {
-      const q = String(search).toLowerCase();
-      users = users.filter(u =>
-        (u.full_name || u.name || '').toLowerCase().includes(q) ||
-        u.email.toLowerCase().includes(q) ||
-        u.department?.toLowerCase().includes(q)
-      );
+      const q = String(search);
+      filter.full_name = new RegExp(q, 'i');
     }
+
+    const AdminModel = getAdminModel();
+    const users = await AdminModel.find(filter).sort({ created_at: -1 });
 
     return res.json({
       success: true,
@@ -37,10 +32,11 @@ export const getUsers = (req: Request, res: Response) => {
 };
 
 // Retrieve a single administrative user by identifier
-export const getUserById = (req: Request, res: Response) => {
+export const getUserById = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
-    const user = Store.users.find(u => u.id === id);
+    const AdminModel = getAdminModel();
+    const user = await AdminModel.findOne({ $or: [{ email: id.toLowerCase() }] });
 
     if (!user) {
       return res.status(404).json({ success: false, message: `User '${id}' not found` });
@@ -56,7 +52,7 @@ export const getUserById = (req: Request, res: Response) => {
 };
 
 // Create a new administrative user record
-export const createUser = (req: Request, res: Response) => {
+export const createUser = async (req: Request, res: Response) => {
   try {
     const data = req.body;
     const userName = data.full_name || data.name;
@@ -65,38 +61,31 @@ export const createUser = (req: Request, res: Response) => {
     }
 
     const email = String(data.email).trim().toLowerCase();
-    const existing = Store.users.find(u => u.email.toLowerCase() === email);
+    const AdminModel = getAdminModel();
+    const existing = await AdminModel.findOne({ email });
+
     if (existing) {
       return res.status(409).json({ success: false, message: 'A user with this email already exists' });
     }
 
-    const newUser: User = {
-      id: data.id || `u-${Date.now().toString().slice(-4)}`,
+    const created = await AdminModel.create({
       email,
-      name: userName.trim(),
       full_name: userName.trim(),
-      username: data.username || email.split('@')[0],
       role: data.role || 'DEV',
       department: data.department || 'Engineering',
       designation: data.designation || 'Software Engineer',
-      phone: data.phone,
-      address: data.address,
-      avatar: data.avatar || data.avatar_url,
-      avatar_url: data.avatar_url || data.avatar,
+      phone: data.phone || '',
+      avatar: data.avatar || '',
       is_active: data.is_active !== undefined ? data.is_active : true,
-      status: data.status || 'ACTIVE',
-      hourly_rate: Number(data.hourly_rate || 0),
-      active_tasks_count: 0,
-      total_logged_hours: 0,
+      two_factor_enabled: data.two_factor_enabled !== undefined ? data.two_factor_enabled : true,
       created_at: new Date().toISOString(),
-    };
-
-    Store.users.unshift(newUser);
+      updated_at: new Date().toISOString(),
+    });
 
     return res.status(201).json({
       success: true,
-      message: `User '${newUser.full_name || newUser.name}' created successfully`,
-      data: newUser,
+      message: `User '${created.full_name}' created successfully`,
+      data: created,
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message || 'Failed to create user' });
@@ -104,26 +93,26 @@ export const createUser = (req: Request, res: Response) => {
 };
 
 // Update an existing administrative user by identifier
-export const updateUser = (req: Request, res: Response) => {
+export const updateUser = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
     const updates = req.body;
-    const index = Store.users.findIndex(u => u.id === id);
+    const AdminModel = getAdminModel();
 
-    if (index === -1) {
+    const user = await AdminModel.findOneAndUpdate(
+      { $or: [{ email: id.toLowerCase() }] },
+      { $set: updates },
+      { new: true }
+    );
+
+    if (!user) {
       return res.status(404).json({ success: false, message: `User '${id}' not found` });
     }
 
-    Store.users[index] = {
-      ...Store.users[index],
-      ...updates,
-      updated_at: new Date().toISOString(),
-    };
-
     return res.json({
       success: true,
-      message: `User '${Store.users[index].full_name || Store.users[index].name}' updated successfully`,
-      data: Store.users[index],
+      message: `User '${user.full_name}' updated successfully`,
+      data: user,
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message || 'Failed to update user' });
@@ -131,19 +120,19 @@ export const updateUser = (req: Request, res: Response) => {
 };
 
 // Delete an administrative user by identifier
-export const deleteUser = (req: Request, res: Response) => {
+export const deleteUser = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
-    const index = Store.users.findIndex(u => u.id === id);
+    const AdminModel = getAdminModel();
+    const deleted = await AdminModel.findOneAndDelete({ $or: [{ email: id.toLowerCase() }] });
 
-    if (index === -1) {
+    if (!deleted) {
       return res.status(404).json({ success: false, message: `User '${id}' not found` });
     }
 
-    const [deleted] = Store.users.splice(index, 1);
     return res.json({
       success: true,
-      message: `User '${deleted.full_name || deleted.name}' deleted successfully`,
+      message: `User '${deleted.full_name}' deleted successfully`,
       data: deleted,
     });
   } catch (error: any) {

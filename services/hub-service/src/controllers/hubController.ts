@@ -17,23 +17,7 @@ export const getTickets = async (req: Request, res: Response): Promise<void> => 
     const tickets = await Ticket.find(filter).sort({ created_at: -1 });
     res.json({ success: true, count: tickets.length, data: tickets });
   } catch (err: any) {
-    res.json({
-      success: true,
-      count: 1,
-      data: [
-        {
-          id: 'tkt-001',
-          ticket_number: 'TKT-1001',
-          client_id: 'c-001',
-          client_name: 'Decantre BD',
-          subject: 'SSL Certificate Renewal Assistance',
-          category: 'VPS',
-          priority: 'HIGH',
-          status: 'OPEN',
-          created_at: new Date().toISOString(),
-        },
-      ],
-    });
+    res.status(500).json({ success: false, message: err.message, data: [] });
   }
 };
 
@@ -58,8 +42,8 @@ export const createTicket = async (req: Request, res: Response): Promise<void> =
   try {
     const saved = await Ticket.create(newTicket);
     res.status(201).json({ success: true, data: saved });
-  } catch {
-    res.status(201).json({ success: true, data: newTicket });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
@@ -73,21 +57,8 @@ export const getDocs = async (req: Request, res: Response): Promise<void> => {
     const Doc = getProjectDocModel();
     const docs = await Doc.find(filter);
     res.json({ success: true, count: docs.length, data: docs });
-  } catch {
-    res.json({
-      success: true,
-      count: 1,
-      data: [
-        {
-          id: 'doc-001',
-          client_id: 'c-001',
-          title: 'Decantre Production Deployment Architecture',
-          category: 'ARCHITECTURE',
-          version: '1.0',
-          created_at: new Date().toISOString(),
-        },
-      ],
-    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message, data: [] });
   }
 };
 
@@ -105,8 +76,9 @@ export const ingestTelemetry = async (req: Request, res: Response): Promise<void
   };
 
   try {
-    await Telemetry.create(entry);
-  } catch {}
-
-  res.status(201).json({ success: true, message: 'Telemetry event accepted.' });
+    const saved = await Telemetry.create(entry);
+    res.status(201).json({ success: true, message: 'Telemetry event accepted.', data: saved });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
 };

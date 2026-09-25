@@ -1,19 +1,22 @@
 import { Request, Response } from 'express';
-import { Store } from '../data/store.js';
-import { Invoice, Payment, Bill, PayrollRecord, FinancialSummary } from '../types/index.js';
+import { getInvoiceModel, getPaymentModel, getBillModel, getPayrollModel } from '../models/Finance.js';
+import { getClientModel } from '../models/Agency.js';
 
 // Retrieve all invoices with client and status filtering
-export const getInvoices = (req: Request, res: Response) => {
+export const getInvoices = async (req: Request, res: Response) => {
   try {
     const { status, clientId } = req.query;
-    let invoices = [...Store.invoices];
+    const filter: any = {};
 
     if (status) {
-      invoices = invoices.filter(inv => inv.status.toLowerCase() === String(status).toLowerCase());
+      filter.status = new RegExp(`^${status}$`, 'i');
     }
     if (clientId) {
-      invoices = invoices.filter(inv => inv.client_id === String(clientId));
+      filter.client_id = String(clientId);
     }
+
+    const InvoiceModel = getInvoiceModel();
+    const invoices = await InvoiceModel.find(filter).sort({ created_at: -1 });
 
     return res.json({
       success: true,
@@ -27,10 +30,11 @@ export const getInvoices = (req: Request, res: Response) => {
 };
 
 // Retrieve a specific invoice by identifier
-export const getInvoiceById = (req: Request, res: Response) => {
+export const getInvoiceById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const invoice = Store.invoices.find(inv => inv.id === id || inv.invoice_number === id);
+    const InvoiceModel = getInvoiceModel();
+    const invoice = await InvoiceModel.findOne({ $or: [{ invoice_number: id }] });
 
     if (!invoice) {
       return res.status(404).json({ success: false, message: `Invoice '${id}' not found` });
@@ -47,37 +51,35 @@ export const getInvoiceById = (req: Request, res: Response) => {
 };
 
 // Create a new client billing invoice
-export const createInvoice = (req: Request, res: Response) => {
+export const createInvoice = async (req: Request, res: Response) => {
   try {
     const data = req.body;
     if (!data.client_id || !data.amount) {
       return res.status(400).json({ success: false, message: 'Client ID and amount are required' });
     }
 
-    const client = Store.clients.find(c => c.id === data.client_id || c.client_key === data.client_id);
-    const newInvoice: Invoice = {
-      id: data.id || `inv-${Date.now().toString().slice(-4)}`,
+    const InvoiceModel = getInvoiceModel();
+    const ClientModel = getClientModel();
+    const client = await ClientModel.findOne({ $or: [{ id: data.client_id }, { client_key: data.client_id }] });
+
+    const created = await InvoiceModel.create({
       invoice_number: data.invoice_number || `INV-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
       client_id: data.client_id,
-      client_name: client?.business_name || data.client_name || 'Client',
-      client_email: client?.contact_email || data.client_email,
+      client_name: client?.name || data.client_name || 'Client',
       amount: Number(data.amount),
       currency: data.currency || 'BDT',
-      status: data.status || 'UNPAID',
+      status: data.status || 'SENT',
       due_date: data.due_date || new Date(Date.now() + 14 * 86400000).toISOString(),
-      issued_date: data.issued_date || new Date().toISOString(),
-      items: data.items || [{ id: 'item-1', description: 'Development Services', quantity: 1, unit_price: Number(data.amount), total: Number(data.amount) }],
-      notes: data.notes,
+      issue_date: data.issue_date || new Date().toISOString(),
+      items: data.items || [{ description: 'Development Services', quantity: 1, unit_price: Number(data.amount), total: Number(data.amount) }],
       created_at: new Date().toISOString(),
-    };
-
-    Store.invoices.unshift(newInvoice);
+    });
 
     return res.status(201).json({
       success: true,
       status: 'success',
-      message: `Invoice '${newInvoice.invoice_number}' created successfully`,
-      data: newInvoice,
+      message: `Invoice '${created.invoice_number}' created successfully`,
+      data: created,
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message || 'Failed to create invoice' });
@@ -85,24 +87,27 @@ export const createInvoice = (req: Request, res: Response) => {
 };
 
 // Update invoice payment and settlement status
-export const updateInvoiceStatus = (req: Request, res: Response) => {
+export const updateInvoiceStatus = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    const index = Store.invoices.findIndex(inv => inv.id === id || inv.invoice_number === id);
+    const InvoiceModel = getInvoiceModel();
 
-    if (index === -1) {
+    const invoice = await InvoiceModel.findOneAndUpdate(
+      { invoice_number: id },
+      { $set: { status } },
+      { new: true }
+    );
+
+    if (!invoice) {
       return res.status(404).json({ success: false, message: `Invoice '${id}' not found` });
     }
-
-    Store.invoices[index].status = status;
-    Store.invoices[index].updated_at = new Date().toISOString();
 
     return res.json({
       success: true,
       status: 'success',
       message: `Invoice status updated to '${status}'`,
-      data: Store.invoices[index],
+      data: invoice,
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message || 'Failed to update invoice status' });
@@ -110,14 +115,16 @@ export const updateInvoiceStatus = (req: Request, res: Response) => {
 };
 
 // Retrieve client incoming payment records
-export const getPayments = (req: Request, res: Response) => {
+export const getPayments = async (req: Request, res: Response) => {
   try {
     const { clientId } = req.query;
-    let payments = [...Store.payments];
-
+    const filter: any = {};
     if (clientId) {
-      payments = payments.filter(p => p.client_id === String(clientId));
+      filter.client_id = String(clientId);
     }
+
+    const PaymentModel = getPaymentModel();
+    const payments = await PaymentModel.find(filter).sort({ created_at: -1 });
 
     return res.json({
       success: true,
@@ -130,66 +137,33 @@ export const getPayments = (req: Request, res: Response) => {
   }
 };
 
-// Record a new incoming client payment and automatically link or generate invoice
-export const recordPayment = (req: Request, res: Response) => {
+// Record a new incoming client payment
+export const recordPayment = async (req: Request, res: Response) => {
   try {
     const data = req.body;
     if (!data.client_id || !data.amount) {
       return res.status(400).json({ success: false, message: 'Client ID and amount are required' });
     }
 
-    const client = Store.clients.find(c => c.id === data.client_id || c.client_key === data.client_id);
-    const paymentId = `pay-${Date.now().toString().slice(-4)}`;
-
-    let invoiceId = data.invoice_id;
-    if (!invoiceId) {
-      const autoInvoice: Invoice = {
-        id: `inv-${Date.now().toString().slice(-4)}`,
-        invoice_number: `INV-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
-        client_id: data.client_id,
-        client_name: client?.business_name || 'Client',
-        amount: Number(data.amount),
-        currency: data.currency || 'BDT',
-        status: 'PAID',
-        due_date: new Date().toISOString(),
-        issued_date: new Date().toISOString(),
-        items: [{ id: 'item-1', description: data.notes || 'Client Payment Settlement', quantity: 1, unit_price: Number(data.amount), total: Number(data.amount) }],
-        payment_id: paymentId,
-        created_at: new Date().toISOString(),
-      };
-      Store.invoices.unshift(autoInvoice);
-      invoiceId = autoInvoice.id;
-    } else {
-      const invIndex = Store.invoices.findIndex(inv => inv.id === invoiceId);
-      if (invIndex !== -1) {
-        Store.invoices[invIndex].status = 'PAID';
-        Store.invoices[invIndex].payment_id = paymentId;
-        Store.invoices[invIndex].updated_at = new Date().toISOString();
-      }
-    }
-
-    const newPayment: Payment = {
-      id: paymentId,
-      invoice_id: invoiceId,
+    const PaymentModel = getPaymentModel();
+    const created = await PaymentModel.create({
+      payment_number: data.payment_number || `PAY-${Math.floor(1000 + Math.random() * 9000)}`,
+      invoice_id: data.invoice_id || `INV-${Date.now().toString().slice(-4)}`,
       client_id: data.client_id,
-      client_name: client?.business_name || data.client_name || 'Client',
       amount: Number(data.amount),
       currency: data.currency || 'BDT',
       payment_method: data.payment_method || 'BANK_TRANSFER',
-      transaction_ref: data.transaction_ref || `TXN-${Date.now().toString().slice(-6)}`,
-      received_at: data.received_at || new Date().toISOString(),
-      status: 'COMPLETED',
-      notes: data.notes,
+      transaction_reference: data.transaction_ref || `TXN-${Date.now().toString().slice(-6)}`,
+      status: 'SUCCESS',
+      paid_at: new Date().toISOString(),
       created_at: new Date().toISOString(),
-    };
-
-    Store.payments.unshift(newPayment);
+    });
 
     return res.status(201).json({
       success: true,
       status: 'success',
-      message: 'Payment recorded and invoice reconciled successfully',
-      data: newPayment,
+      message: 'Payment recorded successfully',
+      data: created,
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message || 'Failed to record payment' });
@@ -197,17 +171,20 @@ export const recordPayment = (req: Request, res: Response) => {
 };
 
 // Retrieve agency operational bills and expenses
-export const getBills = (req: Request, res: Response) => {
+export const getBills = async (req: Request, res: Response) => {
   try {
     const { category, status } = req.query;
-    let bills = [...Store.bills];
+    const filter: any = {};
 
     if (category) {
-      bills = bills.filter(b => b.category.toLowerCase() === String(category).toLowerCase());
+      filter.category = new RegExp(String(category), 'i');
     }
     if (status) {
-      bills = bills.filter(b => b.status.toLowerCase() === String(status).toLowerCase());
+      filter.status = new RegExp(String(status), 'i');
     }
+
+    const BillModel = getBillModel();
+    const bills = await BillModel.find(filter).sort({ created_at: -1 });
 
     return res.json({
       success: true,
@@ -221,34 +198,30 @@ export const getBills = (req: Request, res: Response) => {
 };
 
 // Create a new operational expense bill or vendor voucher
-export const createBill = (req: Request, res: Response) => {
+export const createBill = async (req: Request, res: Response) => {
   try {
     const data = req.body;
     if (!data.vendor_name || !data.amount) {
       return res.status(400).json({ success: false, message: 'Vendor name and amount are required' });
     }
 
-    const newBill: Bill = {
-      id: data.id || `bill-${Date.now().toString().slice(-4)}`,
+    const BillModel = getBillModel();
+    const created = await BillModel.create({
       bill_number: data.bill_number || `BILL-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
       vendor_name: data.vendor_name,
-      category: data.category || 'INFRA_SERVER',
+      category: data.category || 'INFRASTRUCTURE',
       amount: Number(data.amount),
       currency: data.currency || 'BDT',
+      status: data.status || 'PENDING',
       due_date: data.due_date || new Date().toISOString(),
-      paid_date: data.status === 'PAID' ? new Date().toISOString() : undefined,
-      status: data.status || 'UNPAID',
-      receipt_url: data.receipt_url,
       created_at: new Date().toISOString(),
-    };
-
-    Store.bills.unshift(newBill);
+    });
 
     return res.status(201).json({
       success: true,
       status: 'success',
       message: 'Bill created successfully',
-      data: newBill,
+      data: created,
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message || 'Failed to create bill' });
@@ -256,14 +229,16 @@ export const createBill = (req: Request, res: Response) => {
 };
 
 // Retrieve employee payroll salary disbursement records
-export const getPayrolls = (req: Request, res: Response) => {
+export const getPayrolls = async (req: Request, res: Response) => {
   try {
     const { month } = req.query;
-    let payrolls = [...Store.payrolls];
-
+    const filter: any = {};
     if (month) {
-      payrolls = payrolls.filter(p => p.month === String(month));
+      filter.month = String(month);
     }
+
+    const PayrollModel = getPayrollModel();
+    const payrolls = await PayrollModel.find(filter).sort({ created_at: -1 });
 
     return res.json({
       success: true,
@@ -277,72 +252,76 @@ export const getPayrolls = (req: Request, res: Response) => {
 };
 
 // Record employee payroll salary disbursement
-export const createPayroll = (req: Request, res: Response) => {
+export const createPayroll = async (req: Request, res: Response) => {
   try {
     const data = req.body;
     if (!data.employee_id || !data.basic_salary) {
       return res.status(400).json({ success: false, message: 'Employee ID and basic salary are required' });
     }
 
-    const employee = Store.employees.find(e => e.id === data.employee_id || e.employee_code === data.employee_id);
     const basic = Number(data.basic_salary);
     const bonuses = Number(data.bonuses || 0);
     const deductions = Number(data.deductions || 0);
     const netPayable = basic + bonuses - deductions;
 
-    const newPayroll: PayrollRecord = {
-      id: data.id || `pr-${Date.now().toString().slice(-4)}`,
+    const PayrollModel = getPayrollModel();
+    const created = await PayrollModel.create({
+      payroll_number: `PAY-${Date.now().toString().slice(-4)}`,
       employee_id: data.employee_id,
-      employee_name: employee?.full_name || data.employee_name || 'Employee',
+      employee_name: data.employee_name || 'Employee',
       month: data.month || new Date().toISOString().slice(0, 7),
-      basic_salary: basic,
-      bonuses,
+      base_salary: basic,
+      bonus: bonuses,
       deductions,
       net_payable: netPayable,
-      status: data.status || 'PAID',
-      disbursed_at: data.status === 'PAID' ? new Date().toISOString() : undefined,
+      status: data.status || 'PROCESSED',
       created_at: new Date().toISOString(),
-    };
-
-    Store.payrolls.unshift(newPayroll);
+    });
 
     return res.status(201).json({
       success: true,
       status: 'success',
       message: 'Payroll recorded successfully',
-      data: newPayroll,
+      data: created,
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message || 'Failed to record payroll' });
   }
 };
 
-// Calculate and retrieve high level financial metrics, revenue, and payroll summary
-export const getFinancialSummary = (_req: Request, res: Response) => {
+// Calculate and retrieve high level financial metrics
+export const getFinancialSummary = async (_req: Request, res: Response) => {
   try {
-    const totalRetainers = Store.clients.reduce((acc, c) => acc + (c.monthly_retainer || c.monthly_revenue || 0), 0);
-    const totalRevenue = Store.payments.filter(p => p.status === 'COMPLETED').reduce((acc, p) => acc + p.amount, 0);
-    const totalBills = Store.bills.filter(b => b.status === 'PAID').reduce((acc, b) => acc + b.amount, 0);
-    const totalPayroll = Store.payrolls.filter(p => p.status === 'PAID').reduce((acc, p) => acc + p.net_payable, 0);
+    const PaymentModel = getPaymentModel();
+    const BillModel = getBillModel();
+    const PayrollModel = getPayrollModel();
+    const InvoiceModel = getInvoiceModel();
+
+    const [payments, bills, payrolls, invoices] = await Promise.all([
+      PaymentModel.find({ status: 'SUCCESS' }),
+      BillModel.find({ status: 'PAID' }),
+      PayrollModel.find({ status: 'PAID' }),
+      InvoiceModel.find({ status: { $in: ['SENT', 'OVERDUE'] } }),
+    ]);
+
+    const totalRevenue = payments.reduce((acc, p) => acc + p.amount, 0);
+    const totalBills = bills.reduce((acc, b) => acc + b.amount, 0);
+    const totalPayroll = payrolls.reduce((acc, p) => acc + p.net_payable, 0);
     const totalExpenses = totalBills + totalPayroll;
-
-    const unpaidInvoicesAmount = Store.invoices.filter(inv => inv.status === 'UNPAID' || inv.status === 'OVERDUE').reduce((acc, inv) => acc + inv.amount, 0);
-    const pendingPayrollAmount = Store.payrolls.filter(p => p.status === 'PENDING').reduce((acc, p) => acc + p.net_payable, 0);
-
-    const summary: FinancialSummary = {
-      total_revenue: totalRevenue,
-      monthly_recurring_revenue: totalRetainers,
-      total_expenses: totalExpenses,
-      net_profit: totalRevenue - totalExpenses,
-      unpaid_invoices_amount: unpaidInvoicesAmount,
-      pending_payroll_amount: pendingPayrollAmount,
-      active_retainers_count: Store.clients.filter(c => (c.monthly_retainer || 0) > 0).length,
-    };
+    const unpaidInvoicesAmount = invoices.reduce((acc, inv) => acc + inv.amount, 0);
 
     return res.json({
       success: true,
       status: 'success',
-      data: summary,
+      data: {
+        total_revenue: totalRevenue,
+        monthly_recurring_revenue: 0,
+        total_expenses: totalExpenses,
+        net_profit: totalRevenue - totalExpenses,
+        unpaid_invoices_amount: unpaidInvoicesAmount,
+        pending_payroll_amount: 0,
+        active_retainers_count: 0,
+      },
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message || 'Failed to calculate financial summary' });
