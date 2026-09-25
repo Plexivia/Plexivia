@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { Store } from '../data/store.js';
 import { Project } from '../types/index.js';
 
+// Retrieve all agency projects with status, type, client, and search filtering
 export const getProjects = (req: Request, res: Response) => {
   try {
     const { status, type, clientId, client_id, teamId, team_id, search } = req.query;
@@ -46,6 +47,7 @@ export const getProjects = (req: Request, res: Response) => {
   }
 };
 
+// Retrieve a single agency project by unique identifier or code
 export const getProjectById = (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
@@ -65,6 +67,7 @@ export const getProjectById = (req: Request, res: Response) => {
   }
 };
 
+// Create a new agency project record and increment client project count
 export const createProject = (req: Request, res: Response) => {
   try {
     const data = req.body;
@@ -124,7 +127,6 @@ export const createProject = (req: Request, res: Response) => {
 
     Store.projects.unshift(newProject);
 
-    // Update client projects_count
     if (clientId) {
       const client = Store.clients.find(c => c.id === clientId);
       if (client) {
@@ -143,6 +145,7 @@ export const createProject = (req: Request, res: Response) => {
   }
 };
 
+// Update an existing agency project by identifier
 export const updateProject = (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
@@ -171,6 +174,7 @@ export const updateProject = (req: Request, res: Response) => {
   }
 };
 
+// Delete an agency project record by identifier
 export const deleteProject = (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;

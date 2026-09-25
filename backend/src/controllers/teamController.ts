@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { Store } from '../data/store.js';
 import { Team, TeamMember } from '../types/index.js';
 
+// Retrieve all agency teams with department and status filtering
 export const getTeams = (req: Request, res: Response) => {
   try {
     const { department, status, search } = req.query;
@@ -34,6 +35,7 @@ export const getTeams = (req: Request, res: Response) => {
   }
 };
 
+// Retrieve a single team record by identifier or code
 export const getTeamById = (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
@@ -53,6 +55,7 @@ export const getTeamById = (req: Request, res: Response) => {
   }
 };
 
+// Create a new agency team squad with department and lead assignment
 export const createTeam = (req: Request, res: Response) => {
   try {
     const data = req.body;
@@ -60,30 +63,31 @@ export const createTeam = (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: 'Team name is required' });
     }
 
-    const leadId = data.leadId || data.lead_id;
-    let leadName = data.leadName || data.lead_name;
-    let leadAvatar = data.leadAvatar || data.lead_avatar;
+    const teamCode = data.code || data.name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 4);
+    const leadId = data.lead_id || data.leadId;
+    let leadName = data.lead_name || data.leadName;
+    let leadAvatar = data.lead_avatar || data.leadAvatar;
 
     if (leadId && !leadName) {
-      const leadUser = Store.users.find(u => u.id === leadId);
+      const leadUser = Store.admins.find(u => u.id === leadId);
       if (leadUser) {
-        leadName = leadUser.name;
-        leadAvatar = leadUser.avatar;
+        leadName = leadUser.full_name || leadUser.name;
+        leadAvatar = leadUser.avatar_url || leadUser.avatar;
       }
     }
 
     const newTeam: Team = {
-      id: data.id || `tm-${Date.now().toString().slice(-4)}`,
+      id: data.id || `team-${Date.now().toString().slice(-4)}`,
       name: data.name.trim(),
-      code: data.code || data.name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 6),
+      code: teamCode,
       description: data.description || '',
       department: data.department || 'Engineering',
-      leadId,
       lead_id: leadId,
-      leadName,
+      leadId: leadId,
       lead_name: leadName,
-      leadAvatar,
+      leadName: leadName,
       lead_avatar: leadAvatar,
+      leadAvatar: leadAvatar,
       members: Array.isArray(data.members) ? data.members : [],
       members_count: Array.isArray(data.members) ? data.members.length : 0,
       membersCount: Array.isArray(data.members) ? data.members.length : 0,
@@ -106,6 +110,7 @@ export const createTeam = (req: Request, res: Response) => {
   }
 };
 
+// Update an existing agency team squad by identifier
 export const updateTeam = (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
@@ -119,13 +124,10 @@ export const updateTeam = (req: Request, res: Response) => {
     Store.teams[index] = {
       ...Store.teams[index],
       ...updates,
+      members_count: updates.members ? updates.members.length : Store.teams[index].members_count,
+      membersCount: updates.members ? updates.members.length : Store.teams[index].membersCount,
       updated_at: new Date().toISOString(),
     };
-
-    if (Array.isArray(Store.teams[index].members)) {
-      Store.teams[index].members_count = Store.teams[index].members.length;
-      Store.teams[index].membersCount = Store.teams[index].members.length;
-    }
 
     return res.json({
       success: true,
@@ -138,6 +140,7 @@ export const updateTeam = (req: Request, res: Response) => {
   }
 };
 
+// Delete an agency team squad by identifier
 export const deleteTeam = (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
@@ -159,18 +162,23 @@ export const deleteTeam = (req: Request, res: Response) => {
   }
 };
 
+// Add an agency user or employee to a team squad roster
 export const addTeamMember = (req: Request, res: Response) => {
   try {
-    const id = req.params.id as string;
-    const { userId, user_id, role, designation } = req.body;
-    const targetUserId = userId || user_id;
+    const teamId = req.params.id as string;
+    const { user_id, userId, role, designation } = req.body;
+    const targetUserId = user_id || userId;
 
-    const team = Store.teams.find(t => t.id === id || t.code?.toLowerCase() === id.toLowerCase());
-    if (!team) {
-      return res.status(404).json({ success: false, message: `Team '${id}' not found` });
+    if (!targetUserId) {
+      return res.status(400).json({ success: false, message: 'User ID is required' });
     }
 
-    const user = Store.users.find(u => u.id === targetUserId);
+    const team = Store.teams.find(t => t.id === teamId || t.code?.toLowerCase() === teamId.toLowerCase());
+    if (!team) {
+      return res.status(404).json({ success: false, message: `Team '${teamId}' not found` });
+    }
+
+    const user = Store.admins.find(u => u.id === targetUserId);
     if (!user) {
       return res.status(404).json({ success: false, message: `User '${targetUserId}' not found` });
     }
@@ -198,22 +206,23 @@ export const addTeamMember = (req: Request, res: Response) => {
     return res.status(201).json({
       success: true,
       status: 'success',
-      message: `User '${user.name}' added to team '${team.name}'`,
-      data: team,
+      message: `User '${user.full_name || user.name}' added to team '${team.name}'`,
+      data: member,
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message || 'Failed to add team member' });
   }
 };
 
+// Remove a member from an agency team squad roster
 export const removeTeamMember = (req: Request, res: Response) => {
   try {
-    const id = req.params.id as string;
+    const teamId = req.params.id as string;
     const memberId = req.params.memberId as string;
-    const team = Store.teams.find(t => t.id === id || t.code?.toLowerCase() === id.toLowerCase());
 
+    const team = Store.teams.find(t => t.id === teamId || t.code?.toLowerCase() === teamId.toLowerCase());
     if (!team) {
-      return res.status(404).json({ success: false, message: `Team '${id}' not found` });
+      return res.status(404).json({ success: false, message: `Team '${teamId}' not found` });
     }
 
     const memberIndex = team.members.findIndex(m => m.id === memberId);
@@ -221,15 +230,15 @@ export const removeTeamMember = (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: `Member '${memberId}' not found in team` });
     }
 
-    team.members.splice(memberIndex, 1);
+    const [removed] = team.members.splice(memberIndex, 1);
     team.members_count = team.members.length;
     team.membersCount = team.members.length;
 
     return res.json({
       success: true,
       status: 'success',
-      message: `Member removed from team '${team.name}'`,
-      data: team,
+      message: `Member '${removed.name}' removed from team '${team.name}'`,
+      data: removed,
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message || 'Failed to remove team member' });

@@ -26,10 +26,13 @@ router.use('/v1/agency', agencyRouter);
 router.use('/accounting', accountingRouter);
 router.use('/finance', accountingRouter);
 router.use('/v1/accounting', accountingRouter);
+router.use('/v1/finance', accountingRouter);
 
 // ============================================================================
-// Direct Backward-Compatibility Endpoints
+// Direct Backward-Compatibility Endpoints & Admin Aliases
 // ============================================================================
+router.use('/v1/admin', agencyRouter);
+router.use('/v1/admin', authRouter);
 router.use(authRouter);
 router.use(agencyRouter);
 

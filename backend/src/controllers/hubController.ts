@@ -236,6 +236,14 @@ export const receiveNodeTelemetryEvent = (req: Request, res: Response) => {
     const rawDid = req.headers['x-tenant-did'];
     const tenantDid = (Array.isArray(rawDid) ? rawDid[0] : rawDid) || 'UNKNOWN';
 
+    const sanitizedPayload = typeof payload === 'object' && payload !== null
+      ? Object.fromEntries(
+          Object.entries(payload).filter(([k]) =>
+            !['password', 'token', 'secret', 'private_key', 'authorization', 'cookie', 'ssh_key'].some(s => k.toLowerCase().includes(s))
+          )
+        )
+      : payload;
+
     return res.json({
       success: true,
       status: 'success',
@@ -245,7 +253,7 @@ export const receiveNodeTelemetryEvent = (req: Request, res: Response) => {
         tenantDid,
         eventType,
         severity: severity || 'info',
-        payload,
+        payload: sanitizedPayload,
       },
     });
   } catch (error: any) {

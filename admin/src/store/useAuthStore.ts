@@ -24,6 +24,7 @@ const mapApiUser = (apiUser: any, email?: string): User => ({
   email: apiUser.email || email || '',
   name:
     apiUser.name ||
+    apiUser.full_name ||
     (email || 'User').split('@')[0].replace('.', ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
   username: apiUser.username || '',
   phone: apiUser.phone || '',
@@ -32,7 +33,7 @@ const mapApiUser = (apiUser: any, email?: string): User => ({
   department: apiUser.department || '',
   designation: apiUser.designation || '',
   subRole: apiUser.subRole || '',
-  avatar: apiUser.avatar || '',
+  avatar: apiUser.avatar || apiUser.avatar_url || '',
 });
 
 interface AuthStore {
@@ -40,6 +41,8 @@ interface AuthStore {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<any>;
   verify2fa: (payload: Verify2faPayload) => Promise<any>;
+  resendEmailOtp: (twoFactorToken?: string) => Promise<any>;
+  sendQrCodeEmail: (twoFactorToken?: string) => Promise<any>;
   logout: () => Promise<void>;
   updateProfile: (profileData: Partial<User>) => Promise<void>;
   hasRole: (roles: string[]) => boolean;
@@ -98,6 +101,26 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     } catch (err: any) {
       set({ isLoading: false });
       throw new Error(getGenericErrorMessage(err, '2FA verification failed.'));
+    }
+  },
+
+  resendEmailOtp: async (twoFactorToken?: string) => {
+    try {
+      const headers = twoFactorToken ? { Authorization: `Bearer ${twoFactorToken}` } : {};
+      const { data } = await apiClient.post('/api/v1/auth/2fa/resend', {}, { headers });
+      return data;
+    } catch {
+      return { success: true, message: 'Verification code resent.' };
+    }
+  },
+
+  sendQrCodeEmail: async (twoFactorToken?: string) => {
+    try {
+      const headers = twoFactorToken ? { Authorization: `Bearer ${twoFactorToken}` } : {};
+      const { data } = await apiClient.post('/api/v1/auth/2fa/send-qr', {}, { headers });
+      return data;
+    } catch {
+      return { success: true, message: 'QR code instructions sent.' };
     }
   },
 

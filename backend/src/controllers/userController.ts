@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { Store } from '../data/store.js';
 import { User } from '../types/index.js';
 
+// Retrieve all administrative users with role, department, and search filtering
 export const getUsers = (req: Request, res: Response) => {
   try {
     const { role, department, status, search } = req.query;
@@ -35,6 +36,7 @@ export const getUsers = (req: Request, res: Response) => {
   }
 };
 
+// Retrieve a single administrative user by identifier
 export const getUserById = (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
@@ -53,34 +55,37 @@ export const getUserById = (req: Request, res: Response) => {
   }
 };
 
+// Create a new administrative user record
 export const createUser = (req: Request, res: Response) => {
   try {
     const data = req.body;
-    if (!data.email || !data.name) {
+    const userName = data.full_name || data.name;
+    if (!data.email || !userName) {
       return res.status(400).json({ success: false, message: 'User name and email are required' });
     }
 
-    const emailClean = String(data.email).trim().toLowerCase();
-    const existing = Store.users.find(u => u.email.toLowerCase() === emailClean);
+    const email = String(data.email).trim().toLowerCase();
+    const existing = Store.users.find(u => u.email.toLowerCase() === email);
     if (existing) {
-      return res.status(409).json({ success: false, message: 'User with this email already exists' });
+      return res.status(409).json({ success: false, message: 'A user with this email already exists' });
     }
 
     const newUser: User = {
-      id: data.id || `usr_${Date.now().toString().slice(-4)}`,
-      email: emailClean,
-      name: data.name.trim(),
-      full_name: data.full_name || data.name.trim(),
-      username: data.username || emailClean.split('@')[0],
+      id: data.id || `u-${Date.now().toString().slice(-4)}`,
+      email,
+      name: userName.trim(),
+      full_name: userName.trim(),
+      username: data.username || email.split('@')[0],
       role: data.role || 'DEV',
       department: data.department || 'Engineering',
-      designation: data.designation || 'Team Member',
+      designation: data.designation || 'Software Engineer',
       phone: data.phone,
       address: data.address,
-      avatar: data.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=0284c7&color=ffffff&bold=true`,
+      avatar: data.avatar || data.avatar_url,
+      avatar_url: data.avatar_url || data.avatar,
       is_active: data.is_active !== undefined ? data.is_active : true,
       status: data.status || 'ACTIVE',
-      hourly_rate: data.hourly_rate || 50,
+      hourly_rate: Number(data.hourly_rate || 0),
       active_tasks_count: 0,
       total_logged_hours: 0,
       created_at: new Date().toISOString(),
@@ -90,7 +95,7 @@ export const createUser = (req: Request, res: Response) => {
 
     return res.status(201).json({
       success: true,
-      message: `User '${newUser.name}' created successfully`,
+      message: `User '${newUser.full_name || newUser.name}' created successfully`,
       data: newUser,
     });
   } catch (error: any) {
@@ -98,6 +103,7 @@ export const createUser = (req: Request, res: Response) => {
   }
 };
 
+// Update an existing administrative user by identifier
 export const updateUser = (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
@@ -116,7 +122,7 @@ export const updateUser = (req: Request, res: Response) => {
 
     return res.json({
       success: true,
-      message: `User '${Store.users[index].name}' updated successfully`,
+      message: `User '${Store.users[index].full_name || Store.users[index].name}' updated successfully`,
       data: Store.users[index],
     });
   } catch (error: any) {
@@ -124,6 +130,7 @@ export const updateUser = (req: Request, res: Response) => {
   }
 };
 
+// Delete an administrative user by identifier
 export const deleteUser = (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
@@ -136,7 +143,7 @@ export const deleteUser = (req: Request, res: Response) => {
     const [deleted] = Store.users.splice(index, 1);
     return res.json({
       success: true,
-      message: `User '${deleted.name}' deleted successfully`,
+      message: `User '${deleted.full_name || deleted.name}' deleted successfully`,
       data: deleted,
     });
   } catch (error: any) {

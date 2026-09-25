@@ -4,9 +4,13 @@ import * as userController from '../controllers/userController.js';
 
 const router = Router();
 
-// Authentication endpoints
+// Authentication lifecycle
 router.post('/login', authController.login);
 router.post('/2fa/verify', authController.verify2fa);
+router.post('/refresh-token', authController.refreshToken);
+router.post('/logout', authController.logout);
+router.post('/forgot-password', authController.forgotPassword);
+router.post('/reset-password', authController.resetPassword);
 router.get('/me', authController.getMe);
 
 // High-Security Client Vault (Owner / Admin Only)
