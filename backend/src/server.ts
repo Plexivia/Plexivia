@@ -41,18 +41,14 @@ app.get('/api/health', (_req, res) => {
   res.json({
     status: 'ok',
     service: 'plexi-backend-core',
-    version: '2.0.0',
+    version: '2.1.0',
     timestamp: new Date().toISOString(),
-    collections: ['user', 'project', 'task', 'client', 'team'],
-    endpoints: [
-      '/api/auth/login',
-      '/api/auth/me',
-      '/api/users',
-      '/api/clients',
-      '/api/projects',
-      '/api/tasks',
-      '/api/teams',
-    ]
+    chunks: [
+      { id: 'auth', name: 'PlexiAuth (IAM & SSO)', base: '/api/auth' },
+      { id: 'hub', name: 'PlexiHub (Core & Telemetry)', base: '/api/hub' },
+      { id: 'agency', name: 'PlexiAgency (Clients, Projects, Tasks, Teams)', base: '/api/agency' },
+      { id: 'accounting', name: 'PlexiFinance (Invoices, Retainers, Ledger)', base: '/api/accounting' },
+    ],
   });
 });
 
@@ -61,9 +57,9 @@ app.use('/api', apiRoutes);
 
 app.listen(PORT, () => {
   console.log(`===================================================`);
-  console.log(`🚀 Plexivia Core Backend Service v2.0.0`);
+  console.log(`🚀 Plexivia Modular Micro-Backend Service v2.1.0`);
   console.log(`📡 HTTP Server listening on http://127.0.0.1:${PORT}`);
-  console.log(`📦 Collections: User, Project, Task, Client, Team`);
+  console.log(`📦 Chunks: 1. Auth  2. Hub  3. Agency  4. Accounting`);
   console.log(`===================================================`);
 });
 

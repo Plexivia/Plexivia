@@ -1,4 +1,4 @@
-﻿# Plexivia AI Assistant Instructions & Reference Memory
+# Plexivia AI Assistant Instructions & Reference Memory
 
 ## 📌 Central Documentation Path
 - **Docs Directory**: J:\My Drive\assets.docs.plexivia
@@ -24,6 +24,7 @@
 
 ## 00. Always put 1 line eng comment before every functions
 ## 00.1 J:\My Drive\CLIENTS\DEMO  this teh directory of docs
+## 00.2 Doc File Naming Convention: Every documentation/note file name must strictly start with the date prefix `DDMMYY_` (e.g., `250926_task_overview.md`).
 ## 1. Primary Rules & Operating Principles
 
 1. **Docs Folder Location & Zero Local Docs Rule**:

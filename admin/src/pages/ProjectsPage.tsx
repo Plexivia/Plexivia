@@ -256,7 +256,16 @@ export const ProjectsPage: React.FC = () => {
                         <Clock className="w-3.5 h-3.5 text-slate-400" />
                         <span>Due Date:</span>
                       </span>
-                      <strong className="text-slate-900 dark:text-slate-200">{p.due_date}</strong>
+                      <strong className="text-slate-900 dark:text-slate-200">
+                        {(() => {
+                          try {
+                            const d = new Date(p.due_date);
+                            return isNaN(d.getTime()) ? p.due_date : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                          } catch {
+                            return p.due_date;
+                          }
+                        })()}
+                      </strong>
                     </div>
                   )}
                 </div>

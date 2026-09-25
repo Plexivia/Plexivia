@@ -5,8 +5,8 @@ import { Shield, Lock, Mail, ArrowRight } from 'lucide-react';
 
 export const LoginModal: React.FC = () => {
   const { isLoginModalOpen, closeLoginModal, login } = useAuth();
-  const [email, setEmail] = useState('admin@plexivia.com');
-  const [password, setPassword] = useState('plexihub2026');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   if (!isLoginModalOpen) return null;
@@ -51,6 +51,7 @@ export const LoginModal: React.FC = () => {
                 required
                 value={email}
                 onChange={e => setEmail(e.target.value)}
+                placeholder="name@example.com"
                 className="w-full pl-9 pr-3.5 py-2.5 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono"
               />
             </div>
@@ -67,6 +68,7 @@ export const LoginModal: React.FC = () => {
                 required
                 value={password}
                 onChange={e => setPassword(e.target.value)}
+                placeholder="••••••••"
                 className="w-full pl-9 pr-3.5 py-2.5 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono"
               />
             </div>

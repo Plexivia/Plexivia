@@ -182,10 +182,10 @@ export const addTeamMember = (req: Request, res: Response) => {
 
     const member: TeamMember = {
       id: user.id,
-      name: user.name,
+      name: user.full_name || user.name || 'Member',
       email: user.email,
       role: role || user.role,
-      avatar: user.avatar,
+      avatar: user.avatar || user.avatar_url,
       designation: designation || user.designation,
       department: user.department,
       joined_at: new Date().toISOString(),

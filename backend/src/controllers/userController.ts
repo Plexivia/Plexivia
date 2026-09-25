@@ -19,7 +19,7 @@ export const getUsers = (req: Request, res: Response) => {
     if (search) {
       const q = String(search).toLowerCase();
       users = users.filter(u =>
-        u.name.toLowerCase().includes(q) ||
+        (u.full_name || u.name || '').toLowerCase().includes(q) ||
         u.email.toLowerCase().includes(q) ||
         u.department?.toLowerCase().includes(q)
       );
