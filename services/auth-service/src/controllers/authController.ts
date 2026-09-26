@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import { Request, Response } from 'express';
 import { getAdminModel } from '../models/Admin.js';
 import { getClientVaultModel } from '../models/ClientVault.js';
+import { sendMail, renderOtpEmailHtml, renderMfaEmailHtml } from '../utils/mailer.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'plexivia_production_jwt_secret_key_secure_2026';
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'plexivia_production_jwt_refresh_secret_key_2026';
@@ -31,7 +32,7 @@ export const checkEmail = async (req: Request, res: Response): Promise<void> => 
     console.warn('DB search failed, checking default admin fallback');
   }
 
-  if (!admin && cleanEmail.includes('admin') || cleanEmail.includes('plexivia') || cleanEmail.endsWith('@plexivia.com')) {
+  if (!admin && (cleanEmail.includes('admin') || cleanEmail.includes('plexivia') || cleanEmail.endsWith('@plexivia.com') || cleanEmail.endsWith('@plexivia.online'))) {
     res.status(200).json({
       success: true,
       exists: true,
@@ -83,7 +84,7 @@ export const verifyPassword = async (req: Request, res: Response): Promise<void>
   });
 };
 
-// Dispatch 6-digit verification code with 3-minute expiration
+// Dispatch 6-digit verification code with 3-minute expiration and transactional email
 export const sendEmailOtp = async (req: Request, res: Response): Promise<void> => {
   const { email } = req.body;
   const cleanEmail = (email || 'admin@plexivia.com').toLowerCase().trim();
@@ -93,6 +94,16 @@ export const sendEmailOtp = async (req: Request, res: Response): Promise<void> =
 
   emailOtpStore.set(cleanEmail, { email: cleanEmail, code: otpCode, expiresAt });
   console.log(`[AUTH-SERVICE] OTP for ${cleanEmail}: ${otpCode} (expires in 3 min)`);
+
+  const htmlContent = renderOtpEmailHtml(otpCode, cleanEmail);
+  sendMail({
+    to: cleanEmail,
+    subject: `Your Plexivia Verification Code: ${otpCode}`,
+    html: htmlContent,
+    text: `Your Plexivia verification code is: ${otpCode}. It expires in 3 minutes.`,
+  }).catch((err) => {
+    console.error(`[AUTH-SERVICE] Failed to send OTP email: ${err.message}`);
+  });
 
   res.status(200).json({
     success: true,
@@ -121,6 +132,16 @@ export const sendMfaQr = async (req: Request, res: Response): Promise<void> => {
   const baseSecret = Buffer.from(`${cleanEmail}_PLX_MFA_2026`).toString('base64').replace(/[^A-Z2-7]/g, '').slice(0, 16).padEnd(16, 'A');
   const otpauthUrl = `otpauth://totp/Plexivia:${encodeURIComponent(cleanEmail)}?secret=${baseSecret}&issuer=Plexivia`;
   const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(otpauthUrl)}`;
+
+  const htmlContent = renderMfaEmailHtml(baseSecret, qrCodeImageUrl, cleanEmail);
+  sendMail({
+    to: cleanEmail,
+    subject: 'Setup Two-Factor Authenticator (Plexivia IAM)',
+    html: htmlContent,
+    text: `Setup your Plexivia Two-Factor Authenticator. Secret Key: ${baseSecret}`,
+  }).catch((err) => {
+    console.error(`[AUTH-SERVICE] Failed to send MFA QR email: ${err.message}`);
+  });
 
   res.status(200).json({
     success: true,
@@ -224,7 +245,20 @@ export const getClientVault = async (req: Request, res: Response): Promise<void>
 export const notifyForgotCredentials = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email } = req.body;
-    console.log(`🔔 [auth-service] Credential assistance request dispatched for: ${email || 'Unknown'}`);
+    const targetEmail = (email || 'Unknown').trim();
+    console.log(`🔔 [auth-service] Credential assistance request dispatched for: ${targetEmail}`);
+
+    sendMail({
+      to: 'md.ikr4m@gmail.com',
+      subject: `[Plexivia Alert] Credential Assistance Request: ${targetEmail}`,
+      html: `<div style="font-family: sans-serif; padding: 20px; color: #1e293b;">
+        <h2>Credential Recovery Request</h2>
+        <p>A user requested credential assistance for account: <strong>${targetEmail}</strong></p>
+        <p>Timestamp: ${new Date().toISOString()}</p>
+      </div>`,
+      text: `Credential assistance requested for: ${targetEmail}`,
+    }).catch(() => {});
+
     res.status(200).json({
       success: true,
       message: 'Your credential recovery request has been forwarded to the Plexivia administrator.',
@@ -233,4 +267,3 @@ export const notifyForgotCredentials = async (req: Request, res: Response): Prom
     res.status(500).json({ success: false, message: err.message });
   }
 };
-

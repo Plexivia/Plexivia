@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import { Request, Response } from 'express';
 import { getAdminModel } from '../models/Admin.js';
 import { getClientVaultModel } from '../models/ClientVault.js';
+import { sendMail, renderOtpEmailHtml, renderMfaEmailHtml } from '../utils/mailer.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'plexivia_production_jwt_secret_key_secure_2026';
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'plexivia_production_jwt_refresh_secret_key_2026';
@@ -93,6 +94,16 @@ export const sendEmailOtp = async (req: Request, res: Response) => {
     const expiresAt = Date.now() + expiresInSeconds * 1000;
 
     activeOtps.set(emailClean, { code: otpCode, expiresAt });
+
+    const htmlContent = renderOtpEmailHtml(otpCode, emailClean);
+    sendMail({
+      to: emailClean,
+      subject: `Your Plexivia Verification Code: ${otpCode}`,
+      html: htmlContent,
+      text: `Your Plexivia verification code is: ${otpCode}. It expires in 3 minutes.`,
+    }).catch((err) => {
+      console.error(`[BACKEND-AUTH] Failed to send OTP email: ${err.message}`);
+    });
 
     return res.json({
       success: true,
@@ -198,6 +209,16 @@ export const sendMfaQr = async (req: Request, res: Response) => {
     const baseSecret = Buffer.from(`${emailClean}_PLX_MFA_2026`).toString('base64').replace(/[^A-Z2-7]/g, '').slice(0, 16).padEnd(16, 'A');
     const otpauthUrl = `otpauth://totp/Plexivia:${encodeURIComponent(emailClean)}?secret=${baseSecret}&issuer=Plexivia`;
     const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(otpauthUrl)}`;
+
+    const htmlContent = renderMfaEmailHtml(baseSecret, qrCodeImageUrl, emailClean);
+    sendMail({
+      to: emailClean,
+      subject: 'Setup Two-Factor Authenticator (Plexivia IAM)',
+      html: htmlContent,
+      text: `Setup your Plexivia Two-Factor Authenticator. Secret Key: ${baseSecret}`,
+    }).catch((err) => {
+      console.error(`[BACKEND-AUTH] Failed to send MFA QR email: ${err.message}`);
+    });
 
     return res.json({
       success: true,
