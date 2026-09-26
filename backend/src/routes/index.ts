@@ -31,9 +31,18 @@ router.use('/v1/finance', accountingRouter);
 // ============================================================================
 // Direct Backward-Compatibility Endpoints & Admin Aliases
 // ============================================================================
-router.use('/v1/admin', agencyRouter);
+router.use('/v1/client', agencyRouter);
+router.use('/v1/client', accountingRouter);
+router.use('/v1/client', hubRouter);
+
 router.use('/v1/admin', authRouter);
+router.use('/v1/admin', agencyRouter);
+router.use('/v1/admin', accountingRouter);
+router.use('/v1/admin', hubRouter);
+
 router.use(authRouter);
 router.use(agencyRouter);
+router.use(accountingRouter);
+router.use(hubRouter);
 
 export default router;
