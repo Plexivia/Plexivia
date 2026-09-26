@@ -6,6 +6,28 @@ const DEFAULT_OPERATIONS_URI = process.env.MONGODB_OPERATIONS_URI || process.env
 export let secureDbConnection: mongoose.Connection;
 export let operationsDbConnection: mongoose.Connection;
 
+// Ensure initial super admin account exists in secure database
+const seedSuperAdmin = async (conn: mongoose.Connection) => {
+  try {
+    const admins = conn.collection('admins');
+    const existing = await admins.findOne({ email: 'admin@plexivia.com' });
+    if (!existing) {
+      await admins.insertOne({
+        email: 'admin@plexivia.com',
+        full_name: 'Plexivia Super Owner',
+        role: 'OWNER',
+        is_active: true,
+        two_factor_enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+      console.log('👑 [plexivia_secure_db] Initial Super Admin initialized.');
+    }
+  } catch (err: any) {
+    console.warn('⚠️ [seedSuperAdmin] notice:', err.message);
+  }
+};
+
 // Initialize dual-tier database connections with failover
 export const initDatabases = async (): Promise<{ secureDb: mongoose.Connection; operationsDb: mongoose.Connection }> => {
   const secureUri = process.env.MONGODB_SECURE_URI || process.env.MONGODB_URI || DEFAULT_SECURE_URI;
@@ -22,6 +44,7 @@ export const initDatabases = async (): Promise<{ secureDb: mongoose.Connection; 
 
     secureDbConnection.on('connected', () => {
       console.log('✅ [plexivia_secure_db] Connected to MongoDB Secure Database');
+      seedSuperAdmin(secureDbConnection);
     });
 
     secureDbConnection.on('error', (err) => {
