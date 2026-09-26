@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { getEmployeeModel } from '../models/Agency.js';
+import { generateDId } from '../utils/dId.js';
 
 // Retrieve all agency employees with optional department and role filtering
 export const getEmployees = async (req: Request, res: Response) => {
@@ -53,7 +54,7 @@ export const getEmployeeById = async (req: Request, res: Response) => {
   }
 };
 
-// Create a new agency internal employee record
+// Create a new agency internal employee record with 16-digit dId
 export const createEmployee = async (req: Request, res: Response) => {
   try {
     const data = req.body;
@@ -62,8 +63,10 @@ export const createEmployee = async (req: Request, res: Response) => {
     }
 
     const EmployeeModel = getEmployeeModel();
+    const dId = generateDId();
+
     const created = await EmployeeModel.create({
-      id: data.id || `emp-${Date.now().toString().slice(-4)}`,
+      dId,
       employee_code: data.employee_code || `EMP-${Math.floor(100 + Math.random() * 900)}`,
       email: String(data.email).trim().toLowerCase(),
       full_name: data.full_name.trim(),
@@ -87,21 +90,21 @@ export const createEmployee = async (req: Request, res: Response) => {
   }
 };
 
-// Update an existing agency employee record
+// Update an existing agency employee record by 16-digit dId
 export const updateEmployee = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const identifier = (req.params.dId || req.params.id) as string;
     const updates = req.body;
     const EmployeeModel = getEmployeeModel();
 
     const employee = await EmployeeModel.findOneAndUpdate(
-      { $or: [{ id }, { employee_code: id }] },
+      { $or: [{ dId: identifier }, { id: identifier }, { employee_code: identifier }] },
       { $set: updates },
       { new: true }
     );
 
     if (!employee) {
-      return res.status(404).json({ success: false, message: `Employee '${id}' not found` });
+      return res.status(404).json({ success: false, message: `Employee '${identifier}' not found` });
     }
 
     return res.json({
@@ -118,12 +121,14 @@ export const updateEmployee = async (req: Request, res: Response) => {
 // Delete an employee from the database
 export const deleteEmployee = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const identifier = (req.params.dId || req.params.id) as string;
     const EmployeeModel = getEmployeeModel();
-    const deleted = await EmployeeModel.findOneAndDelete({ $or: [{ id }, { employee_code: id }] });
+    const deleted = await EmployeeModel.findOneAndDelete({
+      $or: [{ dId: identifier }, { id: identifier }, { employee_code: identifier }],
+    });
 
     if (!deleted) {
-      return res.status(404).json({ success: false, message: `Employee '${id}' not found` });
+      return res.status(404).json({ success: false, message: `Employee '${identifier}' not found` });
     }
 
     return res.json({
@@ -136,3 +141,4 @@ export const deleteEmployee = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: error.message || 'Failed to delete employee' });
   }
 };
+

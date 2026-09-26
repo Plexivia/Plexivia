@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { getTeamModel } from '../models/Agency.js';
+import { generateDId } from '../utils/dId.js';
 
 // Retrieve all agency teams with department and status filtering
 export const getTeams = async (req: Request, res: Response) => {
@@ -15,7 +16,7 @@ export const getTeams = async (req: Request, res: Response) => {
     }
     if (search) {
       const q = String(search);
-      filter.name = new RegExp(q, 'i');
+      filter.$or = [{ name: new RegExp(q, 'i') }, { dId: new RegExp(q, 'i') }];
     }
 
     const TeamModel = getTeamModel();
@@ -32,15 +33,17 @@ export const getTeams = async (req: Request, res: Response) => {
   }
 };
 
-// Retrieve a single team record by identifier
+// Retrieve a single team record by 16-digit dId or legacy id
 export const getTeamById = async (req: Request, res: Response) => {
   try {
-    const id = req.params.id as string;
+    const identifier = (req.params.dId || req.params.id) as string;
     const TeamModel = getTeamModel();
-    const team = await TeamModel.findOne({ id });
+    const team = await TeamModel.findOne({
+      $or: [{ dId: identifier }, { id: identifier }],
+    });
 
     if (!team) {
-      return res.status(404).json({ success: false, message: `Team '${id}' not found` });
+      return res.status(404).json({ success: false, message: `Team '${identifier}' not found` });
     }
 
     return res.json({
@@ -53,7 +56,7 @@ export const getTeamById = async (req: Request, res: Response) => {
   }
 };
 
-// Create a new agency team in database
+// Create a new agency team with 16-digit dId in database
 export const createTeam = async (req: Request, res: Response) => {
   try {
     const data = req.body;
@@ -62,8 +65,10 @@ export const createTeam = async (req: Request, res: Response) => {
     }
 
     const TeamModel = getTeamModel();
+    const dId = generateDId();
+
     const created = await TeamModel.create({
-      id: data.id || `team-${Date.now().toString().slice(-4)}`,
+      dId,
       name: data.name.trim(),
       department: data.department || 'Engineering',
       lead_name: data.lead_name || data.leadName || 'Team Lead',
@@ -83,21 +88,21 @@ export const createTeam = async (req: Request, res: Response) => {
   }
 };
 
-// Update an existing agency team by identifier
+// Update an existing agency team by 16-digit dId or legacy id
 export const updateTeam = async (req: Request, res: Response) => {
   try {
-    const id = req.params.id as string;
+    const identifier = (req.params.dId || req.params.id) as string;
     const updates = req.body;
     const TeamModel = getTeamModel();
 
     const team = await TeamModel.findOneAndUpdate(
-      { id },
+      { $or: [{ dId: identifier }, { id: identifier }] },
       { $set: updates },
       { new: true }
     );
 
     if (!team) {
-      return res.status(404).json({ success: false, message: `Team '${id}' not found` });
+      return res.status(404).json({ success: false, message: `Team '${identifier}' not found` });
     }
 
     return res.json({
@@ -111,15 +116,17 @@ export const updateTeam = async (req: Request, res: Response) => {
   }
 };
 
-// Delete an agency team by identifier
+// Delete an agency team by 16-digit dId or legacy id
 export const deleteTeam = async (req: Request, res: Response) => {
   try {
-    const id = req.params.id as string;
+    const identifier = (req.params.dId || req.params.id) as string;
     const TeamModel = getTeamModel();
-    const deleted = await TeamModel.findOneAndDelete({ id });
+    const deleted = await TeamModel.findOneAndDelete({
+      $or: [{ dId: identifier }, { id: identifier }],
+    });
 
     if (!deleted) {
-      return res.status(404).json({ success: false, message: `Team '${id}' not found` });
+      return res.status(404).json({ success: false, message: `Team '${identifier}' not found` });
     }
 
     return res.json({
@@ -133,38 +140,39 @@ export const deleteTeam = async (req: Request, res: Response) => {
   }
 };
 
-// Add member to team roster
+// Add member to team roster by 16-digit dId
 export const addTeamMember = async (req: Request, res: Response) => {
   try {
-    const teamId = req.params.id as string;
+    const teamId = (req.params.dId || req.params.id) as string;
     const TeamModel = getTeamModel();
-    const team = await TeamModel.findOne({ id: teamId });
+    const team = await TeamModel.findOne({ $or: [{ dId: teamId }, { id: teamId }] });
 
     if (!team) {
       return res.status(404).json({ success: false, message: `Team '${teamId}' not found` });
     }
 
-    await TeamModel.updateOne({ id: teamId }, { $inc: { members_count: 1 } });
+    await TeamModel.updateOne({ $or: [{ dId: teamId }, { id: teamId }] }, { $inc: { members_count: 1 } });
     return res.status(201).json({ success: true, status: 'success', message: 'Team member added' });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message || 'Failed to add team member' });
   }
 };
 
-// Remove member from team roster
+// Remove member from team roster by 16-digit dId
 export const removeTeamMember = async (req: Request, res: Response) => {
   try {
-    const teamId = req.params.id as string;
+    const teamId = (req.params.dId || req.params.id) as string;
     const TeamModel = getTeamModel();
-    const team = await TeamModel.findOne({ id: teamId });
+    const team = await TeamModel.findOne({ $or: [{ dId: teamId }, { id: teamId }] });
 
     if (!team) {
       return res.status(404).json({ success: false, message: `Team '${teamId}' not found` });
     }
 
-    await TeamModel.updateOne({ id: teamId }, { $inc: { members_count: -1 } });
+    await TeamModel.updateOne({ $or: [{ dId: teamId }, { id: teamId }] }, { $inc: { members_count: -1 } });
     return res.json({ success: true, status: 'success', message: 'Team member removed' });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message || 'Failed to remove team member' });
   }
 };
+

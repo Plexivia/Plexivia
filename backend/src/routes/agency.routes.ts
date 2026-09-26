@@ -15,7 +15,7 @@ router.put('/employees/:id', employeeController.updateEmployee);
 router.patch('/employees/:id', employeeController.updateEmployee);
 router.delete('/employees/:id', employeeController.deleteEmployee);
 
-// Agency Client Operations
+// Agency Client Operations (Secure DB)
 router.get('/clients', clientController.getClients);
 router.post('/clients', clientController.createClient);
 router.get('/clients/:id', clientController.getClientById);
@@ -30,6 +30,16 @@ router.put('/clients/:id/domains', clientController.updateClientDomains);
 router.patch('/clients/:id/domains', clientController.updateClientDomains);
 router.get('/clients/:id/360', clientController.getClient360);
 router.get('/clients/:id/overview', clientController.getClient360);
+
+// Project Types Architecture (WhiteLabel Ecommerce, Custom, ERP)
+router.get('/project-types', projectController.getProjectTypes);
+router.post('/project-types', projectController.createProjectType);
+router.get('/projects/types', projectController.getProjectTypes);
+
+// WhiteLabel Ecommerce Multi-Tenant Projects
+router.get('/whitelabel-ecommerce', projectController.getWhiteLabelEcommerceProjects);
+router.post('/whitelabel-ecommerce', projectController.createWhiteLabelEcommerceProject);
+router.get('/whitelabel-ecommerce/:id', projectController.getWhiteLabelEcommerceProjectById);
 
 // Internal Projects
 router.get('/projects', projectController.getProjects);

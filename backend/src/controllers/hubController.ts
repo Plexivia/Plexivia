@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { getSupportTicketModel, getProjectDocModel } from '../models/Hub.js';
 import { getClientModel } from '../models/Agency.js';
+import { generateDId } from '../utils/dId.js';
 
 // Retrieve master hub system health and telemetry
 export const getHubOverview = async (_req: Request, res: Response) => {
@@ -77,22 +78,25 @@ export const getSupportTickets = async (req: Request, res: Response) => {
   }
 };
 
-// Create a new client support ticket in database
+// Create a new client support ticket in database with 16-digit dId
 export const createSupportTicket = async (req: Request, res: Response) => {
   try {
     const data = req.body;
-    if (!data.client_id || !data.subject) {
+    const clientDId = data.clientDId || data.client_dId || data.client_id;
+    if (!clientDId || !data.subject) {
       return res.status(400).json({ success: false, message: 'Client ID and subject are required' });
     }
 
     const TicketModel = getSupportTicketModel();
     const ClientModel = getClientModel();
-    const client = await ClientModel.findOne({ $or: [{ id: data.client_id }, { client_key: data.client_id }] });
+    const client = await ClientModel.findOne({ $or: [{ dId: clientDId }, { id: clientDId }] });
+    const dId = generateDId();
 
     const created = await TicketModel.create({
-      id: data.id || `tkt-${Date.now().toString().slice(-4)}`,
+      dId,
       ticket_number: `TKT-${Math.floor(1000 + Math.random() * 9000)}`,
-      client_id: data.client_id,
+      client_dId: clientDId,
+      client_id: clientDId,
       client_name: client?.name || data.client_name || 'Client',
       subject: data.subject,
       description: data.description || data.initial_message || '',
@@ -117,12 +121,12 @@ export const createSupportTicket = async (req: Request, res: Response) => {
 // Append a message to an existing support ticket thread
 export const addSupportTicketMessage = async (req: Request, res: Response) => {
   try {
-    const ticketId = req.params.ticketId as string;
+    const ticketId = (req.params.ticketDId || req.params.ticketId) as string;
     const { message } = req.body;
     const TicketModel = getSupportTicketModel();
 
     const ticket = await TicketModel.findOneAndUpdate(
-      { id: ticketId },
+      { $or: [{ dId: ticketId }, { id: ticketId }] },
       { $set: { updated_at: new Date().toISOString() } },
       { new: true }
     );
@@ -145,10 +149,11 @@ export const addSupportTicketMessage = async (req: Request, res: Response) => {
 // Retrieve client project documentation articles
 export const getProjectDocs = async (req: Request, res: Response) => {
   try {
-    const { clientId } = req.query;
+    const { clientDId, clientId, client_id } = req.query;
     const filter: any = {};
-    if (clientId) {
-      filter.client_id = String(clientId);
+    const targetClient = clientDId || clientId || client_id;
+    if (targetClient) {
+      filter.$or = [{ client_dId: String(targetClient) }, { client_id: String(targetClient) }];
     }
 
     const DocModel = getProjectDocModel();
@@ -169,14 +174,18 @@ export const getProjectDocs = async (req: Request, res: Response) => {
 export const saveProjectDoc = async (req: Request, res: Response) => {
   try {
     const data = req.body;
-    if (!data.client_id || !data.title) {
+    const clientDId = data.clientDId || data.client_dId || data.client_id;
+    if (!clientDId || !data.title) {
       return res.status(400).json({ success: false, message: 'Client ID and title are required' });
     }
 
     const DocModel = getProjectDocModel();
+    const dId = generateDId();
+
     const created = await DocModel.create({
-      id: data.id || `doc-${Date.now().toString().slice(-4)}`,
-      client_id: data.client_id,
+      dId,
+      client_dId: clientDId,
+      client_id: clientDId,
       title: data.title,
       category: data.category || 'NOTE',
       storage_url: data.storage_url,

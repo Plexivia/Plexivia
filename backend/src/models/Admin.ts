@@ -1,7 +1,9 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { secureDbConnection } from '../config/database.js';
+import { generateDId } from '../utils/dId.js';
 
 export interface IAdmin extends Document {
+  dId: string;
   email: string;
   password_hash?: string;
   full_name: string;
@@ -20,6 +22,7 @@ export interface IAdmin extends Document {
 
 const AdminSchema = new Schema<IAdmin>(
   {
+    dId: { type: String, required: true, unique: true, index: true, default: generateDId },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password_hash: { type: String },
     full_name: { type: String, required: true },

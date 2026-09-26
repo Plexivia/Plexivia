@@ -1,10 +1,14 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { secureDbConnection } from '../config/database.js';
+import { generateDId } from '../utils/dId.js';
 
 export interface IInvoice extends Document {
+  dId: string;
   invoice_number: string;
-  client_id: string;
+  client_dId?: string;
+  client_id?: string;
   client_name: string;
+  project_dId?: string;
   project_id?: string;
   amount: number;
   currency: string;
@@ -16,9 +20,12 @@ export interface IInvoice extends Document {
 }
 
 export interface IPayment extends Document {
+  dId: string;
   payment_number: string;
-  invoice_id: string;
-  client_id: string;
+  invoice_dId?: string;
+  invoice_id?: string;
+  client_dId?: string;
+  client_id?: string;
   amount: number;
   currency: string;
   payment_method: 'BKASH' | 'NAGAD' | 'BANK_TRANSFER' | 'STRIPE' | 'CASH';
@@ -29,6 +36,7 @@ export interface IPayment extends Document {
 }
 
 export interface IBill extends Document {
+  dId: string;
   bill_number: string;
   vendor_name: string;
   category: 'INFRASTRUCTURE' | 'SOFTWARE' | 'OFFICE' | 'MARKETING' | 'OTHER';
@@ -40,8 +48,10 @@ export interface IBill extends Document {
 }
 
 export interface IPayroll extends Document {
+  dId: string;
   payroll_number: string;
-  employee_id: string;
+  employee_dId?: string;
+  employee_id?: string;
   employee_name: string;
   month: string;
   base_salary: number;
@@ -54,9 +64,12 @@ export interface IPayroll extends Document {
 }
 
 const InvoiceSchema = new Schema<IInvoice>({
+  dId: { type: String, required: true, unique: true, index: true, default: generateDId },
   invoice_number: { type: String, required: true, unique: true },
-  client_id: { type: String, required: true, index: true },
+  client_dId: { type: String, index: true },
+  client_id: { type: String, index: true },
   client_name: { type: String, required: true },
+  project_dId: { type: String },
   project_id: { type: String },
   amount: { type: Number, required: true },
   currency: { type: String, default: 'BDT' },
@@ -68,9 +81,12 @@ const InvoiceSchema = new Schema<IInvoice>({
 }, { collection: 'invoices', timestamps: false });
 
 const PaymentSchema = new Schema<IPayment>({
+  dId: { type: String, required: true, unique: true, index: true, default: generateDId },
   payment_number: { type: String, required: true, unique: true },
-  invoice_id: { type: String, required: true, index: true },
-  client_id: { type: String, required: true, index: true },
+  invoice_dId: { type: String, index: true },
+  invoice_id: { type: String, index: true },
+  client_dId: { type: String, index: true },
+  client_id: { type: String, index: true },
   amount: { type: Number, required: true },
   currency: { type: String, default: 'BDT' },
   payment_method: { type: String, enum: ['BKASH', 'NAGAD', 'BANK_TRANSFER', 'STRIPE', 'CASH'], default: 'BANK_TRANSFER' },
@@ -81,6 +97,7 @@ const PaymentSchema = new Schema<IPayment>({
 }, { collection: 'payments', timestamps: false });
 
 const BillSchema = new Schema<IBill>({
+  dId: { type: String, required: true, unique: true, index: true, default: generateDId },
   bill_number: { type: String, required: true, unique: true },
   vendor_name: { type: String, required: true },
   category: { type: String, enum: ['INFRASTRUCTURE', 'SOFTWARE', 'OFFICE', 'MARKETING', 'OTHER'], default: 'INFRASTRUCTURE' },
@@ -92,8 +109,10 @@ const BillSchema = new Schema<IBill>({
 }, { collection: 'bills', timestamps: false });
 
 const PayrollSchema = new Schema<IPayroll>({
+  dId: { type: String, required: true, unique: true, index: true, default: generateDId },
   payroll_number: { type: String, required: true, unique: true },
-  employee_id: { type: String, required: true, index: true },
+  employee_dId: { type: String, index: true },
+  employee_id: { type: String, index: true },
   employee_name: { type: String, required: true },
   month: { type: String, required: true },
   base_salary: { type: Number, required: true },
@@ -128,3 +147,4 @@ export const getPayrollModel = (): mongoose.Model<IPayroll> => {
   if (secureDbConnection) return secureDbConnection.models.Payroll || secureDbConnection.model<IPayroll>('Payroll', PayrollSchema);
   return mongoose.models.Payroll || mongoose.model<IPayroll>('Payroll', PayrollSchema);
 };
+

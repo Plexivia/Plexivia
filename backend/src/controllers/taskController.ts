@@ -1,10 +1,11 @@
 import { Request, Response } from 'express';
 import { getTaskModel } from '../models/Agency.js';
+import { generateDId } from '../utils/dId.js';
 
 // Retrieve all tasks with status, priority, and project filtering
 export const getTasks = async (req: Request, res: Response) => {
   try {
-    const { status, priority, projectId, project_id, search } = req.query;
+    const { status, priority, projectDId, projectId, project_id, search } = req.query;
     const filter: any = {};
 
     if (status) {
@@ -13,13 +14,13 @@ export const getTasks = async (req: Request, res: Response) => {
     if (priority) {
       filter.priority = new RegExp(`^${priority}$`, 'i');
     }
-    const targetProjectId = projectId || project_id;
-    if (targetProjectId) {
-      filter.project_id = targetProjectId;
+    const targetProject = projectDId || projectId || project_id;
+    if (targetProject) {
+      filter.$or = [{ project_dId: targetProject }, { project_id: targetProject }];
     }
     if (search) {
       const q = String(search);
-      filter.title = new RegExp(q, 'i');
+      filter.$or = [{ title: new RegExp(q, 'i') }, { dId: new RegExp(q, 'i') }];
     }
 
     const TaskModel = getTaskModel();
@@ -36,15 +37,17 @@ export const getTasks = async (req: Request, res: Response) => {
   }
 };
 
-// Retrieve a single task by identifier
+// Retrieve a single task by 16-digit dId or legacy id
 export const getTaskById = async (req: Request, res: Response) => {
   try {
-    const id = req.params.id as string;
+    const identifier = (req.params.dId || req.params.id) as string;
     const TaskModel = getTaskModel();
-    const task = await TaskModel.findOne({ id });
+    const task = await TaskModel.findOne({
+      $or: [{ dId: identifier }, { id: identifier }],
+    });
 
     if (!task) {
-      return res.status(404).json({ success: false, message: `Task '${id}' not found` });
+      return res.status(404).json({ success: false, message: `Task '${identifier}' not found` });
     }
 
     return res.json({
@@ -57,7 +60,7 @@ export const getTaskById = async (req: Request, res: Response) => {
   }
 };
 
-// Create a new task in database
+// Create a new task with 16-digit dId in database
 export const createTask = async (req: Request, res: Response) => {
   try {
     const data = req.body;
@@ -65,12 +68,13 @@ export const createTask = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: 'Task title is required' });
     }
 
-    const projectId = data.projectId || data.project_id || 'p-001';
+    const projectDId = data.projectDId || data.project_dId || data.projectId || data.project_id || 'p-001';
     const TaskModel = getTaskModel();
+    const dId = generateDId();
 
     const created = await TaskModel.create({
-      id: data.id || `t-${Date.now().toString().slice(-4)}`,
-      project_id: projectId,
+      dId,
+      project_dId: projectDId,
       title: data.title.trim(),
       description: data.description || '',
       status: data.status || 'Todo',
@@ -91,21 +95,21 @@ export const createTask = async (req: Request, res: Response) => {
   }
 };
 
-// Update an existing task by identifier
+// Update an existing task by 16-digit dId or legacy id
 export const updateTask = async (req: Request, res: Response) => {
   try {
-    const id = req.params.id as string;
+    const identifier = (req.params.dId || req.params.id) as string;
     const updates = req.body;
     const TaskModel = getTaskModel();
 
     const task = await TaskModel.findOneAndUpdate(
-      { id },
+      { $or: [{ dId: identifier }, { id: identifier }] },
       { $set: updates },
       { new: true }
     );
 
     if (!task) {
-      return res.status(404).json({ success: false, message: `Task '${id}' not found` });
+      return res.status(404).json({ success: false, message: `Task '${identifier}' not found` });
     }
 
     return res.json({
@@ -119,10 +123,10 @@ export const updateTask = async (req: Request, res: Response) => {
   }
 };
 
-// Update task Kanban column status
+// Update task Kanban column status by 16-digit dId
 export const updateTaskStatus = async (req: Request, res: Response) => {
   try {
-    const id = req.params.id as string;
+    const identifier = (req.params.dId || req.params.id) as string;
     const { status } = req.body;
 
     if (!status) {
@@ -131,13 +135,13 @@ export const updateTaskStatus = async (req: Request, res: Response) => {
 
     const TaskModel = getTaskModel();
     const task = await TaskModel.findOneAndUpdate(
-      { id },
+      { $or: [{ dId: identifier }, { id: identifier }] },
       { $set: { status } },
       { new: true }
     );
 
     if (!task) {
-      return res.status(404).json({ success: false, message: `Task '${id}' not found` });
+      return res.status(404).json({ success: false, message: `Task '${identifier}' not found` });
     }
 
     return res.json({
@@ -151,15 +155,17 @@ export const updateTaskStatus = async (req: Request, res: Response) => {
   }
 };
 
-// Delete a task record by identifier
+// Delete a task record by 16-digit dId or legacy id
 export const deleteTask = async (req: Request, res: Response) => {
   try {
-    const id = req.params.id as string;
+    const identifier = (req.params.dId || req.params.id) as string;
     const TaskModel = getTaskModel();
-    const deleted = await TaskModel.findOneAndDelete({ id });
+    const deleted = await TaskModel.findOneAndDelete({
+      $or: [{ dId: identifier }, { id: identifier }],
+    });
 
     if (!deleted) {
-      return res.status(404).json({ success: false, message: `Task '${id}' not found` });
+      return res.status(404).json({ success: false, message: `Task '${identifier}' not found` });
     }
 
     return res.json({
@@ -176,13 +182,15 @@ export const deleteTask = async (req: Request, res: Response) => {
 // Handle task checklist actions
 export const handleChecklist = async (req: Request, res: Response) => {
   try {
-    const id = req.params.id as string;
+    const identifier = (req.params.dId || req.params.id) as string;
     const { action, text, itemId } = req.body;
     const TaskModel = getTaskModel();
-    const task = await TaskModel.findOne({ id });
+    const task = await TaskModel.findOne({
+      $or: [{ dId: identifier }, { id: identifier }],
+    });
 
     if (!task) {
-      return res.status(404).json({ success: false, message: `Task '${id}' not found` });
+      return res.status(404).json({ success: false, message: `Task '${identifier}' not found` });
     }
 
     return res.json({ success: true, status: 'success', data: [] });
@@ -190,3 +198,4 @@ export const handleChecklist = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: error.message || 'Failed to handle checklist' });
   }
 };
+

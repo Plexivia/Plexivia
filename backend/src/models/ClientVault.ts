@@ -1,8 +1,11 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { secureDbConnection } from '../config/database.js';
+import { generateDId } from '../utils/dId.js';
 
 export interface IClientVault extends Document {
-  client_id: string;
+  dId: string;
+  client_dId?: string;
+  client_id?: string;
   client_key: string;
   business_name: string;
   vps_ip: string;
@@ -22,7 +25,9 @@ export interface IClientVault extends Document {
 
 const ClientVaultSchema = new Schema<IClientVault>(
   {
-    client_id: { type: String, required: true, unique: true, index: true },
+    dId: { type: String, required: true, unique: true, index: true, default: generateDId },
+    client_dId: { type: String, index: true },
+    client_id: { type: String, index: true },
     client_key: { type: String, required: true, unique: true, index: true },
     business_name: { type: String, required: true },
     vps_ip: { type: String, required: true },

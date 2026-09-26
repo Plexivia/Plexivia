@@ -1,10 +1,12 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { operationsDbConnection } from '../config/database.js';
+import { generateDId } from '../utils/dId.js';
 
 export interface ISupportTicket extends Document {
-  id: string;
+  dId: string;
   ticket_number: string;
-  client_id: string;
+  client_dId?: string;
+  client_id?: string;
   client_name: string;
   subject: string;
   description: string;
@@ -17,8 +19,10 @@ export interface ISupportTicket extends Document {
 }
 
 export interface IProjectDoc extends Document {
-  id: string;
-  client_id: string;
+  dId: string;
+  client_dId?: string;
+  client_id?: string;
+  project_dId?: string;
   project_id?: string;
   title: string;
   category: 'ARCHITECTURE' | 'BRS' | 'CREDENTIALS' | 'API' | 'DEPLOYMENT' | 'NOTE';
@@ -30,6 +34,7 @@ export interface IProjectDoc extends Document {
 }
 
 export interface ITelemetryLog extends Document {
+  dId: string;
   client_key: string;
   service_name: string;
   level: 'info' | 'warn' | 'error' | 'fatal';
@@ -39,9 +44,10 @@ export interface ITelemetryLog extends Document {
 }
 
 const SupportTicketSchema = new Schema<ISupportTicket>({
-  id: { type: String, required: true, unique: true, index: true },
+  dId: { type: String, required: true, unique: true, index: true, default: generateDId },
   ticket_number: { type: String, required: true, unique: true },
-  client_id: { type: String, required: true, index: true },
+  client_dId: { type: String, index: true },
+  client_id: { type: String, index: true },
   client_name: { type: String, required: true },
   subject: { type: String, required: true },
   description: { type: String, required: true },
@@ -54,8 +60,10 @@ const SupportTicketSchema = new Schema<ISupportTicket>({
 }, { collection: 'support_tickets', timestamps: false });
 
 const ProjectDocSchema = new Schema<IProjectDoc>({
-  id: { type: String, required: true, unique: true, index: true },
-  client_id: { type: String, required: true, index: true },
+  dId: { type: String, required: true, unique: true, index: true, default: generateDId },
+  client_dId: { type: String, index: true },
+  client_id: { type: String, index: true },
+  project_dId: { type: String },
   project_id: { type: String },
   title: { type: String, required: true },
   category: { type: String, enum: ['ARCHITECTURE', 'BRS', 'CREDENTIALS', 'API', 'DEPLOYMENT', 'NOTE'], default: 'NOTE' },
@@ -67,6 +75,7 @@ const ProjectDocSchema = new Schema<IProjectDoc>({
 }, { collection: 'project_docs', timestamps: false });
 
 const TelemetryLogSchema = new Schema<ITelemetryLog>({
+  dId: { type: String, required: true, unique: true, index: true, default: generateDId },
   client_key: { type: String, required: true, index: true },
   service_name: { type: String, required: true },
   level: { type: String, enum: ['info', 'warn', 'error', 'fatal'], default: 'info' },
@@ -92,3 +101,4 @@ export const getTelemetryLogModel = (): mongoose.Model<ITelemetryLog> => {
   if (operationsDbConnection) return operationsDbConnection.models.TelemetryLog || operationsDbConnection.model<ITelemetryLog>('TelemetryLog', TelemetryLogSchema);
   return mongoose.models.TelemetryLog || mongoose.model<ITelemetryLog>('TelemetryLog', TelemetryLogSchema);
 };
+
