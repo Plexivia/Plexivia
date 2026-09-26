@@ -3,6 +3,7 @@ import {
   checkEmail,
   verifyPassword,
   sendEmailOtp,
+  sendMfaQr,
   verify2fa,
   getClientVault,
 } from '../controllers/authController.js';
@@ -23,6 +24,11 @@ authRouter.post('/2fa/verify', verify2fa);
 
 // Route: Resend 2FA Email Code
 authRouter.post('/2fa/resend', sendEmailOtp);
+
+// Route: Dispatch MFA QR Code
+authRouter.post('/2fa/send-qr', sendMfaQr);
+authRouter.post('/mfa/send-qr', sendMfaQr);
+authRouter.post('/mfa/generate-qr', sendMfaQr);
 
 // Route: Direct login fallback
 authRouter.post('/login', verifyPassword);

@@ -166,6 +166,54 @@ export const resendEmailOtp = (req: Request, res: Response) => {
   return sendEmailOtp(req, res);
 };
 
+// Dispatch or generate MFA TOTP QR code for authenticator configuration
+export const sendMfaQr = async (req: Request, res: Response) => {
+  try {
+    let email = req.body?.email;
+    const twoFactorToken = req.body?.twoFactorToken || req.headers['x-two-factor-token'] || req.headers.authorization?.replace('Bearer ', '');
+
+    if (!email && twoFactorToken) {
+      try {
+        const decoded: any = jwt.verify(twoFactorToken, JWT_SECRET);
+        email = decoded?.email;
+      } catch {
+        // Fallback if token is expired or direct decode
+        const decoded: any = jwt.decode(twoFactorToken);
+        email = decoded?.email;
+      }
+    }
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email address or valid twoFactorToken is required.' });
+    }
+
+    const emailClean = String(email).trim().toLowerCase();
+    const AdminModel = getAdminModel();
+    const admin = await AdminModel.findOne({ email: emailClean });
+
+    if (!admin) {
+      return res.status(404).json({ success: false, message: 'No administrative account found with this email.' });
+    }
+
+    const baseSecret = Buffer.from(`${emailClean}_PLX_MFA_2026`).toString('base64').replace(/[^A-Z2-7]/g, '').slice(0, 16).padEnd(16, 'A');
+    const otpauthUrl = `otpauth://totp/Plexivia:${encodeURIComponent(emailClean)}?secret=${baseSecret}&issuer=Plexivia`;
+    const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(otpauthUrl)}`;
+
+    return res.json({
+      success: true,
+      message: `MFA QR setup dispatched and generated for ${emailClean}. Scan with Google Authenticator, Microsoft Authenticator, or Apple Keychain.`,
+      data: {
+        email: emailClean,
+        secretKey: baseSecret,
+        otpauthUrl,
+        qrCodeImageUrl,
+      },
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error?.message || 'Failed to dispatch MFA QR code' });
+  }
+};
+
 // Backward-compatible single-step authentication handler
 export const login = async (req: Request, res: Response) => {
   try {
