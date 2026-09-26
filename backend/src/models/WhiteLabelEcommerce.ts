@@ -574,50 +574,61 @@ export const seedDefaultWhiteLabelProjects = async (conn: mongoose.Connection) =
       },
     ];
 
-    for (const item of configs) {
-      const exists = await wlProjectsCol.findOne({ clientKey: item.clientKey });
-      if (!exists) {
-        await wlProjectsCol.insertOne(item);
-        console.log(`🚀 [whitelabel_ecommerce_projects] Seeded project: ${item.name} (${item.clientKey}) [dId: ${item.dId}]`);
-      } else {
-        await wlProjectsCol.updateOne(
-          { clientKey: item.clientKey },
-          {
-            $set: {
-              name: item.name,
-              domainInfo: item.domainInfo,
-              owners: item.owners,
-              policies: item.policies,
-              features: item.features,
-              stockManagement: item.stockManagement,
-              reports: item.reports,
-              cloudFlareAnalytics: item.cloudFlareAnalytics,
-              googleAnalytics: item.googleAnalytics,
-              assetsConfig: item.assetsConfig,
-              allowedMenus: item.allowedMenus,
-              theme: item.theme,
-              status: item.status,
-              updated_at: new Date().toISOString(),
-            },
-          }
-        );
-      }
+    try {
+      await generalProjectsCol.dropIndex('id_1');
+    } catch {
+      // Ignore if index doesn't exist
+    }
 
-      const generalProjectExists = await generalProjectsCol.findOne({ name: item.name });
-      if (!generalProjectExists) {
-        await generalProjectsCol.insertOne({
-          dId: item.dId,
-          client_dId: '',
-          project_type_dId: projectTypeDId,
-          name: item.name,
-          description: `White-label multi-tenant ecommerce platform for ${item.name}`,
-          status: 'In Progress',
-          progress: 100,
-          priority: 'High',
-          due_date: '2026-12-31',
-          tasks_count: 12,
-          created_at: new Date().toISOString(),
-        });
+    for (const item of configs) {
+      try {
+        const exists = await wlProjectsCol.findOne({ clientKey: item.clientKey });
+        if (!exists) {
+          await wlProjectsCol.insertOne(item);
+          console.log(`🚀 [whitelabel_ecommerce_projects] Seeded project: ${item.name} (${item.clientKey}) [dId: ${item.dId}]`);
+        } else {
+          await wlProjectsCol.updateOne(
+            { clientKey: item.clientKey },
+            {
+              $set: {
+                name: item.name,
+                domainInfo: item.domainInfo,
+                owners: item.owners,
+                policies: item.policies,
+                features: item.features,
+                stockManagement: item.stockManagement,
+                reports: item.reports,
+                cloudFlareAnalytics: item.cloudFlareAnalytics,
+                googleAnalytics: item.googleAnalytics,
+                assetsConfig: item.assetsConfig,
+                allowedMenus: item.allowedMenus,
+                theme: item.theme,
+                status: item.status,
+                updated_at: new Date().toISOString(),
+              },
+            }
+          );
+        }
+
+        const generalProjectExists = await generalProjectsCol.findOne({ name: item.name });
+        if (!generalProjectExists) {
+          await generalProjectsCol.insertOne({
+            dId: item.dId,
+            id: item.dId,
+            client_dId: '',
+            project_type_dId: projectTypeDId,
+            name: item.name,
+            description: `White-label multi-tenant ecommerce platform for ${item.name}`,
+            status: 'In Progress',
+            progress: 100,
+            priority: 'High',
+            due_date: '2026-12-31',
+            tasks_count: 12,
+            created_at: new Date().toISOString(),
+          });
+        }
+      } catch (err: any) {
+        console.warn(`⚠️ [seedProject:${item.clientKey}] error:`, err.message);
       }
     }
   } catch (err: any) {
