@@ -309,7 +309,7 @@ export const LoginPage = ({
         transition={{ duration: 0.35, ease: 'easeOut' }}
         className="w-full max-w-[420px] relative z-10 my-auto"
       >
-        <div className="bg-[#121214]/95 border border-zinc-800/90 shadow-xl backdrop-blur-2xl rounded-2xl p-6 sm:p-7 space-y-6">
+        <div className="h-[60vh] bg-[#121214]/95 shadow-2xl backdrop-blur-2xl rounded-2xl p-6 sm:p-7 space-y-6 overflow-y-auto scrollbar-primary border-none border-0">
           <div className="flex flex-col items-center justify-center pt-1 pb-1">
             <img
               src={logoSrc}

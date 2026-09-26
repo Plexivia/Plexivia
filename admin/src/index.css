@@ -218,6 +218,31 @@
   background: rgba(88, 193, 195, 0.75);
 }
 
+.scrollbar-primary {
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary, #58c1c3) transparent;
+}
+
+.scrollbar-primary::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.scrollbar-primary::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-primary::-webkit-scrollbar-thumb {
+  background: var(--primary, #58c1c3);
+  border-radius: 9999px;
+  transition: background-color 0.2s ease;
+}
+
+.scrollbar-primary::-webkit-scrollbar-thumb:hover {
+  background: var(--primary, #58c1c3);
+  filter: brightness(1.2);
+}
+
 /* ------------------------------------------------------------- */
 /* GLOBAL A4 PRINT SPECIFICATIONS FOR DOCUMENT STUDIO            */
 /* ------------------------------------------------------------- */
