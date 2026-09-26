@@ -1,4 +1,6 @@
 import mongoose from 'mongoose';
+import { seedDefaultProjectTypes } from '../models/ProjectType.js';
+import { seedDefaultWhiteLabelProjects } from '../models/WhiteLabelEcommerce.js';
 
 const DEFAULT_OPERATIONS_URI = process.env.MONGODB_OPERATIONS_URI || process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/plexivia_operations_db';
 
@@ -11,7 +13,11 @@ export const connectAgencyDb = async (): Promise<mongoose.Connection> => {
   try {
     operationsDb = mongoose.createConnection(uri, { serverSelectionTimeoutMS: 5000 });
     operationsDbConnection = operationsDb;
-    operationsDb.on('connected', () => console.log('🏢 [agency-service] Connected to plexivia_operations_db'));
+    operationsDb.on('connected', () => {
+      console.log('🏢 [agency-service] Connected to plexivia_operations_db');
+      seedDefaultProjectTypes(operationsDb);
+      seedDefaultWhiteLabelProjects(operationsDb);
+    });
     operationsDb.on('error', (err) => console.warn('⚠️ [agency-service] DB error:', err.message));
     return operationsDb;
   } catch (err: any) {
@@ -19,3 +25,4 @@ export const connectAgencyDb = async (): Promise<mongoose.Connection> => {
     return operationsDb;
   }
 };
+

@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { seedDefaultProjectTypes } from '../models/ProjectType.js';
+import { seedDefaultWhiteLabelProjects } from '../models/WhiteLabelEcommerce.js';
 
 const DEFAULT_SECURE_URI = process.env.MONGODB_SECURE_URI || process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/plexivia_secure_db';
 const DEFAULT_OPERATIONS_URI = process.env.MONGODB_OPERATIONS_URI || process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/plexivia_operations_db';
@@ -55,6 +56,7 @@ export const initDatabases = async (): Promise<{ secureDb: mongoose.Connection; 
     operationsDbConnection.on('connected', () => {
       console.log('✅ [plexivia_operations_db] Connected to MongoDB Operations Database');
       seedDefaultProjectTypes(operationsDbConnection);
+      seedDefaultWhiteLabelProjects(operationsDbConnection);
     });
 
     operationsDbConnection.on('error', (err) => {

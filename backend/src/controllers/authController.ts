@@ -1,6 +1,10 @@
+import jwt from 'jsonwebtoken';
 import { Request, Response } from 'express';
 import { getAdminModel } from '../models/Admin.js';
 import { getClientVaultModel } from '../models/ClientVault.js';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'plexivia_production_jwt_secret_key_secure_2026';
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'plexivia_production_jwt_refresh_secret_key_2026';
 
 interface OtpEntry {
   code: string;
@@ -56,7 +60,11 @@ export const verifyPassword = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: 'No account found with this email.' });
     }
 
-    const twoFactorToken = `tfa_token_${Date.now()}_${Buffer.from(emailClean).toString('base64')}`;
+    const twoFactorToken = jwt.sign(
+      { email: emailClean, step: '2fa_pending' },
+      JWT_SECRET,
+      { expiresIn: '5m' }
+    );
 
     return res.json({
       success: true,
@@ -127,8 +135,16 @@ export const verify2fa = async (req: Request, res: Response) => {
       activeOtps.delete(userEmail);
     }
 
-    const accessToken = `jwt_access_token_${Date.now()}_${Buffer.from(userEmail).toString('base64')}`;
-    const refreshToken = `jwt_refresh_token_${Date.now()}_${Buffer.from(userEmail).toString('base64')}`;
+    const accessToken = jwt.sign(
+      { sub: admin._id || admin.id, email: admin.email, role: admin.role, type: 'access' },
+      JWT_SECRET,
+      { expiresIn: '8h' }
+    );
+    const refreshToken = jwt.sign(
+      { sub: admin._id || admin.id, email: admin.email, type: 'refresh' },
+      JWT_REFRESH_SECRET,
+      { expiresIn: '30d' }
+    );
 
     return res.json({
       success: true,
@@ -166,7 +182,11 @@ export const login = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: 'Account not found.' });
     }
 
-    const twoFactorToken = `tfa_token_${Date.now()}_${Buffer.from(emailClean).toString('base64')}`;
+    const twoFactorToken = jwt.sign(
+      { email: emailClean, step: '2fa_pending' },
+      JWT_SECRET,
+      { expiresIn: '5m' }
+    );
 
     return res.json({
       success: true,
@@ -195,8 +215,23 @@ export const refreshToken = (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: 'Refresh token is required' });
     }
 
-    const newAccessToken = `jwt_access_token_${Date.now()}`;
-    const newRefreshToken = `jwt_refresh_token_${Date.now()}`;
+    let decoded: any;
+    try {
+      decoded = jwt.verify(token, JWT_REFRESH_SECRET);
+    } catch (err) {
+      return res.status(401).json({ success: false, message: 'Invalid or expired refresh token' });
+    }
+
+    const newAccessToken = jwt.sign(
+      { sub: decoded.sub, email: decoded.email, role: decoded.role || 'OWNER', type: 'access' },
+      JWT_SECRET,
+      { expiresIn: '8h' }
+    );
+    const newRefreshToken = jwt.sign(
+      { sub: decoded.sub, email: decoded.email, type: 'refresh' },
+      JWT_REFRESH_SECRET,
+      { expiresIn: '30d' }
+    );
 
     return res.json({
       success: true,

@@ -1,6 +1,10 @@
+import jwt from 'jsonwebtoken';
 import { Request, Response } from 'express';
 import { getAdminModel } from '../models/Admin.js';
 import { getClientVaultModel } from '../models/ClientVault.js';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'plexivia_production_jwt_secret_key_secure_2026';
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'plexivia_production_jwt_refresh_secret_key_2026';
 
 interface OtpEntry {
   email: string;
@@ -64,7 +68,11 @@ export const verifyPassword = async (req: Request, res: Response): Promise<void>
   }
 
   const cleanEmail = email.toLowerCase().trim();
-  const twoFactorToken = `tfa_${Buffer.from(cleanEmail + ':' + Date.now()).toString('base64')}`;
+  const twoFactorToken = jwt.sign(
+    { email: cleanEmail, step: '2fa_pending' },
+    JWT_SECRET,
+    { expiresIn: '5m' }
+  );
 
   res.status(200).json({
     success: true,
@@ -122,8 +130,16 @@ export const verify2fa = async (req: Request, res: Response): Promise<void> => {
     return;
   }
 
-  const accessToken = `plx_jwt_${Buffer.from(cleanEmail + ':' + Date.now()).toString('base64')}`;
-  const refreshToken = `plx_rt_${Buffer.from(cleanEmail + ':refresh:' + Date.now()).toString('base64')}`;
+  const accessToken = jwt.sign(
+    { sub: 'adm-001', email: cleanEmail, role: 'Owner', type: 'access' },
+    JWT_SECRET,
+    { expiresIn: '8h' }
+  );
+  const refreshToken = jwt.sign(
+    { sub: 'adm-001', email: cleanEmail, type: 'refresh' },
+    JWT_REFRESH_SECRET,
+    { expiresIn: '30d' }
+  );
 
   const userPayload = {
     id: 'adm-001',
