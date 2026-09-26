@@ -1,16 +1,20 @@
-export function generateReceiptNo() {
+// Generate unique sequential receipt number with Plexivia prefix
+export const generateReceiptNo = () => {
   const date = new Date();
   const yy = String(date.getFullYear()).slice(-2);
   const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
   const hex = Math.floor(0x1000 + Math.random() * 0xefff).toString(16).toUpperCase();
-  return `MA${yy}${mm}${hex}`;
-}
+  return `PLX-MR-${yy}${mm}${dd}-${hex}`;
+};
 
-export function generateReceiptQrText(receiptNo) {
-  return `Plexivia\nMoney receipt No: ${receiptNo}`;
-}
+// Generate QR code text for receipt authentication
+export const generateReceiptQrText = (receiptNo) => {
+  return `https://plexivia.com/verify/receipt/${receiptNo}`;
+};
 
-export function numberToWords(amount) {
+// Convert numeric amount into formal currency words representation
+export const numberToWords = (amount) => {
   if (!amount || isNaN(amount) || amount <= 0) return '';
   const num = Math.floor(amount);
 
@@ -18,7 +22,7 @@ export function numberToWords(amount) {
     'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
   const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
 
-  function convertHundreds(n) {
+  const convertHundreds = (n) => {
     let str = '';
     if (n >= 100) {
       str += units[Math.floor(n / 100)] + ' Hundred ';
@@ -32,7 +36,7 @@ export function numberToWords(amount) {
       str += units[n] + ' ';
     }
     return str.trim();
-  }
+  };
 
   let result = '';
   const crore = Math.floor(num / 10000000);
@@ -50,26 +54,27 @@ export function numberToWords(amount) {
 
   result = result.trim();
   return result ? `${result} Taka Only.` : '';
-}
+};
 
 export const PAYMENT_METHODS = [
   { id: 'Cash', label: 'Cash' },
+  { id: 'bKash', label: 'bKash Mobile Banking' },
   { id: 'Bank Transfer', label: 'Bank Transfer' },
   { id: 'Online Payment', label: 'Online Payment' },
 ];
 
 export const SERVICE_PURPOSES = [
-  'Visa Processing & Flight Ticket Booking (Saudi Arabia)',
-  'Indian Visa Processing & Embassy Submission',
-  'Work Permit Processing & Job Placement',
-  'e-Passport & MRP Application Submission',
-  'Air Ticket Booking & Hotel Reservation',
-  'Umrah Package & Ground Handling Service',
-  'Consular & Legal Document Attestation',
-  'Other Travel Consultancy & Service Charge',
+  'Investment Amount (Working Capital / Equity)',
+  'Client Software Retainer & Subscription',
+  'Cloud Infrastructure & Hosting Maintenance',
+  'Software Development & API Integration',
+  'UI/UX Design & Branding Consultancy',
+  'Technical Audit & Security Assessment',
+  'Other Corporate Service & Consultancy Fee',
 ];
 
-export function getDefaultMoneyReceiptData() {
+// Return default money receipt initial dataset
+export const getDefaultMoneyReceiptData = () => {
   return {
     _id: null,
     receiptNo: generateReceiptNo(),
@@ -79,17 +84,17 @@ export function getDefaultMoneyReceiptData() {
     passportNumber: '',
     phone: '',
     purpose: '',
-    receivedBy: '',
+    receivedBy: 'accounts@plexivia.com',
     receivedByRole: 'Accounts Officer',
-    paymentMethod: 'Cash',
+    paymentMethod: 'bKash',
     amount: '',
     amountInWords: '',
     preparedBy: 'Paid By',
     receivedBySignature: 'Received By',
     accountsSignature: 'Accountant',
-    approvedBySignature: 'General Manager / Proprietor',
+    approvedBySignature: 'General Manager / Director',
     copyType: 'Original Copy (Original Copy)',
-    dualPrint: true, // Default: print 2 copies on single A4 page
+    dualPrint: true,
     notes: '',
   };
-}
+};

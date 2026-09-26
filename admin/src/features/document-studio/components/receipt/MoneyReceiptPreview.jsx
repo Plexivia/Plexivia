@@ -4,35 +4,80 @@ import agencyInfo from '@/lib/information.json';
 import logoImg from '@/assets/logo.png';
 import { formatToDdMmYyyy } from '@/lib/utils';
 
-// Helper Barcode Component
-function BarcodeSVG({ value = 'MR2026084001' }) {
-  // Generate visual barcode bars based on value
-  const cleanVal = value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() || 'MR2026084001';
-  const barPattern = [2, 1, 3, 1, 1, 2, 3, 2, 1, 2, 1, 3, 2, 1, 1, 2, 3, 1, 2, 1, 3, 1, 2, 2, 1, 3, 1, 1, 2, 3, 2, 1, 2, 1, 3, 2, 1, 1, 2, 3];
+const CODE128_PATTERNS = [
+  '212222', '222122', '222221', '121223', '121322', '131222', '122213', '122312', '132212', '221213',
+  '221312', '231212', '112232', '122132', '122231', '113222', '123122', '123221', '223211', '221132',
+  '221231', '213212', '223112', '312131', '311222', '321122', '321221', '312212', '322112', '322211',
+  '212123', '212321', '232121', '111323', '131123', '131321', '112313', '132113', '132311', '211313',
+  '231113', '231311', '112133', '112331', '132131', '113123', '113321', '133121', '313121', '211331',
+  '231131', '213113', '213311', '213131', '311123', '311321', '331121', '312113', '312311', '332111',
+  '314111', '221411', '431111', '111224', '111422', '121124', '121421', '141122', '141221', '112214',
+  '112412', '122114', '122411', '142112', '142211', '241211', '221114', '413111', '241112', '134111',
+  '111242', '121142', '121241', '114212', '124112', '124211', '411212', '421112', '421211', '212141',
+  '214121', '412121', '111143', '111341', '131141', '114113', '114311', '411113', '411311', '113141',
+  '114131', '311141', '411131', '211412', '211214', '211232', '2331112'
+];
+
+// Generate visual Code 128 barcode bars for Plexivia
+const BarcodeSVG = ({ value = 'PLX-MR-2026' }) => {
+  const normalizedText = value.startsWith('PLX-') ? value : `PLX-${value}`;
+  const cleanText = normalizedText.replace(/[^\x20-\x7E]/g, '');
+  const startCode = 104;
+  let checksum = startCode;
+  const bars = [...startCode.toString().split('').map(Number)];
+
+  const encodedBars = [];
+  const startPattern = CODE128_PATTERNS[startCode].split('').map(Number);
+  encodedBars.push(...startPattern);
+
+  for (let i = 0; i < cleanText.length; i++) {
+    const charCode = cleanText.charCodeAt(i) - 32;
+    checksum += charCode * (i + 1);
+    const pattern = (CODE128_PATTERNS[charCode] || '211214').split('').map(Number);
+    encodedBars.push(...pattern);
+  }
+
+  const checkDigit = checksum % 103;
+  encodedBars.push(...CODE128_PATTERNS[checkDigit].split('').map(Number));
+  encodedBars.push(...CODE128_PATTERNS[106].split('').map(Number));
+
+  const totalUnits = encodedBars.reduce((a, b) => a + b, 0);
+  const width = 170;
+  const height = 44;
+  const unitWidth = width / (totalUnits + 12);
+  let currentX = unitWidth * 6;
 
   return (
     <div className="flex flex-col items-center">
-      <svg className="h-9 w-44" viewBox="0 0 160 40">
-        {barPattern.map((width, idx) => {
-          const xPos = idx * 4;
-          return (
-            <rect
-              key={idx}
-              x={xPos}
-              y="2"
-              width={width > 2 ? 2.5 : width === 2 ? 1.8 : 1.1}
-              height="34"
-              fill="#1E293B"
-            />
-          );
+      <svg className="h-9 w-44" viewBox={`0 0 ${width} ${height}`}>
+        <text x={width / 2} y="7" textAnchor="middle" fontSize="6" fontWeight="bold" fill="#0D47A1" letterSpacing="1">
+          PLEXIVIA BARCODE
+        </text>
+        {encodedBars.map((unit, idx) => {
+          const w = unit * unitWidth;
+          const x = currentX;
+          currentX += w;
+          if (idx % 2 === 0) {
+            return (
+              <rect
+                key={idx}
+                x={x.toFixed(2)}
+                y="9"
+                width={w.toFixed(2)}
+                height="24"
+                fill="#0B3A60"
+              />
+            );
+          }
+          return null;
         })}
       </svg>
-      <span className="text-[10px] font-mono font-bold tracking-widest text-slate-800 -mt-0.5">
-        *{cleanVal}*
+      <span className="text-[9.5px] font-mono font-bold tracking-widest text-slate-800 -mt-0.5">
+        *{normalizedText}*
       </span>
     </div>
   );
-}
+};
 
 // Single Voucher Slip Unit Component
 export function VoucherSlipCard({ data = {}, copyTitle = 'Original Copy', idSuffix = '' }) {
