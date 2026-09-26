@@ -20,9 +20,11 @@ echo "📥 Pulling latest git updates..."
 git pull origin main || git pull origin Live || git pull origin temp
 
 # 2. Build Backend & Microservices
-echo "🔨 Installing backend dependencies & building..."
+echo "🔨 Installing workspace dependencies & building..."
+npm install --include=optional
+
+echo "🔨 Building backend gateway..."
 cd "$APP_DIR/backend"
-npm ci
 npm run build
 
 echo "🔨 Building microservices..."
@@ -30,7 +32,6 @@ for svc in auth-service hub-service agency-service finance-service; do
   if [ -d "$APP_DIR/services/$svc" ]; then
     echo "  -> Building $svc..."
     cd "$APP_DIR/services/$svc"
-    npm ci
     npm run build
   fi
 done
@@ -38,7 +39,6 @@ done
 # 3. Build Admin Frontend
 echo "🌐 Building Admin Dashboard..."
 cd "$APP_DIR/admin"
-npm ci
 npm run build
 mkdir -p "$WWW_ADMIN_DIR"
 rsync -av --delete dist/ "$WWW_ADMIN_DIR/"
@@ -46,7 +46,6 @@ rsync -av --delete dist/ "$WWW_ADMIN_DIR/"
 # 4. Build Website Frontend
 echo "🌐 Building Corporate Website..."
 cd "$APP_DIR/website"
-npm ci
 npm run build
 mkdir -p "$WWW_WEBSITE_DIR"
 rsync -av --delete dist/ "$WWW_WEBSITE_DIR/"
