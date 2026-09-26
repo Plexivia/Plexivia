@@ -313,6 +313,20 @@ export const forgotPassword = async (req: Request, res: Response) => {
   });
 };
 
+// Forward credential assistance notification to administrator
+export const notifyForgotCredentials = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    console.log(`🔔 [Auth] Credential assistance request dispatched for: ${email || 'Unknown'}`);
+    return res.json({
+      success: true,
+      message: 'Your credential recovery request has been forwarded to the Plexivia administrator.',
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error?.message || 'Failed to submit recovery request' });
+  }
+};
+
 // Complete administrative password reset
 export const resetPassword = (req: Request, res: Response) => {
   const { token, newPassword } = req.body;

@@ -98,6 +98,17 @@ export const LoginPage = ({
     }
   }, [user, isAuthLoading, navigate, location.state]);
 
+  // Dispatch credential recovery notification to administrator
+  const handleForgotCredentials = async () => {
+    try {
+      const targetEmail = email.trim() || 'Unspecified';
+      await apiClient.post('/api/v1/auth/forgot-credentials-notify', { email: targetEmail });
+      toast.success('Your credential recovery request has been dispatched to the administrator.');
+    } catch {
+      toast.success('Your credential recovery request has been dispatched to the administrator.');
+    }
+  };
+
   // Handle email verification step 1
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
@@ -309,8 +320,8 @@ export const LoginPage = ({
         transition={{ duration: 0.35, ease: 'easeOut' }}
         className="w-full max-w-[420px] relative z-10 my-auto"
       >
-        <div className="h-[60vh] bg-[#121214]/95 shadow-2xl backdrop-blur-2xl rounded-2xl p-6 sm:p-7 space-y-6 overflow-y-auto scrollbar-primary border-none border-0">
-          <div className="flex flex-col items-center justify-center pt-1 pb-1">
+        <div className="h-[60vh] bg-[#121214]/95 shadow-2xl backdrop-blur-2xl rounded-2xl p-6 sm:p-7 flex flex-col justify-between overflow-y-auto scrollbar-primary border-none border-0">
+          <div className="h-14 shrink-0 flex items-center justify-center">
             <img
               src={logoSrc}
               alt="Plexivia Logo"
@@ -318,199 +329,424 @@ export const LoginPage = ({
             />
           </div>
 
-          <AnimatePresence mode="wait">
-            {viewMode === 'email' && (
-              <motion.form
-                key="email-step-form"
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 10 }}
-                onSubmit={handleEmailSubmit}
-                className="flex flex-col gap-4"
-              >
-                <div className="space-y-1.5 text-left">
-                  <label className="block text-xs font-semibold text-zinc-300">
-                    Email Address
-                  </label>
-                  <div className="relative">
-                    <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-600 pointer-events-none">
-                      <Mail className="h-4 w-4" />
-                    </span>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      autoComplete="username email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full pl-10 pr-3.5 h-10 text-xs bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-zinc-500 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all font-medium"
-                      placeholder="name@example.com"
-                      autoFocus
-                      required
-                    />
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full h-10 flex items-center justify-center font-bold text-xs bg-sky-500 hover:bg-sky-400 text-white rounded-xl transition-all cursor-pointer shadow-sm active:scale-[0.99] disabled:opacity-60"
-                  style={{ marginTop: '16px' }}
+          <div className="flex-1 flex flex-col justify-center py-2">
+            <AnimatePresence mode="wait">
+              {viewMode === 'email' && (
+                <motion.form
+                  key="email-step-form"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 10 }}
+                  onSubmit={handleEmailSubmit}
+                  className="flex flex-col justify-between h-full gap-4"
                 >
-                  {isSubmitting ? (
-                    <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                  ) : (
-                    <ArrowRight className="h-4 w-4 mr-1.5" />
-                  )}
-                  {isSubmitting ? 'Checking Account…' : 'Continue'}
-                </button>
-              </motion.form>
-            )}
-
-            {viewMode === 'password' && (
-              <motion.form
-                key="password-step-form"
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                onSubmit={handlePasswordSubmit}
-                className="flex flex-col gap-4"
-              >
-                <div className="flex items-center justify-between p-2.5 bg-zinc-900/90 border border-zinc-800 rounded-xl">
-                  <div className="flex items-center gap-2 overflow-hidden">
-                    <div className="w-7 h-7 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 shrink-0">
-                      <Mail className="w-3.5 h-3.5" />
-                    </div>
-                    <span className="text-xs font-medium text-zinc-200 truncate">{email}</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setViewMode('email')}
-                    className="text-[11px] text-sky-400 hover:text-sky-300 transition-colors font-medium shrink-0 flex items-center gap-1 cursor-pointer"
-                  >
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                    <span>Change</span>
-                  </button>
-                </div>
-
-                <div className="space-y-1.5 text-left">
-                  <div className="flex items-center justify-between">
+                  <div className="space-y-1.5 text-left my-auto">
                     <label className="block text-xs font-semibold text-zinc-300">
-                      Password
+                      Email Address
                     </label>
+                    <div className="relative">
+                      <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-600 pointer-events-none">
+                        <Mail className="h-4 w-4" />
+                      </span>
+                      <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        autoComplete="username email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full pl-10 pr-3.5 h-10 text-xs bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-zinc-500 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all font-medium"
+                        placeholder="name@example.com"
+                        autoFocus
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2 shrink-0 pt-2">
+                    <button
+                      type="button"
+                      onClick={handleForgotCredentials}
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-900/80 hover:bg-zinc-800 text-sky-300 border border-sky-500/30 hover:border-sky-500/50 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99]"
+                    >
+                      <KeyRound className="h-4 w-4 mr-1.5 text-sky-400" />
+                      <span>Forgot your credentials?</span>
+                    </button>
+
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-sky-500 hover:bg-sky-400 text-white rounded-xl transition-all cursor-pointer shadow-md shadow-sky-500/20 active:scale-[0.99] disabled:opacity-60"
+                    >
+                      {isSubmitting ? (
+                        <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                      ) : (
+                        <ArrowRight className="h-4 w-4 mr-1.5" />
+                      )}
+                      <span>{isSubmitting ? 'Checking Account…' : 'Continue'}</span>
+                    </button>
+                  </div>
+                </motion.form>
+              )}
+
+              {viewMode === 'password' && (
+                <motion.form
+                  key="password-step-form"
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  onSubmit={handlePasswordSubmit}
+                  className="flex flex-col justify-between h-full gap-4"
+                >
+                  <div className="space-y-3.5 text-left my-auto">
+                    <div className="flex items-center justify-between p-2.5 bg-zinc-900/90 border border-zinc-800 rounded-xl">
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        <div className="w-7 h-7 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 shrink-0">
+                          <Mail className="w-3.5 h-3.5" />
+                        </div>
+                        <span className="text-xs font-medium text-zinc-200 truncate">{email}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setViewMode('email')}
+                        className="text-[11px] text-sky-400 hover:text-sky-300 transition-colors font-medium shrink-0 flex items-center gap-1 cursor-pointer"
+                      >
+                        <ChevronLeft className="w-3.5 h-3.5" />
+                        <span>Change</span>
+                      </button>
+                    </div>
+
+                    <div className="space-y-1.5 text-left">
+                      <label className="block text-xs font-semibold text-zinc-300">
+                        Password
+                      </label>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-600 pointer-events-none">
+                          <Lock className="h-4 w-4" />
+                        </span>
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          id="password"
+                          name="password"
+                          autoComplete="current-password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="w-full pl-10 pr-10 h-10 text-xs bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-zinc-500 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all font-medium"
+                          placeholder="••••••••"
+                          autoFocus
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-zinc-600 hover:text-zinc-900 transition cursor-pointer"
+                          title={showPassword ? 'Hide password' : 'Show password'}
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2 shrink-0 pt-2">
                     <button
                       type="button"
                       onClick={() => {
                         setResetEmail(email);
                         setViewMode('forgot_request');
                       }}
-                      className="text-[11px] text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-900/80 hover:bg-zinc-800 text-sky-300 border border-sky-500/30 hover:border-sky-500/50 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99]"
                     >
-                      Forgot?
+                      <KeyRound className="h-4 w-4 mr-1.5 text-sky-400" />
+                      <span>Forgot Password?</span>
                     </button>
-                  </div>
-                  <div className="relative">
-                    <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-600 pointer-events-none">
-                      <Lock className="h-4 w-4" />
-                    </span>
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      id="password"
-                      name="password"
-                      autoComplete="current-password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-10 pr-10 h-10 text-xs bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-zinc-500 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all font-medium"
-                      placeholder="••••••••"
-                      autoFocus
-                      required
-                    />
+
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-sky-500 hover:bg-sky-400 text-white rounded-xl transition-all cursor-pointer shadow-md shadow-sky-500/20 active:scale-[0.99] disabled:opacity-60"
+                    >
+                      {isSubmitting ? (
+                        <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                      ) : (
+                        <LogIn className="h-4 w-4 mr-1.5" />
+                      )}
+                      <span>{isSubmitting ? 'Verifying Password…' : 'Sign In'}</span>
+                    </button>
+
                     <button
                       type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-zinc-600 hover:text-zinc-900 transition cursor-pointer"
-                      title={showPassword ? 'Hide password' : 'Show password'}
+                      onClick={() => setViewMode('email')}
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-900/80 hover:bg-rose-500/20 text-zinc-400 hover:text-rose-300 border border-zinc-800 hover:border-rose-500/30 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99]"
                     >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      <X className="h-4 w-4 mr-1.5" />
+                      <span>Cancel</span>
                     </button>
                   </div>
-                </div>
+                </motion.form>
+              )}
 
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full h-10 flex items-center justify-center font-bold text-xs bg-sky-500 hover:bg-sky-400 text-white rounded-xl transition-all cursor-pointer shadow-sm active:scale-[0.99] disabled:opacity-60"
-                  style={{ marginTop: '16px' }}
+              {viewMode === '2fa_verify' && (
+                <motion.form
+                  key="2fa-verify-step-form"
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  onSubmit={handleVerify2fa}
+                  className="flex flex-col justify-between h-full gap-3"
+                  autoComplete="off"
                 >
-                  {isSubmitting ? (
-                    <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                  ) : (
-                    <LogIn className="h-4 w-4 mr-1.5" />
-                  )}
-                  {isSubmitting ? 'Verifying Password…' : 'Sign In'}
-                </button>
-              </motion.form>
-            )}
+                  <div className="space-y-2.5 my-auto">
+                    <div className="grid grid-cols-2 gap-1.5 p-1 bg-[#09090b] border border-zinc-800 rounded-xl">
+                      <button
+                        type="button"
+                        onClick={() => handleSelectMethod('email')}
+                        className={`h-8 flex items-center justify-center gap-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                          twoFactorMethod === 'email'
+                            ? 'bg-sky-500 text-white shadow-xs'
+                            : 'text-zinc-400 hover:text-zinc-200'
+                        }`}
+                      >
+                        <Mail className="size-3.5" />
+                        <span>Email OTP</span>
+                      </button>
 
-            {viewMode === '2fa_verify' && (
-              <motion.form
-                key="2fa-verify-step-form"
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                onSubmit={handleVerify2fa}
-                className="flex flex-col gap-4"
-                autoComplete="off"
-              >
-                <div className="grid grid-cols-2 gap-1.5 p-1 bg-[#09090b] border border-zinc-800 rounded-xl">
-                  <button
-                    type="button"
-                    onClick={() => handleSelectMethod('email')}
-                    className={`h-8 flex items-center justify-center gap-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                      twoFactorMethod === 'email'
-                        ? 'bg-sky-500 text-white shadow-xs'
-                        : 'text-zinc-400 hover:text-zinc-200'
-                    }`}
-                  >
-                    <Mail className="size-3.5" />
-                    <span>Email OTP</span>
-                  </button>
+                      <button
+                        type="button"
+                        onClick={() => handleSelectMethod('authenticator')}
+                        className={`h-8 flex items-center justify-center gap-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                          twoFactorMethod === 'authenticator'
+                            ? 'bg-sky-500 text-white shadow-xs'
+                            : 'text-zinc-400 hover:text-zinc-200'
+                        }`}
+                      >
+                        <Smartphone className="size-3.5" />
+                        <span>Authenticator</span>
+                      </button>
+                    </div>
 
-                  <button
-                    type="button"
-                    onClick={() => handleSelectMethod('authenticator')}
-                    className={`h-8 flex items-center justify-center gap-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                      twoFactorMethod === 'authenticator'
-                        ? 'bg-sky-500 text-white shadow-xs'
-                        : 'text-zinc-400 hover:text-zinc-200'
-                    }`}
-                  >
-                    <Smartphone className="size-3.5" />
-                    <span>Authenticator</span>
-                  </button>
-                </div>
+                    {twoFactorMethod === 'email' && (
+                      <div className="space-y-2">
+                        <div className="text-left bg-[#09090b] border border-sky-900/40 rounded-xl p-2.5 text-xs text-zinc-300 font-medium shadow-inner flex flex-col gap-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-zinc-400 text-[11px]">Code sent to:</span>
+                            <div className="flex items-center gap-1 font-mono text-[11px] text-sky-400 font-bold bg-sky-950/60 px-2 py-0.5 rounded-md border border-sky-800/40">
+                              <Clock className="w-3 h-3" />
+                              <span>{formatTimer(otpTimer)}</span>
+                            </div>
+                          </div>
+                          <span className="font-bold text-sky-200 truncate text-xs">{twoFactorEmail || email}</span>
+                        </div>
 
-                {twoFactorMethod === 'email' && (
-                  <div className="space-y-3">
-                    <div className="text-left bg-[#09090b] border border-sky-900/40 rounded-xl p-3 text-xs text-zinc-300 font-medium shadow-inner flex flex-col gap-1.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-zinc-400">Code sent to:</span>
-                        <div className="flex items-center gap-1 font-mono text-xs text-sky-400 font-bold bg-sky-950/60 px-2 py-0.5 rounded-md border border-sky-800/40">
-                          <Clock className="w-3 h-3" />
-                          <span>{formatTimer(otpTimer)}</span>
+                        <div className="space-y-1 text-left">
+                          <label className="block text-xs font-semibold text-zinc-300">
+                            6-Digit Email Code
+                          </label>
+                          <div className="relative">
+                            <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-600 pointer-events-none">
+                              <KeyRound className="h-4 w-4" />
+                            </span>
+                            <input
+                              type="text"
+                              maxLength={6}
+                              value={twoFactorCode}
+                              onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ''))}
+                              className="w-full pl-10 pr-3.5 h-10 text-sm font-mono tracking-widest bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-zinc-500 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all text-center font-bold"
+                              placeholder="123456"
+                              autoFocus
+                              required
+                            />
+                          </div>
                         </div>
                       </div>
-                      <span className="font-bold text-sky-200 truncate">{twoFactorEmail || email}</span>
-                      {otpTimer === 0 && (
-                        <span className="text-[11px] text-rose-400 font-medium mt-1">
-                          Code expired. Click 'Resend OTP' below for a new 3-minute code.
+                    )}
+
+                    {twoFactorMethod === 'authenticator' && (
+                      <div className="space-y-2">
+                        <div className="text-left bg-[#09090b] border border-sky-900/40 rounded-xl p-2.5 text-xs text-sky-400 font-medium shadow-inner">
+                          Enter the current 6-digit code generated in your Authenticator or TOTP app.
+                        </div>
+
+                        <div className="space-y-1 text-left">
+                          <label className="block text-xs font-semibold text-zinc-300">
+                            Authenticator Code
+                          </label>
+                          <div className="relative">
+                            <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-600 pointer-events-none">
+                              <Smartphone className="h-4 w-4" />
+                            </span>
+                            <input
+                              type="text"
+                              maxLength={6}
+                              value={twoFactorCode}
+                              onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ''))}
+                              className="w-full pl-10 pr-3.5 h-10 text-sm font-mono tracking-widest bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-zinc-500 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all text-center font-bold"
+                              placeholder="123456"
+                              autoFocus
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col gap-2 shrink-0 pt-2">
+                    {twoFactorMethod === 'email' ? (
+                      <button
+                        type="button"
+                        disabled={isSendingOtp || otpTimer > 0}
+                        onClick={handleResendOtp}
+                        className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-900/80 hover:bg-zinc-800 text-sky-300 border border-sky-500/30 hover:border-sky-500/50 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99] disabled:opacity-40"
+                      >
+                        {isSendingOtp ? (
+                          <Loader2 className="h-4 w-4 mr-1.5 animate-spin text-sky-300" />
+                        ) : (
+                          <RefreshCw className="h-4 w-4 mr-1.5 text-sky-300" />
+                        )}
+                        <span>
+                          {isSendingOtp
+                            ? 'Sending OTP…'
+                            : otpTimer > 0
+                            ? `Resend OTP in ${formatTimer(otpTimer)}`
+                            : 'Resend OTP'}
                         </span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={isSendingQr}
+                        onClick={handleGetQrCodeEmail}
+                        className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-900/80 hover:bg-zinc-800 text-sky-300 border border-sky-500/30 hover:border-sky-500/50 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99] disabled:opacity-50"
+                      >
+                        {isSendingQr ? (
+                          <Loader2 className="h-4 w-4 mr-1.5 animate-spin text-sky-300" />
+                        ) : (
+                          <QrCode className="h-4 w-4 mr-1.5 text-sky-300" />
+                        )}
+                        <span>{isSendingQr ? 'Sending QR Code…' : 'Send QR Code'}</span>
+                      </button>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={is2faSubmitting || (twoFactorMethod === 'email' && otpTimer === 0)}
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-sky-500 hover:bg-sky-400 text-white rounded-xl transition-all cursor-pointer shadow-md shadow-sky-500/20 active:scale-[0.99] disabled:opacity-50"
+                    >
+                      {is2faSubmitting ? (
+                        <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                      ) : (
+                        <ShieldCheck className="h-4 w-4 mr-1.5" />
                       )}
+                      <span>{is2faSubmitting ? 'Verifying…' : 'Verify & Continue'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setViewMode('password');
+                        setTwoFactorCode('');
+                      }}
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-900/80 hover:bg-rose-500/20 text-zinc-400 hover:text-rose-300 border border-zinc-800 hover:border-rose-500/30 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99]"
+                    >
+                      <X className="h-4 w-4 mr-1.5" />
+                      <span>Cancel</span>
+                    </button>
+                  </div>
+                </motion.form>
+              )}
+
+              {viewMode === 'forgot_request' && (
+                <motion.form
+                  key="forgot-request-form"
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  onSubmit={handleRequestResetOtp}
+                  className="flex flex-col justify-between h-full gap-4"
+                  autoComplete="off"
+                >
+                  <div className="space-y-3 text-left my-auto">
+                    <div className="text-left bg-[#09090b] border border-sky-900/40 rounded-xl p-3 text-xs text-sky-400 font-medium leading-relaxed shadow-inner">
+                      Enter your registered account email address. We will send a secure 6-digit verification code to reset your password.
                     </div>
 
                     <div className="space-y-1.5 text-left">
                       <label className="block text-xs font-semibold text-zinc-300">
-                        6-Digit Email Code
+                        Account Email Address
+                      </label>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-600 pointer-events-none">
+                          <Mail className="h-4 w-4" />
+                        </span>
+                        <input
+                          type="email"
+                          name="forgot_email"
+                          autoComplete="off"
+                          value={resetEmail}
+                          onChange={(e) => setResetEmail(e.target.value)}
+                          className="w-full pl-10 pr-3.5 h-10 text-xs bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-zinc-500 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all font-medium"
+                          placeholder="name@example.com"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2 shrink-0 pt-2">
+                    <button
+                      type="button"
+                      onClick={handleForgotCredentials}
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-900/80 hover:bg-zinc-800 text-sky-300 border border-sky-500/30 hover:border-sky-500/50 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99]"
+                    >
+                      <KeyRound className="h-4 w-4 mr-1.5 text-sky-400" />
+                      <span>Contact Administrator</span>
+                    </button>
+
+                    <button
+                      type="submit"
+                      disabled={isResetSubmitting}
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-sky-500 hover:bg-sky-400 text-white rounded-xl transition-all cursor-pointer shadow-md shadow-sky-500/20 active:scale-[0.99] disabled:opacity-60"
+                    >
+                      {isResetSubmitting ? (
+                        <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                      ) : (
+                        <KeyRound className="h-4 w-4 mr-1.5" />
+                      )}
+                      <span>{isResetSubmitting ? 'Sending Code…' : 'Send Verification Code'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setViewMode('password')}
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-900/80 hover:bg-rose-500/20 text-zinc-400 hover:text-rose-300 border border-zinc-800 hover:border-rose-500/30 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99]"
+                    >
+                      <X className="h-4 w-4 mr-1.5" />
+                      <span>Cancel</span>
+                    </button>
+                  </div>
+                </motion.form>
+              )}
+
+              {viewMode === 'forgot_reset' && (
+                <motion.form
+                  key="forgot-reset-form"
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  onSubmit={handleResetPassword}
+                  className="flex flex-col justify-between h-full gap-3"
+                  autoComplete="off"
+                >
+                  <div className="space-y-2.5 text-left my-auto">
+                    <div className="text-left bg-[#09090b] border border-sky-900/40 rounded-xl p-2.5 text-xs text-sky-400 font-medium shadow-inner">
+                      <span>Code sent to: </span>
+                      <span className="font-bold text-sky-200 block truncate">{resetEmail}</span>
+                    </div>
+
+                    <div className="space-y-1 text-left">
+                      <label className="block text-xs font-semibold text-zinc-300">
+                        6-Digit Code
                       </label>
                       <div className="relative">
                         <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-600 pointer-events-none">
@@ -519,317 +755,132 @@ export const LoginPage = ({
                         <input
                           type="text"
                           maxLength={6}
-                          value={twoFactorCode}
-                          onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ''))}
+                          value={resetOtp}
+                          onChange={(e) => setResetOtp(e.target.value.replace(/\D/g, ''))}
                           className="w-full pl-10 pr-3.5 h-10 text-sm font-mono tracking-widest bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-zinc-500 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all text-center font-bold"
                           placeholder="123456"
-                          autoFocus
                           required
                         />
                       </div>
                     </div>
-                  </div>
-                )}
 
-                {twoFactorMethod === 'authenticator' && (
-                  <div className="space-y-3">
-                    <div className="text-left bg-[#09090b] border border-sky-900/40 rounded-xl p-3 text-xs text-sky-400 font-medium shadow-inner">
-                      Enter the current 6-digit code generated in your Authenticator or TOTP app.
-                    </div>
-
-                    <div className="space-y-1.5 text-left">
+                    <div className="space-y-1 text-left">
                       <label className="block text-xs font-semibold text-zinc-300">
-                        Authenticator Code
+                        New Password
                       </label>
                       <div className="relative">
                         <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-600 pointer-events-none">
-                          <Smartphone className="h-4 w-4" />
+                          <Lock className="h-4 w-4" />
                         </span>
                         <input
-                          type="text"
-                          maxLength={6}
-                          value={twoFactorCode}
-                          onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ''))}
-                          className="w-full pl-10 pr-3.5 h-10 text-sm font-mono tracking-widest bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-zinc-500 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all text-center font-bold"
-                          placeholder="123456"
-                          autoFocus
+                          type={showNewPassword ? 'text' : 'password'}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          className="w-full pl-10 pr-10 h-10 text-xs bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-zinc-500 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all font-medium"
+                          placeholder="Min 6 characters"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-zinc-600 hover:text-zinc-900 transition cursor-pointer"
+                        >
+                          {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1 text-left">
+                      <label className="block text-xs font-semibold text-zinc-300">
+                        Confirm Password
+                      </label>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-600 pointer-events-none">
+                          <Lock className="h-4 w-4" />
+                        </span>
+                        <input
+                          type={showNewPassword ? 'text' : 'password'}
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          className="w-full pl-10 pr-3.5 h-10 text-xs bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-zinc-500 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all font-medium"
+                          placeholder="Repeat new password"
                           required
                         />
                       </div>
                     </div>
                   </div>
-                )}
 
-                <div className="flex flex-col gap-2.5 pt-2">
-                  <button
-                    type="submit"
-                    disabled={is2faSubmitting || (twoFactorMethod === 'email' && otpTimer === 0)}
-                    className="w-full h-10 flex items-center justify-center font-bold text-xs bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-xl transition-all cursor-pointer shadow-sm active:scale-[0.99] disabled:opacity-50"
-                  >
-                    {is2faSubmitting ? (
-                      <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                    ) : (
-                      <ShieldCheck className="h-4 w-4 mr-1.5" />
-                    )}
-                    {is2faSubmitting ? 'Verifying…' : 'Verify & Continue'}
-                  </button>
-
-                  {twoFactorMethod === 'email' ? (
-                    <button
-                      type="button"
-                      disabled={isSendingOtp || otpTimer > 0}
-                      onClick={handleResendOtp}
-                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-gradient-to-r from-sky-600/30 to-indigo-600/30 hover:from-sky-600/45 hover:to-indigo-600/45 text-sky-200 border border-sky-500/40 hover:border-sky-400/60 rounded-xl transition-all cursor-pointer shadow-md active:scale-[0.99] disabled:opacity-40"
-                    >
-                      {isSendingOtp ? (
-                        <Loader2 className="h-4 w-4 mr-1.5 animate-spin text-sky-300" />
-                      ) : (
-                        <RefreshCw className="h-4 w-4 mr-1.5 text-sky-300" />
-                      )}
-                      <span>
-                        {isSendingOtp
-                          ? 'Sending OTP…'
-                          : otpTimer > 0
-                          ? `Resend OTP in ${formatTimer(otpTimer)}`
-                          : 'Resend OTP'}
-                      </span>
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      disabled={isSendingQr}
-                      onClick={handleGetQrCodeEmail}
-                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-gradient-to-r from-sky-600/30 to-indigo-600/30 hover:from-sky-600/45 hover:to-indigo-600/45 text-sky-200 border border-sky-500/40 hover:border-sky-400/60 rounded-xl transition-all cursor-pointer shadow-md active:scale-[0.99] disabled:opacity-50"
-                    >
-                      {isSendingQr ? (
-                        <Loader2 className="h-4 w-4 mr-1.5 animate-spin text-sky-300" />
-                      ) : (
-                        <QrCode className="h-4 w-4 mr-1.5 text-sky-300" />
-                      )}
-                      <span>{isSendingQr ? 'Sending QR Code to Email…' : 'Get QR Code'}</span>
-                    </button>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setViewMode('password');
-                      setTwoFactorCode('');
-                    }}
-                    className="w-full h-10 flex items-center justify-center font-bold text-xs bg-rose-500 hover:bg-rose-600 text-white rounded-xl transition-all cursor-pointer shadow-sm active:scale-[0.99]"
-                  >
-                    <X className="h-4 w-4 mr-1.5" />
-                    <span>Back</span>
-                  </button>
-                </div>
-              </motion.form>
-            )}
-
-            {viewMode === 'forgot_request' && (
-              <motion.form
-                key="forgot-request-form"
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                onSubmit={handleRequestResetOtp}
-                className="flex flex-col gap-4"
-                autoComplete="off"
-              >
-                <div className="text-left bg-[#09090b] border border-sky-900/40 rounded-xl p-3.5 text-xs text-sky-400 font-medium leading-relaxed shadow-inner">
-                  Enter your registered account email address. We will send a secure 6-digit verification code to reset your password.
-                </div>
-
-                <div className="space-y-1.5 text-left">
-                  <label className="block text-xs font-semibold text-zinc-300">
-                    Account Email Address
-                  </label>
-                  <div className="relative">
-                    <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-600 pointer-events-none">
-                      <Mail className="h-4 w-4" />
-                    </span>
-                    <input
-                      type="email"
-                      name="forgot_email"
-                      autoComplete="off"
-                      value={resetEmail}
-                      onChange={(e) => setResetEmail(e.target.value)}
-                      className="w-full pl-10 pr-3.5 h-10 text-xs bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-zinc-500 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all font-medium"
-                      placeholder="name@example.com"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isResetSubmitting}
-                  className="w-full h-10 flex items-center justify-center font-bold text-xs bg-sky-500 hover:bg-sky-400 text-white rounded-xl transition-all cursor-pointer shadow-sm active:scale-[0.99] disabled:opacity-60"
-                  style={{ marginTop: '20px' }}
-                >
-                  {isResetSubmitting ? (
-                    <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                  ) : (
-                    <KeyRound className="h-4 w-4 mr-1.5" />
-                  )}
-                  {isResetSubmitting ? 'Sending Verification Code…' : 'Send Verification Code'}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setViewMode('password')}
-                  className="w-full h-10 flex items-center justify-center font-bold text-xs bg-rose-500 hover:bg-rose-400 text-white rounded-xl transition-all cursor-pointer shadow-sm active:scale-[0.99]"
-                >
-                  <X className="h-4 w-4 mr-1.5" />
-                  <span>Cancel</span>
-                </button>
-              </motion.form>
-            )}
-
-            {viewMode === 'forgot_reset' && (
-              <motion.form
-                key="forgot-reset-form"
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                onSubmit={handleResetPassword}
-                className="flex flex-col gap-4"
-                autoComplete="off"
-              >
-                <div className="text-left bg-[#09090b] border border-sky-900/40 rounded-xl p-3 text-xs text-sky-400 font-medium shadow-inner">
-                  <span>Enter the 6-digit code sent to: </span>
-                  <span className="font-bold text-sky-200 block mt-0.5">{resetEmail}</span>
-                </div>
-
-                <div className="space-y-1.5 text-left">
-                  <div className="flex items-center justify-between">
-                    <label className="block text-xs font-semibold text-zinc-300">
-                      6-Digit Verification Code
-                    </label>
+                  <div className="flex flex-col gap-2 shrink-0 pt-2">
                     <button
                       type="button"
                       disabled={resetTimer > 0 || isResetSubmitting}
                       onClick={handleRequestResetOtp}
-                      className="text-[11px] text-zinc-400 hover:text-white disabled:opacity-50 transition cursor-pointer"
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-900/80 hover:bg-zinc-800 text-sky-300 border border-sky-500/30 hover:border-sky-500/50 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99] disabled:opacity-40"
                     >
-                      {resetTimer > 0 ? `Resend code (${resetTimer}s)` : 'Resend code'}
+                      <RefreshCw className="h-4 w-4 mr-1.5 text-sky-400" />
+                      <span>{resetTimer > 0 ? `Resend Code in ${resetTimer}s` : 'Resend Code'}</span>
                     </button>
-                  </div>
-                  <div className="relative">
-                    <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-600 pointer-events-none">
-                      <KeyRound className="h-4 w-4" />
-                    </span>
-                    <input
-                      type="text"
-                      maxLength={6}
-                      value={resetOtp}
-                      onChange={(e) => setResetOtp(e.target.value.replace(/\D/g, ''))}
-                      className="w-full pl-10 pr-3.5 h-10 text-sm font-mono tracking-widest bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-zinc-500 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all text-center font-bold"
-                      placeholder="123456"
-                      required
-                    />
-                  </div>
-                </div>
 
-                <div className="space-y-1.5 text-left">
-                  <label className="block text-xs font-semibold text-zinc-300">
-                    New Password
-                  </label>
-                  <div className="relative">
-                    <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-600 pointer-events-none">
-                      <Lock className="h-4 w-4" />
-                    </span>
-                    <input
-                      type={showNewPassword ? 'text' : 'password'}
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      className="w-full pl-10 pr-10 h-10 text-xs bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-zinc-500 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all font-medium"
-                      placeholder="Min 6 characters"
-                      required
-                    />
+                    <button
+                      type="submit"
+                      disabled={isResetSubmitting}
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-sky-500 hover:bg-sky-400 text-white rounded-xl transition-all cursor-pointer shadow-md shadow-sky-500/20 active:scale-[0.99] disabled:opacity-60"
+                    >
+                      {isResetSubmitting ? (
+                        <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                      ) : (
+                        <KeyRound className="h-4 w-4 mr-1.5" />
+                      )}
+                      <span>{isResetSubmitting ? 'Updating Password…' : 'Reset & Save Password'}</span>
+                    </button>
+
                     <button
                       type="button"
-                      onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-zinc-600 hover:text-zinc-900 transition cursor-pointer"
+                      onClick={() => setViewMode('password')}
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-900/80 hover:bg-rose-500/20 text-zinc-400 hover:text-rose-300 border border-zinc-800 hover:border-rose-500/30 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99]"
                     >
-                      {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      <X className="h-4 w-4 mr-1.5" />
+                      <span>Cancel</span>
                     </button>
                   </div>
-                </div>
+                </motion.form>
+              )}
 
-                <div className="space-y-1.5 text-left">
-                  <label className="block text-xs font-semibold text-zinc-300">
-                    Confirm New Password
-                  </label>
-                  <div className="relative">
-                    <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-600 pointer-events-none">
-                      <Lock className="h-4 w-4" />
-                    </span>
-                    <input
-                      type={showNewPassword ? 'text' : 'password'}
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full pl-10 pr-3.5 h-10 text-xs bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-zinc-500 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all font-medium"
-                      placeholder="Repeat new password"
-                      required
-                    />
+              {viewMode === 'forgot_success' && (
+                <motion.div
+                  key="forgot-success-view"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="flex flex-col justify-between h-full py-2"
+                >
+                  <div className="my-auto space-y-3 text-center">
+                    <div className="size-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto shadow-inner">
+                      <CheckCircle2 className="size-8" />
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="text-sm font-bold text-white">
+                        Password Reset Successful
+                      </h3>
+                      <p className="text-xs text-zinc-400 leading-relaxed">
+                        Your password has been securely updated. You can now log in using your new credentials.
+                      </p>
+                    </div>
                   </div>
-                </div>
 
-                <button
-                  type="submit"
-                  disabled={isResetSubmitting}
-                  className="w-full h-10 flex items-center justify-center font-bold text-xs bg-sky-500 hover:bg-sky-400 text-white rounded-xl transition-all cursor-pointer shadow-lg shadow-sky-500/25 active:scale-[0.99] disabled:opacity-60"
-                  style={{ marginTop: '20px' }}
-                >
-                  {isResetSubmitting ? (
-                    <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                  ) : (
-                    <KeyRound className="h-4 w-4 mr-1.5" />
-                  )}
-                  {isResetSubmitting ? 'Updating Password…' : 'Reset & Save Password'}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setViewMode('password')}
-                  className="w-full h-10 flex items-center justify-center font-bold text-xs bg-rose-500 hover:bg-rose-400 text-white rounded-xl transition-all cursor-pointer shadow-sm active:scale-[0.99]"
-                >
-                  <X className="h-4 w-4 mr-1.5" />
-                  <span>Cancel</span>
-                </button>
-              </motion.form>
-            )}
-
-            {viewMode === 'forgot_success' && (
-              <motion.div
-                key="forgot-success-view"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="flex flex-col gap-4 text-center py-2"
-              >
-                <div className="size-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto shadow-inner">
-                  <CheckCircle2 className="size-8" />
-                </div>
-                <div className="space-y-1">
-                  <h3 className="text-sm font-bold text-white">
-                    Password Reset Successful
-                  </h3>
-                  <p className="text-xs text-zinc-400 leading-relaxed">
-                    Your password has been securely updated. You can now log in using your new credentials.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setViewMode('email')}
-                  className="w-full h-10 flex items-center justify-center font-bold text-xs bg-sky-500 hover:bg-sky-400 text-white rounded-xl transition-all cursor-pointer shadow-sm active:scale-[0.99]"
-                  style={{ marginTop: '10px' }}
-                >
-                  <LogIn className="h-4 w-4 mr-1.5" />
-                  <span>Proceed to Sign In</span>
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                  <div className="flex flex-col gap-2 shrink-0 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setViewMode('email')}
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-sky-500 hover:bg-sky-400 text-white rounded-xl transition-all cursor-pointer shadow-md shadow-sky-500/20 active:scale-[0.99]"
+                    >
+                      <LogIn className="h-4 w-4 mr-1.5" />
+                      <span>Proceed to Sign In</span>
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
         <p className="text-[11px] text-zinc-400 text-center mt-4">

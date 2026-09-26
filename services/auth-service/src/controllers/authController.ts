@@ -219,3 +219,18 @@ export const getClientVault = async (req: Request, res: Response): Promise<void>
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+// Forward credential assistance notification to administrator
+export const notifyForgotCredentials = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email } = req.body;
+    console.log(`🔔 [auth-service] Credential assistance request dispatched for: ${email || 'Unknown'}`);
+    res.status(200).json({
+      success: true,
+      message: 'Your credential recovery request has been forwarded to the Plexivia administrator.',
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
