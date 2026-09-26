@@ -367,9 +367,9 @@ export const LoginPage = ({
                     <button
                       type="button"
                       onClick={handleForgotCredentials}
-                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-900/80 hover:bg-zinc-800 text-sky-300 border border-sky-500/30 hover:border-sky-500/50 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99]"
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 hover:text-white border border-zinc-700 hover:border-zinc-600 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99]"
                     >
-                      <KeyRound className="h-4 w-4 mr-1.5 text-sky-400" />
+                      <KeyRound className="h-4 w-4 mr-1.5 text-zinc-400" />
                       <span>Forgot your credentials?</span>
                     </button>
 
@@ -455,9 +455,9 @@ export const LoginPage = ({
                         setResetEmail(email);
                         setViewMode('forgot_request');
                       }}
-                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-900/80 hover:bg-zinc-800 text-sky-300 border border-sky-500/30 hover:border-sky-500/50 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99]"
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 hover:text-white border border-zinc-700 hover:border-zinc-600 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99]"
                     >
-                      <KeyRound className="h-4 w-4 mr-1.5 text-sky-400" />
+                      <KeyRound className="h-4 w-4 mr-1.5 text-zinc-400" />
                       <span>Forgot Password?</span>
                     </button>
 
@@ -477,7 +477,7 @@ export const LoginPage = ({
                     <button
                       type="button"
                       onClick={() => setViewMode('email')}
-                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-900/80 hover:bg-rose-500/20 text-zinc-400 hover:text-rose-300 border border-zinc-800 hover:border-rose-500/30 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99]"
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-red-600 hover:bg-red-500 text-white border border-red-500 rounded-xl transition-all cursor-pointer shadow-md shadow-red-600/25 active:scale-[0.99]"
                     >
                       <X className="h-4 w-4 mr-1.5" />
                       <span>Cancel</span>
@@ -597,12 +597,12 @@ export const LoginPage = ({
                         type="button"
                         disabled={isSendingOtp || otpTimer > 0}
                         onClick={handleResendOtp}
-                        className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-900/80 hover:bg-zinc-800 text-sky-300 border border-sky-500/30 hover:border-sky-500/50 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99] disabled:opacity-40"
+                        className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 hover:text-white border border-zinc-700 hover:border-zinc-600 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99] disabled:opacity-40"
                       >
                         {isSendingOtp ? (
-                          <Loader2 className="h-4 w-4 mr-1.5 animate-spin text-sky-300" />
+                          <Loader2 className="h-4 w-4 mr-1.5 animate-spin text-zinc-300" />
                         ) : (
-                          <RefreshCw className="h-4 w-4 mr-1.5 text-sky-300" />
+                          <RefreshCw className="h-4 w-4 mr-1.5 text-zinc-400" />
                         )}
                         <span>
                           {isSendingOtp
@@ -617,12 +617,12 @@ export const LoginPage = ({
                         type="button"
                         disabled={isSendingQr}
                         onClick={handleGetQrCodeEmail}
-                        className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-900/80 hover:bg-zinc-800 text-sky-300 border border-sky-500/30 hover:border-sky-500/50 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99] disabled:opacity-50"
+                        className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 hover:text-white border border-zinc-700 hover:border-zinc-600 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99] disabled:opacity-50"
                       >
                         {isSendingQr ? (
-                          <Loader2 className="h-4 w-4 mr-1.5 animate-spin text-sky-300" />
+                          <Loader2 className="h-4 w-4 mr-1.5 animate-spin text-zinc-300" />
                         ) : (
-                          <QrCode className="h-4 w-4 mr-1.5 text-sky-300" />
+                          <QrCode className="h-4 w-4 mr-1.5 text-zinc-400" />
                         )}
                         <span>{isSendingQr ? 'Sending QR Code…' : 'Send QR Code'}</span>
                       </button>
@@ -647,7 +647,7 @@ export const LoginPage = ({
                         setViewMode('password');
                         setTwoFactorCode('');
                       }}
-                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-900/80 hover:bg-rose-500/20 text-zinc-400 hover:text-rose-300 border border-zinc-800 hover:border-rose-500/30 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99]"
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-red-600 hover:bg-red-500 text-white border border-red-500 rounded-xl transition-all cursor-pointer shadow-md shadow-red-600/25 active:scale-[0.99]"
                     >
                       <X className="h-4 w-4 mr-1.5" />
                       <span>Cancel</span>
@@ -697,9 +697,9 @@ export const LoginPage = ({
                     <button
                       type="button"
                       onClick={handleForgotCredentials}
-                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-900/80 hover:bg-zinc-800 text-sky-300 border border-sky-500/30 hover:border-sky-500/50 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99]"
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 hover:text-white border border-zinc-700 hover:border-zinc-600 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99]"
                     >
-                      <KeyRound className="h-4 w-4 mr-1.5 text-sky-400" />
+                      <KeyRound className="h-4 w-4 mr-1.5 text-zinc-400" />
                       <span>Contact Administrator</span>
                     </button>
 
@@ -719,7 +719,7 @@ export const LoginPage = ({
                     <button
                       type="button"
                       onClick={() => setViewMode('password')}
-                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-900/80 hover:bg-rose-500/20 text-zinc-400 hover:text-rose-300 border border-zinc-800 hover:border-rose-500/30 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99]"
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-red-600 hover:bg-red-500 text-white border border-red-500 rounded-xl transition-all cursor-pointer shadow-md shadow-red-600/25 active:scale-[0.99]"
                     >
                       <X className="h-4 w-4 mr-1.5" />
                       <span>Cancel</span>
@@ -815,9 +815,9 @@ export const LoginPage = ({
                       type="button"
                       disabled={resetTimer > 0 || isResetSubmitting}
                       onClick={handleRequestResetOtp}
-                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-900/80 hover:bg-zinc-800 text-sky-300 border border-sky-500/30 hover:border-sky-500/50 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99] disabled:opacity-40"
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 hover:text-white border border-zinc-700 hover:border-zinc-600 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99] disabled:opacity-40"
                     >
-                      <RefreshCw className="h-4 w-4 mr-1.5 text-sky-400" />
+                      <RefreshCw className="h-4 w-4 mr-1.5 text-zinc-400" />
                       <span>{resetTimer > 0 ? `Resend Code in ${resetTimer}s` : 'Resend Code'}</span>
                     </button>
 
@@ -837,7 +837,7 @@ export const LoginPage = ({
                     <button
                       type="button"
                       onClick={() => setViewMode('password')}
-                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-900/80 hover:bg-rose-500/20 text-zinc-400 hover:text-rose-300 border border-zinc-800 hover:border-rose-500/30 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99]"
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-red-600 hover:bg-red-500 text-white border border-red-500 rounded-xl transition-all cursor-pointer shadow-md shadow-red-600/25 active:scale-[0.99]"
                     >
                       <X className="h-4 w-4 mr-1.5" />
                       <span>Cancel</span>
