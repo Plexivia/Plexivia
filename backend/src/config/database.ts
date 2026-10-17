@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { hashPassword } from '../utils/security.js';
 import { seedDefaultProjectTypes } from '../models/ProjectType.js';
 import { seedDefaultWhiteLabelProjects } from '../models/WhiteLabelEcommerce.js';
 
@@ -13,9 +14,20 @@ const seedSuperAdmin = async (conn: mongoose.Connection) => {
   try {
     const admins = conn.collection('admins');
     const existing = await admins.findOne({ email: 'admin@plexivia.com' });
+    const initialPassword = process.env.ADMIN_INITIAL_PASSWORD;
+
+    if (existing && !existing.password_hash && initialPassword) {
+      await admins.updateOne(
+        { _id: existing._id },
+        { $set: { password_hash: hashPassword(initialPassword), updated_at: new Date().toISOString() } }
+      );
+      console.log('👑 [plexivia_secure_db] Super Admin password initialized from ADMIN_INITIAL_PASSWORD.');
+    }
+
     if (!existing) {
       await admins.insertOne({
         email: 'admin@plexivia.com',
+        ...(initialPassword ? { password_hash: hashPassword(initialPassword) } : {}),
         full_name: 'Plexivia Super Owner',
         role: 'OWNER',
         is_active: true,

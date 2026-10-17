@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as authController from '../controllers/authController.js';
 import * as userController from '../controllers/userController.js';
+import { requireAuth, requireRole } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -19,24 +20,26 @@ router.post('/logout', authController.logout);
 router.post('/forgot-password', authController.forgotPassword);
 router.post('/forgot-credentials-notify', authController.notifyForgotCredentials);
 router.post('/reset-password', authController.resetPassword);
-router.get('/me', authController.getMe);
+
+// Everything below requires a valid access token
+router.get('/me', requireAuth, authController.getMe);
 
 // High-Security Client Vault (Owner / Admin Only)
-router.get('/vault/clients/:clientId', authController.getClientVault);
-router.put('/vault/clients/:clientId', authController.updateClientVault);
-router.patch('/vault/clients/:clientId', authController.updateClientVault);
+router.get('/vault/clients/:clientId', requireAuth, requireRole('OWNER', 'ADMIN'), authController.getClientVault);
+router.put('/vault/clients/:clientId', requireAuth, requireRole('OWNER', 'ADMIN'), authController.updateClientVault);
+router.patch('/vault/clients/:clientId', requireAuth, requireRole('OWNER', 'ADMIN'), authController.updateClientVault);
 
 // Admin Role & Module Permissions Management
-router.get('/admins/:id/permissions', authController.getAdminPermissions);
-router.put('/admins/:id/permissions', authController.updateAdminPermissions);
-router.patch('/admins/:id/permissions', authController.updateAdminPermissions);
+router.get('/admins/:id/permissions', requireAuth, requireRole('OWNER'), authController.getAdminPermissions);
+router.put('/admins/:id/permissions', requireAuth, requireRole('OWNER'), authController.updateAdminPermissions);
+router.patch('/admins/:id/permissions', requireAuth, requireRole('OWNER'), authController.updateAdminPermissions);
 
 // Legacy admin user list compatibility
-router.get('/users', userController.getUsers);
-router.post('/users', userController.createUser);
-router.get('/users/:id', userController.getUserById);
-router.put('/users/:id', userController.updateUser);
-router.patch('/users/:id', userController.updateUser);
-router.delete('/users/:id', userController.deleteUser);
+router.get('/users', requireAuth, requireRole('OWNER', 'ADMIN'), userController.getUsers);
+router.post('/users', requireAuth, requireRole('OWNER', 'ADMIN'), userController.createUser);
+router.get('/users/:id', requireAuth, requireRole('OWNER', 'ADMIN'), userController.getUserById);
+router.put('/users/:id', requireAuth, requireRole('OWNER', 'ADMIN'), userController.updateUser);
+router.patch('/users/:id', requireAuth, requireRole('OWNER', 'ADMIN'), userController.updateUser);
+router.delete('/users/:id', requireAuth, requireRole('OWNER', 'ADMIN'), userController.deleteUser);
 
 export default router;

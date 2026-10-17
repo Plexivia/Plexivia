@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { operationsDbConnection } from '../config/database.js';
 import { generateDId } from '../utils/dId.js';
-import { IClient, getClientModel } from './Client.js';
+import { type IClient, getClientModel } from './Client.js';
 
 export { IClient, getClientModel };
 

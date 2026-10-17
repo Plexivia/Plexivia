@@ -67,6 +67,13 @@ export const LoginPage = ({
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [otpTimer, setOtpTimer] = useState(0);
 
+  const [otpLoginEmail, setOtpLoginEmail] = useState('');
+  const [otpLoginCode, setOtpLoginCode] = useState('');
+  const [otpLoginToken, setOtpLoginToken] = useState('');
+  const [otpLoginTimer, setOtpLoginTimer] = useState(0);
+  const [isOtpLoginSending, setIsOtpLoginSending] = useState(false);
+  const [isOtpLoginVerifying, setIsOtpLoginVerifying] = useState(false);
+
   const [resetEmail, setResetEmail] = useState('');
   const [resetOtp, setResetOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -92,11 +99,88 @@ export const LoginPage = ({
   }, [resetTimer]);
 
   useEffect(() => {
+    let timer;
+    if (otpLoginTimer > 0) {
+      timer = setTimeout(() => setOtpLoginTimer((c) => c - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [otpLoginTimer]);
+
+  useEffect(() => {
     if (!isAuthLoading && user) {
       const targetPath = location.state?.from?.pathname || '/';
       navigate(targetPath, { replace: true });
     }
   }, [user, isAuthLoading, navigate, location.state]);
+
+  // Send OTP to email for passwordless login
+  const handleSendLoginOtp = async (e) => {
+    e.preventDefault();
+    const cleanEmail = otpLoginEmail.trim();
+    if (!cleanEmail) {
+      toast.error('Please enter your email address.');
+      return;
+    }
+    setIsOtpLoginSending(true);
+    try {
+      const res = await sendEmailOtp(cleanEmail);
+      setOtpLoginToken(res?.twoFactorToken || '');
+      setOtpLoginTimer(180);
+      setOtpLoginCode('');
+      setViewMode('otp_verify');
+      toast.info('Verification code sent to your email (valid for 3 minutes).');
+    } catch (err) {
+      handleGlobalError(err);
+    } finally {
+      setIsOtpLoginSending(false);
+    }
+  };
+
+  // Resend OTP for passwordless login
+  const handleResendLoginOtp = async () => {
+    if (isOtpLoginSending || otpLoginTimer > 0) return;
+    setIsOtpLoginSending(true);
+    try {
+      const res = await sendEmailOtp(otpLoginEmail.trim());
+      setOtpLoginToken(res?.twoFactorToken || '');
+      setOtpLoginTimer(180);
+      setOtpLoginCode('');
+      toast.success('A new 6-digit verification code has been sent (valid for 3 minutes).');
+    } catch (err) {
+      handleGlobalError(err);
+    } finally {
+      setIsOtpLoginSending(false);
+    }
+  };
+
+  // Verify OTP and complete passwordless login
+  const handleVerifyLoginOtp = async (e) => {
+    e.preventDefault();
+    if (!otpLoginCode.trim()) {
+      toast.error('Please enter the 6-digit verification code.');
+      return;
+    }
+    if (otpLoginTimer === 0) {
+      toast.error('Your verification code has expired. Please request a new code.');
+      return;
+    }
+    setIsOtpLoginVerifying(true);
+    try {
+      await verify2fa({
+        twoFactorToken: otpLoginToken,
+        code: otpLoginCode.trim(),
+        method: 'email',
+        email: otpLoginEmail.trim(),
+      });
+      toast.success('Signed in successfully via OTP.');
+    } catch (err) {
+      handleGlobalError(err);
+    } finally {
+      setIsOtpLoginVerifying(false);
+    }
+  };
+
+
 
   // Dispatch credential recovery notification to administrator
   const handleForgotCredentials = async () => {
@@ -385,9 +469,30 @@ export const LoginPage = ({
                       )}
                       <span>{isSubmitting ? 'Checking Account…' : 'Continue'}</span>
                     </button>
+
+                    <div className="flex items-center gap-2 my-0.5">
+                      <div className="flex-1 h-px bg-zinc-800" />
+                      <span className="text-[11px] text-zinc-500 font-medium">or</span>
+                      <div className="flex-1 h-px bg-zinc-800" />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOtpLoginEmail(email);
+                        setOtpLoginCode('');
+                        setOtpLoginTimer(0);
+                        setViewMode('otp_login');
+                      }}
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-900 hover:bg-zinc-800 text-sky-400 hover:text-sky-300 border border-zinc-700 hover:border-sky-700/50 rounded-xl transition-all cursor-pointer active:scale-[0.99]"
+                    >
+                      <KeyRound className="h-4 w-4 mr-1.5" />
+                      <span>Login with OTP</span>
+                    </button>
                   </div>
                 </motion.form>
               )}
+
 
               {viewMode === 'password' && (
                 <motion.form
@@ -878,6 +983,163 @@ export const LoginPage = ({
                     </button>
                   </div>
                 </motion.div>
+              )}
+
+              {viewMode === 'otp_login' && (
+                <motion.form
+                  key="otp-login-email-form"
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  onSubmit={handleSendLoginOtp}
+                  className="flex flex-col justify-between h-full gap-4"
+                  autoComplete="off"
+                >
+                  <div className="space-y-3 text-left my-auto">
+                    <div className="text-left bg-[#09090b] border border-sky-900/40 rounded-xl p-3 text-xs text-sky-400 font-medium leading-relaxed shadow-inner">
+                      Enter your registered email address. We will send a 6-digit OTP to sign you in without a password.
+                    </div>
+
+                    <div className="space-y-1.5 text-left">
+                      <label className="block text-xs font-semibold text-zinc-300">
+                        Email Address
+                      </label>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-600 pointer-events-none">
+                          <Mail className="h-4 w-4" />
+                        </span>
+                        <input
+                          type="email"
+                          name="otp_login_email"
+                          autoComplete="off"
+                          value={otpLoginEmail}
+                          onChange={(e) => setOtpLoginEmail(e.target.value)}
+                          className="w-full pl-10 pr-3.5 h-10 text-xs bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-zinc-500 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all font-medium"
+                          placeholder="name@example.com"
+                          autoFocus
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2 shrink-0 pt-2">
+                    <button
+                      type="submit"
+                      disabled={isOtpLoginSending}
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-sky-500 hover:bg-sky-400 text-white rounded-xl transition-all cursor-pointer shadow-md shadow-sky-500/20 active:scale-[0.99] disabled:opacity-60"
+                    >
+                      {isOtpLoginSending ? (
+                        <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                      ) : (
+                        <ArrowRight className="h-4 w-4 mr-1.5" />
+                      )}
+                      <span>{isOtpLoginSending ? 'Sending OTP…' : 'Send OTP'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setViewMode('email')}
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-red-600 hover:bg-red-500 text-white border border-red-500 rounded-xl transition-all cursor-pointer shadow-md shadow-red-600/25 active:scale-[0.99]"
+                    >
+                      <X className="h-4 w-4 mr-1.5" />
+                      <span>Cancel</span>
+                    </button>
+                  </div>
+                </motion.form>
+              )}
+
+              {viewMode === 'otp_verify' && (
+                <motion.form
+                  key="otp-verify-form"
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  onSubmit={handleVerifyLoginOtp}
+                  className="flex flex-col justify-between h-full gap-3"
+                  autoComplete="off"
+                >
+                  <div className="space-y-2.5 my-auto">
+                    <div className="text-left bg-[#09090b] border border-sky-900/40 rounded-xl p-2.5 text-xs text-zinc-300 font-medium shadow-inner flex flex-col gap-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-zinc-400 text-[11px]">Code sent to:</span>
+                        <div className="flex items-center gap-1 font-mono text-[11px] text-sky-400 font-bold bg-sky-950/60 px-2 py-0.5 rounded-md border border-sky-800/40">
+                          <Clock className="w-3 h-3" />
+                          <span>{formatTimer(otpLoginTimer)}</span>
+                        </div>
+                      </div>
+                      <span className="font-bold text-sky-200 truncate text-xs">{otpLoginEmail}</span>
+                    </div>
+
+                    <div className="space-y-1 text-left">
+                      <label className="block text-xs font-semibold text-zinc-300">
+                        6-Digit OTP Code
+                      </label>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-600 pointer-events-none">
+                          <KeyRound className="h-4 w-4" />
+                        </span>
+                        <input
+                          type="text"
+                          maxLength={6}
+                          value={otpLoginCode}
+                          onChange={(e) => setOtpLoginCode(e.target.value.replace(/\D/g, ''))}
+                          className="w-full pl-10 pr-3.5 h-10 text-sm font-mono tracking-widest bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-zinc-500 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all text-center font-bold"
+                          placeholder="123456"
+                          autoFocus
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2 shrink-0 pt-2">
+                    <button
+                      type="button"
+                      disabled={isOtpLoginSending || otpLoginTimer > 0}
+                      onClick={handleResendLoginOtp}
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 hover:text-white border border-zinc-700 hover:border-zinc-600 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99] disabled:opacity-40"
+                    >
+                      {isOtpLoginSending ? (
+                        <Loader2 className="h-4 w-4 mr-1.5 animate-spin text-zinc-300" />
+                      ) : (
+                        <RefreshCw className="h-4 w-4 mr-1.5 text-zinc-400" />
+                      )}
+                      <span>
+                        {isOtpLoginSending
+                          ? 'Sending OTP…'
+                          : otpLoginTimer > 0
+                          ? `Resend OTP in ${formatTimer(otpLoginTimer)}`
+                          : 'Resend OTP'}
+                      </span>
+                    </button>
+
+                    <button
+                      type="submit"
+                      disabled={isOtpLoginVerifying || otpLoginTimer === 0}
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-sky-500 hover:bg-sky-400 text-white rounded-xl transition-all cursor-pointer shadow-md shadow-sky-500/20 active:scale-[0.99] disabled:opacity-50"
+                    >
+                      {isOtpLoginVerifying ? (
+                        <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                      ) : (
+                        <ShieldCheck className="h-4 w-4 mr-1.5" />
+                      )}
+                      <span>{isOtpLoginVerifying ? 'Verifying…' : 'Verify & Sign In'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setViewMode('otp_login');
+                        setOtpLoginCode('');
+                      }}
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-red-600 hover:bg-red-500 text-white border border-red-500 rounded-xl transition-all cursor-pointer shadow-md shadow-red-600/25 active:scale-[0.99]"
+                    >
+                      <X className="h-4 w-4 mr-1.5" />
+                      <span>Cancel</span>
+                    </button>
+                  </div>
+                </motion.form>
               )}
             </AnimatePresence>
           </div>

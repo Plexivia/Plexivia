@@ -16,15 +16,13 @@ export default defineConfig({
     host: '0.0.0.0',
     proxy: {
       '/api': {
-        target: 'https://api.plexivia.com',
+        target: process.env.VITE_PROXY_TARGET || 'http://127.0.0.1:5095',
         changeOrigin: true,
-        secure: false,
       },
       '/ws': {
-        target: 'wss://api.plexivia.com',
+        target: (process.env.VITE_PROXY_TARGET || 'http://127.0.0.1:5095').replace(/^http/, 'ws'),
         ws: true,
         changeOrigin: true,
-        secure: false,
       }
     }
   },

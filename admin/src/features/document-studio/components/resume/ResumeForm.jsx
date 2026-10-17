@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { User, Briefcase, GraduationCap, Wrench, Settings, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-export function ResumeForm({ data, onChange }) {
+// Render interactive form controls for resume sections and styling
+export const ResumeForm = ({ data, onChange }) => {
   const [activeTab, setActiveTab] = useState('personal');
 
   const handlePersonalChange = (field, value) => {
@@ -75,6 +76,70 @@ export function ResumeForm({ data, onChange }) {
         }
         return e;
       })
+    });
+  };
+
+  const handleAddEducation = () => {
+    const newEdu = {
+      id: `edu-${Date.now()}`,
+      degree: 'B.Sc. / Degree Title',
+      institution: 'University / Institute Name',
+      location: 'City, Country',
+      startDate: '2019',
+      endDate: '2023',
+      grade: 'CGPA 3.8 / 4.0'
+    };
+    onChange({
+      ...data,
+      education: [...(data.education || []), newEdu]
+    });
+  };
+
+  const handleUpdateEducation = (id, field, value) => {
+    onChange({
+      ...data,
+      education: (data.education || []).map(e => e.id === id ? { ...e, [field]: value } : e)
+    });
+  };
+
+  const handleRemoveEducation = (id) => {
+    onChange({
+      ...data,
+      education: (data.education || []).filter(e => e.id !== id)
+    });
+  };
+
+  const handleAddSkillCategory = () => {
+    const newSkill = {
+      id: `skill-${Date.now()}`,
+      category: 'New Skill Category',
+      items: ['Skill 1', 'Skill 2']
+    };
+    onChange({
+      ...data,
+      skills: [...(data.skills || []), newSkill]
+    });
+  };
+
+  const handleUpdateSkillCategory = (id, field, value) => {
+    onChange({
+      ...data,
+      skills: (data.skills || []).map(s => s.id === id ? { ...s, [field]: value } : s)
+    });
+  };
+
+  const handleRemoveSkillCategory = (id) => {
+    onChange({
+      ...data,
+      skills: (data.skills || []).filter(s => s.id !== id)
+    });
+  };
+
+  const handleSkillItemsChange = (id, commaSeparatedString) => {
+    const items = commaSeparatedString.split(',').map(item => item.trim()).filter(Boolean);
+    onChange({
+      ...data,
+      skills: (data.skills || []).map(s => s.id === id ? { ...s, items } : s)
     });
   };
 
@@ -281,80 +346,218 @@ export function ResumeForm({ data, onChange }) {
 
       {/* TAB 3: EDUCATION */}
       {activeTab === 'education' && (
-        <div className="space-y-3 text-xs">
-          <h3 className="font-semibold text-foreground">Education & Qualifications</h3>
-          {data.education.map((edu, idx) => (
-            <div key={edu.id} className="bg-muted/40 border border-border p-3 rounded-xl space-y-2">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-muted-foreground mb-0.5">Degree Title</label>
-                  <input
-                    type="text"
-                    value={edu.degree}
-                    onChange={e => {
-                      const updated = data.education.map(item => item.id === edu.id ? { ...item, degree: e.target.value } : item);
-                      onChange({ ...data, education: updated });
-                    }}
-                    className="w-full bg-background border border-input rounded-lg px-2.5 py-1.5 text-foreground outline-none"
-                  />
+        <div className="space-y-4 text-xs">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-foreground">Education & Qualifications</h3>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Add degrees, diplomas, university credentials, or professional certifications.</p>
+            </div>
+            <button
+              type="button"
+              onClick={handleAddEducation}
+              className="flex items-center gap-1.5 bg-primary/10 text-primary hover:bg-primary/20 font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add Education</span>
+            </button>
+          </div>
+
+          {(data.education || []).length === 0 ? (
+            <div className="text-center py-8 px-4 border border-dashed border-border rounded-xl bg-muted/20">
+              <GraduationCap className="w-8 h-8 text-muted-foreground mx-auto mb-2 opacity-50" />
+              <p className="font-semibold text-foreground">No education history added yet</p>
+              <p className="text-[11px] text-muted-foreground mt-1 mb-3">Include your degrees, institutions, graduation dates and GPA or honors.</p>
+              <button
+                type="button"
+                onClick={handleAddEducation}
+                className="inline-flex items-center gap-1.5 bg-primary text-primary-foreground font-semibold px-3.5 py-1.5 rounded-lg text-xs shadow-xs hover:bg-primary/90 transition-all cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add Degree / Certificate</span>
+              </button>
+            </div>
+          ) : (
+            (data.education || []).map((edu, idx) => (
+              <div key={edu.id} className="bg-muted/40 border border-border p-3.5 rounded-xl space-y-3">
+                <div className="flex items-center justify-between border-b border-border pb-2">
+                  <span className="font-bold text-foreground">Qualification #{idx + 1}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveEducation(edu.id)}
+                    className="text-destructive hover:text-destructive/80 p-1 rounded-lg transition-colors cursor-pointer"
+                    title="Remove Degree"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 </div>
-                <div>
-                  <label className="block text-muted-foreground mb-0.5">Institution</label>
-                  <input
-                    type="text"
-                    value={edu.institution}
-                    onChange={e => {
-                      const updated = data.education.map(item => item.id === edu.id ? { ...item, institution: e.target.value } : item);
-                      onChange({ ...data, education: updated });
-                    }}
-                    className="w-full bg-background border border-input rounded-lg px-2.5 py-1.5 text-foreground outline-none"
-                  />
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-muted-foreground font-medium mb-1">Degree Title</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. B.Sc. in Computer Science & Engineering"
+                      value={edu.degree || ''}
+                      onChange={e => handleUpdateEducation(edu.id, 'degree', e.target.value)}
+                      className="w-full bg-background border border-input rounded-lg px-2.5 py-1.5 text-foreground outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-muted-foreground font-medium mb-1">Institution / University</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. University of Dhaka"
+                      value={edu.institution || ''}
+                      onChange={e => handleUpdateEducation(edu.id, 'institution', e.target.value)}
+                      className="w-full bg-background border border-input rounded-lg px-2.5 py-1.5 text-foreground outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-muted-foreground font-medium mb-1">Location / Campus</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Dhaka, Bangladesh"
+                      value={edu.location || ''}
+                      onChange={e => handleUpdateEducation(edu.id, 'location', e.target.value)}
+                      className="w-full bg-background border border-input rounded-lg px-2.5 py-1.5 text-foreground outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-muted-foreground font-medium mb-1">Grade / Result / Honors</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. CGPA 3.85 / 4.0 or First Class"
+                      value={edu.grade || ''}
+                      onChange={e => handleUpdateEducation(edu.id, 'grade', e.target.value)}
+                      className="w-full bg-background border border-input rounded-lg px-2.5 py-1.5 text-foreground outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-muted-foreground font-medium mb-1">Start Year</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 2017"
+                      value={edu.startDate || ''}
+                      onChange={e => handleUpdateEducation(edu.id, 'startDate', e.target.value)}
+                      className="w-full bg-background border border-input rounded-lg px-2.5 py-1.5 text-foreground outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-muted-foreground font-medium mb-1">End / Passing Year</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 2021 or Present"
+                      value={edu.endDate || ''}
+                      onChange={e => handleUpdateEducation(edu.id, 'endDate', e.target.value)}
+                      className="w-full bg-background border border-input rounded-lg px-2.5 py-1.5 text-foreground outline-none"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       )}
 
       {/* TAB 4: SKILLS */}
       {activeTab === 'skills' && (
-        <div className="space-y-3 text-xs">
-          <h3 className="font-semibold text-foreground">Skills & Competencies</h3>
-          {data.skills.map((sg, idx) => (
-            <div key={sg.id} className="bg-muted/40 border border-border p-3 rounded-xl space-y-2">
-              <div>
-                <label className="block text-muted-foreground mb-0.5">Skill Category</label>
-                <input
-                  type="text"
-                  value={sg.category}
-                  onChange={e => {
-                    const updated = data.skills.map(item => item.id === sg.id ? { ...item, category: e.target.value } : item);
-                    onChange({ ...data, skills: updated });
-                  }}
-                  className="w-full bg-background border border-input rounded-lg px-2.5 py-1.5 text-foreground font-semibold outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-muted-foreground mb-0.5">Skill Items (Comma Separated)</label>
-                <input
-                  type="text"
-                  value={sg.items.join(', ')}
-                  onChange={e => {
-                    const itemsArr = e.target.value.split(',').map(s => s.trim());
-                    const updated = data.skills.map(item => item.id === sg.id ? { ...item, items: itemsArr } : item);
-                    onChange({ ...data, skills: updated });
-                  }}
-                  className="w-full bg-background border border-input rounded-lg px-2.5 py-1.5 text-foreground outline-none"
-                />
-              </div>
+        <div className="space-y-4 text-xs">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-foreground">Skills & Competencies</h3>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Organize your expertise by domain, tools, frameworks or languages.</p>
             </div>
-          ))}
+            <button
+              type="button"
+              onClick={handleAddSkillCategory}
+              className="flex items-center gap-1.5 bg-primary/10 text-primary hover:bg-primary/20 font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add Skill Group</span>
+            </button>
+          </div>
+
+          {(data.skills || []).length === 0 ? (
+            <div className="text-center py-8 px-4 border border-dashed border-border rounded-xl bg-muted/20">
+              <Wrench className="w-8 h-8 text-muted-foreground mx-auto mb-2 opacity-50" />
+              <p className="font-semibold text-foreground">No skill categories added yet</p>
+              <p className="text-[11px] text-muted-foreground mt-1 mb-3">Group your skills into categories like Frontend, Backend, Cloud or Management.</p>
+              <button
+                type="button"
+                onClick={handleAddSkillCategory}
+                className="inline-flex items-center gap-1.5 bg-primary text-primary-foreground font-semibold px-3.5 py-1.5 rounded-lg text-xs shadow-xs hover:bg-primary/90 transition-all cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add Skill Category</span>
+              </button>
+            </div>
+          ) : (
+            (data.skills || []).map((sg, idx) => (
+              <div key={sg.id} className="bg-muted/40 border border-border p-3.5 rounded-xl space-y-3">
+                <div className="flex items-center justify-between border-b border-border pb-2">
+                  <span className="font-bold text-foreground">Skill Group #{idx + 1}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveSkillCategory(sg.id)}
+                    className="text-destructive hover:text-destructive/80 p-1 rounded-lg transition-colors cursor-pointer"
+                    title="Remove Skill Group"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-muted-foreground font-medium mb-1">Category Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Frontend Development, Tools & Cloud, Languages"
+                      value={sg.category || ''}
+                      onChange={e => handleUpdateSkillCategory(sg.id, 'category', e.target.value)}
+                      className="w-full bg-background border border-input rounded-lg px-2.5 py-1.5 text-foreground font-semibold outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-muted-foreground font-medium mb-1">
+                      Skill Items <span className="font-normal text-muted-foreground/75">(Comma-separated)</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. React, Next.js, TypeScript, Tailwind CSS"
+                      value={(sg.items || []).join(', ')}
+                      onChange={e => handleSkillItemsChange(sg.id, e.target.value)}
+                      className="w-full bg-background border border-input rounded-lg px-2.5 py-1.5 text-foreground outline-none"
+                    />
+                  </div>
+
+                  {(sg.items || []).length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {(sg.items || []).map((item, itemIdx) => (
+                        <span
+                          key={itemIdx}
+                          className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-background border border-border text-foreground"
+                        >
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
         </div>
       )}
 
       {/* TAB 5: SETTINGS & TEMPLATES */}
       {activeTab === 'settings' && (
-        <div className="space-y-4 text-xs">
+        <div className="space-y-5 text-xs">
           <div>
             <label className="block text-muted-foreground font-medium mb-2">Design Template</label>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
@@ -365,6 +568,7 @@ export function ResumeForm({ data, onChange }) {
               ].map(tmpl => (
                 <button
                   key={tmpl.id}
+                  type="button"
                   onClick={() => onChange({ ...data, settings: { ...data.settings, template: tmpl.id } })}
                   className={`p-3 border rounded-xl text-left transition-all cursor-pointer ${
                     data.settings.template === tmpl.id
@@ -378,9 +582,38 @@ export function ResumeForm({ data, onChange }) {
               ))}
             </div>
           </div>
+
+          <div>
+            <label className="block text-muted-foreground font-medium mb-2">Accent Color Theme</label>
+            <div className="flex flex-wrap items-center gap-2.5">
+              {[
+                { label: 'Sky Blue', hex: '#0284c7' },
+                { label: 'Emerald', hex: '#059669' },
+                { label: 'Indigo', hex: '#4f46e5' },
+                { label: 'Violet', hex: '#7c3aed' },
+                { label: 'Rose', hex: '#e11d48' },
+                { label: 'Amber', hex: '#d97706' },
+                { label: 'Slate', hex: '#334155' },
+              ].map(c => (
+                <button
+                  key={c.hex}
+                  type="button"
+                  onClick={() => onChange({ ...data, settings: { ...data.settings, accentColor: c.hex } })}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs transition-all cursor-pointer ${
+                    data.settings.accentColor === c.hex
+                      ? 'border-foreground font-bold shadow-xs'
+                      : 'border-border hover:border-foreground/50'
+                  }`}
+                >
+                  <span className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: c.hex }}></span>
+                  <span className="text-foreground">{c.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
     </div>
   );
-}
+};
