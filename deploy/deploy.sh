@@ -17,7 +17,7 @@ cd "$APP_DIR"
 
 # 1. Pull Latest Code
 echo "📥 Pulling latest git updates..."
-git pull origin main || git pull origin Live || git pull origin temp
+git pull origin Live
 
 # 2. Build Backend & Microservices
 echo "🔨 Installing workspace dependencies & building..."
