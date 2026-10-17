@@ -12,6 +12,7 @@ import {
   Coins,
   Award,
   UserCheck,
+  FileUser,
 } from 'lucide-react';
 import type { MenuGroup } from '@/types';
 
@@ -84,6 +85,11 @@ export const NAVIGATION_MENU_GROUPS: MenuGroup[] = [
             title: 'Experience Certificate',
             url: '/documents/experience-certificate',
             icon: Award,
+          },
+          {
+            title: 'CV / Resume Builder',
+            url: '/documents/resume',
+            icon: FileUser,
           },
         ],
       },

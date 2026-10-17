@@ -7,9 +7,10 @@ import { Download, RefreshCw, FileText } from 'lucide-react';
 import { HeaderTitle } from '@/components/common/HeaderTitle';
 import { StudioFloatingViewSwitcher } from '../common/StudioFloatingViewSwitcher';
 
-export function ResumeBuilder() {
+// Manage interactive resume building and live document preview
+export const ResumeBuilder = () => {
   const [data, setData] = useState(getDefaultResumeData());
-  const [viewMode, setViewMode] = useState('edit'); // 'edit' | 'split' | 'preview'
+  const [viewMode, setViewMode] = useState('edit');
   const [isExportOpen, setIsExportOpen] = useState(false);
 
   const handleResetSample = () => {
@@ -85,6 +86,6 @@ export function ResumeBuilder() {
       <StudioFloatingViewSwitcher viewMode={viewMode} setViewMode={setViewMode} />
     </div>
   );
-}
+};
 
 export default ResumeBuilder;

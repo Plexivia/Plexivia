@@ -7,34 +7,36 @@ interface SendMailOptions {
   text?: string;
 }
 
-// Create primary SMTP transporter with environment configuration and reliable fallbacks
+// Create primary SMTP transporter from environment configuration
 const createPrimaryTransporter = () => {
-  const host = process.env.SMTP_HOST || 'smtp.zoho.com';
+  const { SMTP_HOST, SMTP_USER, SMTP_PASS } = process.env;
+  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
+    throw new Error('Primary SMTP is not configured (SMTP_HOST, SMTP_USER, SMTP_PASS)');
+  }
   const port = Number(process.env.SMTP_PORT) || 465;
-  const user = process.env.SMTP_USER || 'info@plexivia.online';
-  const pass = process.env.SMTP_PASS || 'The4HorseMen@@';
 
   return nodemailer.createTransport({
-    host,
+    host: SMTP_HOST,
     port,
     secure: port === 465,
-    auth: { user, pass },
-    tls: { rejectUnauthorized: false },
+    auth: { user: SMTP_USER, pass: SMTP_PASS },
     connectionTimeout: 10000,
   });
 };
 
-// Create secondary fallback SMTP transporter
+// Create secondary fallback SMTP transporter, or null when not configured
 const createFallbackTransporter = () => {
+  const { SMTP_FALLBACK_HOST, SMTP_FALLBACK_USER, SMTP_FALLBACK_PASS } = process.env;
+  if (!SMTP_FALLBACK_HOST || !SMTP_FALLBACK_USER || !SMTP_FALLBACK_PASS) {
+    return null;
+  }
+  const port = Number(process.env.SMTP_FALLBACK_PORT) || 465;
+
   return nodemailer.createTransport({
-    host: process.env.SMTP_FALLBACK_HOST || 'mail.privateemail.com',
-    port: 465,
-    secure: true,
-    auth: {
-      user: process.env.SMTP_FALLBACK_USER || 'support@plexihub.space',
-      pass: process.env.SMTP_FALLBACK_PASS || 'VXfc-5qGJ-s5qE-VqHN-Wktx-saSv',
-    },
-    tls: { rejectUnauthorized: false },
+    host: SMTP_FALLBACK_HOST,
+    port,
+    secure: port === 465,
+    auth: { user: SMTP_FALLBACK_USER, pass: SMTP_FALLBACK_PASS },
     connectionTimeout: 10000,
   });
 };
@@ -211,8 +213,11 @@ export const sendMail = async (options: SendMailOptions): Promise<{ success: boo
 
     try {
       const fallback = createFallbackTransporter();
+      if (!fallback) {
+        throw primaryError;
+      }
       const info = await fallback.sendMail({
-        from: '"Plexivia Support" <support@plexihub.space>',
+        from: process.env.SMTP_FALLBACK_FROM || process.env.SMTP_FALLBACK_USER,
         to: options.to,
         subject: options.subject,
         html: options.html,

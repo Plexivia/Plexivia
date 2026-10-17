@@ -41,6 +41,13 @@ const AdminSchema = new Schema<IAdmin>(
   {
     timestamps: false,
     collection: 'admins',
+    toJSON: {
+      transform: (_doc, ret: Record<string, any>) => {
+        delete ret.password_hash;
+        delete ret.two_factor_secret;
+        return ret;
+      },
+    },
   }
 );
 

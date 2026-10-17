@@ -1,7 +1,11 @@
 import { Router } from 'express';
 import * as hubController from '../controllers/hubController.js';
+import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
+
+// All routes in this router require a valid access token
+router.use(requireAuth);
 
 // Master Hub Metrics & Stats
 router.get('/overview', hubController.getHubOverview);

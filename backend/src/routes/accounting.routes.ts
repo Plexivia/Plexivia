@@ -1,7 +1,11 @@
 import { Router } from 'express';
 import * as accountingController from '../controllers/accountingController.js';
+import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
+
+// All routes in this router require a valid access token
+router.use(requireAuth);
 
 // Invoices
 router.get('/invoices', accountingController.getInvoices);

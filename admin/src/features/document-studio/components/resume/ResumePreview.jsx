@@ -2,7 +2,8 @@ import React from 'react';
 import { PrintablePaper } from '../common/PrintablePaper';
 import { Mail, Phone, MapPin, Printer } from 'lucide-react';
 
-export function ResumePreview({ data, onPrint }) {
+// Render printable formatted multi-template resume preview canvas
+export const ResumePreview = ({ data, onPrint }) => {
   const { personalInfo, experience, education, skills, settings } = data;
 
   return (
@@ -98,9 +99,14 @@ export function ResumePreview({ data, onPrint }) {
                     Education & Credentials
                   </h3>
                   {education.map(edu => (
-                    <div key={edu.id}>
+                    <div key={edu.id} className="space-y-0.5">
                       <div className="font-bold text-slate-900">{edu.degree}</div>
-                      <div className="text-slate-700">{edu.institution} ({edu.endDate})</div>
+                      <div className="text-slate-700">
+                        {edu.institution}{edu.location ? `, ${edu.location}` : ''}
+                      </div>
+                      <div className="text-[11px] text-slate-500">
+                        {edu.startDate ? `${edu.startDate} – ` : ''}{edu.endDate || 'Present'}{edu.grade ? ` • ${edu.grade}` : ''}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -155,6 +161,44 @@ export function ResumePreview({ data, onPrint }) {
                 </div>
               </div>
             )}
+
+            {skills.length > 0 && (
+              <div>
+                <h2 className="text-xs font-bold uppercase tracking-widest border-b border-slate-400 pb-0.5 mb-2 font-sans">
+                  Key Skills & Competencies
+                </h2>
+                <div className="space-y-1.5 text-xs font-sans">
+                  {skills.map(sg => (
+                    <div key={sg.id} className="text-slate-800">
+                      <span className="font-bold text-slate-900 font-serif">{sg.category}: </span>
+                      <span>{sg.items.join(', ')}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {education.length > 0 && (
+              <div>
+                <h2 className="text-xs font-bold uppercase tracking-widest border-b border-slate-400 pb-0.5 mb-2 font-sans">
+                  Education & Credentials
+                </h2>
+                <div className="space-y-2.5 text-xs">
+                  {education.map(edu => (
+                    <div key={edu.id} className="flex justify-between items-start">
+                      <div>
+                        <div className="font-bold text-slate-900">{edu.degree}</div>
+                        <div className="text-slate-700 italic font-sans">{edu.institution}{edu.location ? ` • ${edu.location}` : ''}</div>
+                        {edu.grade && <div className="text-[11px] text-slate-600 font-sans">Grade / Honors: {edu.grade}</div>}
+                      </div>
+                      <span className="text-slate-600 font-sans text-xs">
+                        {edu.startDate ? `${edu.startDate} – ` : ''}{edu.endDate || 'Present'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -198,10 +242,44 @@ export function ResumePreview({ data, onPrint }) {
                 </div>
               </div>
             )}
+
+            {skills.length > 0 && (
+              <div>
+                <div className="font-bold uppercase border-b border-slate-400 mb-2">SKILLS & TECH STACK</div>
+                <div className="space-y-1 text-[11px]">
+                  {skills.map(sg => (
+                    <div key={sg.id}>
+                      <span className="font-bold">[{sg.category}]: </span>
+                      <span>{sg.items.join(', ')}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {education.length > 0 && (
+              <div>
+                <div className="font-bold uppercase border-b border-slate-400 mb-2">EDUCATION & CREDENTIALS</div>
+                <div className="space-y-2 text-[11px]">
+                  {education.map(edu => (
+                    <div key={edu.id} className="flex justify-between items-start">
+                      <div>
+                        <div className="font-bold">{edu.degree}</div>
+                        <div className="text-slate-700">{edu.institution}{edu.location ? ` [${edu.location}]` : ''}</div>
+                        {edu.grade && <div className="text-slate-600">Result: {edu.grade}</div>}
+                      </div>
+                      <span className="text-slate-600">
+                        {edu.startDate ? `${edu.startDate} - ` : ''}{edu.endDate || 'NOW'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
       </PrintablePaper>
     </div>
   );
-}
+};

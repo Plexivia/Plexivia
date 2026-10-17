@@ -4,8 +4,12 @@ import * as projectController from '../controllers/projectController.js';
 import * as taskController from '../controllers/taskController.js';
 import * as teamController from '../controllers/teamController.js';
 import * as employeeController from '../controllers/employeeController.js';
+import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
+
+// All routes in this router require a valid access token
+router.use(requireAuth);
 
 // Internal Agency Employees & Staff
 router.get('/employees', employeeController.getEmployees);

@@ -6,6 +6,7 @@ import {
   Receipt,
   Wallet,
   Award,
+  FileUser,
 } from 'lucide-react';
 
 export const DOCUMENT_GENERATORS = [
@@ -100,13 +101,26 @@ export const DOCUMENT_GENERATORS = [
     badge: 'Certificate',
     badgeStyle: 'bg-rose-50 text-rose-700 border-rose-200',
   },
+  {
+    id: 'resume',
+    title: 'Curriculum Vitae & Resume',
+    bnTitle: '',
+    category: 'hr',
+    categoryLabel: 'HR & Career',
+    description: 'Professional executive and overseas employment resume biodata with multiple templates.',
+    bnDescription: '',
+    icon: FileUser,
+    color: 'from-amber-600 to-orange-600',
+    badge: 'CV / Resume',
+    badgeStyle: 'bg-amber-50 text-amber-700 border-amber-200',
+  },
 ];
 
 export const CATEGORIES = [
-  { id: 'all', label: 'All Documents', bnLabel: '', count: 7 },
+  { id: 'all', label: 'All Documents', bnLabel: '', count: 8 },
   { id: 'contracts', label: 'Contracts & Forms', bnLabel: '', count: 1 },
   { id: 'accounts', label: 'Accounts & Billing', bnLabel: '', count: 3 },
-  { id: 'hr', label: 'HR & Payroll', bnLabel: '', count: 2 },
+  { id: 'hr', label: 'HR & Career', bnLabel: '', count: 3 },
   { id: 'certificates', label: 'Certificates', bnLabel: '', count: 1 },
 ];
 
@@ -116,6 +130,7 @@ export const getGeneratorById = (id) => {
   return DOCUMENT_GENERATORS.find(
     (g) =>
       g.id === id ||
+      (id === 'cv' && g.id === 'resume') ||
       (id === 'receipt' && g.id === 'money-receipt') ||
       (id === 'certificate-exp' && g.id === 'experience-certificate')
   );
