@@ -74,6 +74,20 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     set({ isLoading: true });
     try {
       const { data } = await apiClient.post('/api/v1/auth/login/verify-password', { email, password });
+
+      // 2FA disabled for this admin: backend returns session tokens directly
+      if (data?.requires2fa === false && data?.data?.accessToken) {
+        const { user: apiUser, accessToken, refreshToken } = data.data;
+        const loggedUser = mapApiUser(apiUser, email);
+
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('refreshToken', refreshToken);
+        localStorage.setItem('user', JSON.stringify(loggedUser));
+
+        set({ user: loggedUser, isLoading: false });
+        return { ...data, user: loggedUser };
+      }
+
       set({ isLoading: false });
       return data;
     } catch (err: any) {

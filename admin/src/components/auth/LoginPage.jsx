@@ -227,6 +227,10 @@ export const LoginPage = ({
     setIsSubmitting(true);
     try {
       const res = await verifyPassword(email.trim(), password);
+      if (res?.requires2fa === false) {
+        toast.success('Signed in successfully.');
+        return;
+      }
       if (res?.requires2fa || res?.success) {
         setTwoFactorToken(res?.twoFactorToken || '');
         setTwoFactorEmail(res?.email || email.trim());

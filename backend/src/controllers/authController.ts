@@ -72,6 +72,20 @@ const pendingTwoFactorResponse = (admin: IAdmin, message: string) => {
   };
 };
 
+// Sign in directly when 2FA is disabled, otherwise issue a pending 2FA challenge
+const passwordStepResponse = (admin: IAdmin, message: string) => {
+  if (admin.two_factor_enabled === false) {
+    const { accessToken, refreshToken } = issueSessionTokens(admin);
+    return {
+      success: true,
+      requires2fa: false,
+      message: 'Signed in successfully',
+      data: { admin, user: admin, accessToken, refreshToken },
+    };
+  }
+  return pendingTwoFactorResponse(admin, message);
+};
+
 // Check if admin email exists in database for step 1 login validation
 export const checkEmail = async (req: Request, res: Response) => {
   try {
@@ -114,7 +128,7 @@ export const verifyPassword = async (req: Request, res: Response) => {
       return res.status(401).json({ success: false, message: INVALID_CREDENTIALS });
     }
 
-    return res.json(pendingTwoFactorResponse(admin, 'Password verified. Please select a two-factor verification method.'));
+    return res.json(passwordStepResponse(admin, 'Password verified. Please select a two-factor verification method.'));
   } catch {
     return res.status(500).json({ success: false, message: 'Password verification failed' });
   }
@@ -295,7 +309,7 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ success: false, message: INVALID_CREDENTIALS });
     }
 
-    return res.json(pendingTwoFactorResponse(admin, 'Password verified. Please complete two-factor authentication.'));
+    return res.json(passwordStepResponse(admin, 'Password verified. Please complete two-factor authentication.'));
   } catch {
     return res.status(500).json({ success: false, message: 'Authentication failed' });
   }
