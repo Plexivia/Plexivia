@@ -39,6 +39,7 @@ done
 # 3. Build Admin Frontend
 echo "🌐 Building Admin Dashboard..."
 cd "$APP_DIR/admin"
+npm install --include=optional @rolldown/binding-linux-x64-gnu lightningcss-linux-x64-gnu @tailwindcss/oxide-linux-x64-gnu --no-save 2>/dev/null || true
 npm run build
 mkdir -p "$WWW_ADMIN_DIR"
 rsync -av --delete dist/ "$WWW_ADMIN_DIR/"
