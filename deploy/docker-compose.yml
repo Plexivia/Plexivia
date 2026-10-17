@@ -5,7 +5,7 @@ services:
     container_name: plexivia_mongo
     restart: unless-stopped
     ports:
-      - "27017:27017"
+      - "127.0.0.1:27025:27017"
     volumes:
       - mongo_data:/data/db
     environment:

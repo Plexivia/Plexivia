@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const DEFAULT_SECURE_URI = process.env.MONGODB_SECURE_URI || process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/plexivia_secure_db';
+const DEFAULT_SECURE_URI = process.env.MONGODB_SECURE_URI || process.env.MONGODB_URI || 'mongodb://127.0.0.1:27025/plexivia_secure_db';
 
 export let secureDb: mongoose.Connection;
 

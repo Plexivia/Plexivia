@@ -11,8 +11,8 @@ Restart=always
 RestartSec=5
 Environment=NODE_ENV=production
 Environment=PORT=5095
-Environment=MONGODB_SECURE_URI=mongodb://127.0.0.1:27017/plexivia_secure_db
-Environment=MONGODB_OPERATIONS_URI=mongodb://127.0.0.1:27017/plexivia_operations_db
+Environment=MONGODB_SECURE_URI=mongodb://127.0.0.1:27025/plexivia_secure_db
+Environment=MONGODB_OPERATIONS_URI=mongodb://127.0.0.1:27025/plexivia_operations_db
 
 StandardOutput=journal
 StandardError=journal

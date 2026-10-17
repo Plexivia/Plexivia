@@ -273,7 +273,7 @@ export const getFleet = async (_req: Request, res: Response) => {
           { name: 'plexivia-hub', port: 5002, status: 'RUNNING' },
           { name: 'plexivia-agency', port: 5003, status: 'RUNNING' },
           { name: 'plexivia-finance', port: 5004, status: 'RUNNING' },
-          { name: 'plexivia-mongodb-live', port: 27017, status: 'RUNNING' },
+          { name: 'plexivia-mongodb-live', port: 27025, status: 'RUNNING' },
         ],
       },
     ];
@@ -297,8 +297,8 @@ export const getServices = async (_req: Request, res: Response) => {
       { id: 'svc-hub', name: 'Hub Service (Core & Telemetry)', port: 5002, status: 'OPERATIONAL', latency_ms: 8, uptime: '99.99%' },
       { id: 'svc-agency', name: 'Agency Service (Operations)', port: 5003, status: 'OPERATIONAL', latency_ms: 14, uptime: '99.95%' },
       { id: 'svc-finance', name: 'Finance Service (Ledger & Invoices)', port: 5004, status: 'OPERATIONAL', latency_ms: 15, uptime: '99.97%' },
-      { id: 'svc-mongo-secure', name: 'MongoDB Secure Vault', port: 27017, status: 'OPERATIONAL', latency_ms: 4, uptime: '100.00%' },
-      { id: 'svc-mongo-ops', name: 'MongoDB Operations DB', port: 27017, status: 'OPERATIONAL', latency_ms: 4, uptime: '100.00%' },
+      { id: 'svc-mongo-secure', name: 'MongoDB Secure Vault', port: 27025, status: 'OPERATIONAL', latency_ms: 4, uptime: '100.00%' },
+      { id: 'svc-mongo-ops', name: 'MongoDB Operations DB', port: 27025, status: 'OPERATIONAL', latency_ms: 4, uptime: '100.00%' },
       { id: 'svc-nginx', name: 'Nginx SSL & Reverse Proxy', port: 80, status: 'OPERATIONAL', latency_ms: 2, uptime: '100.00%' },
     ];
 

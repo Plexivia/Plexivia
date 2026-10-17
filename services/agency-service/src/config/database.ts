@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { seedDefaultProjectTypes } from '../models/ProjectType.js';
 import { seedDefaultWhiteLabelProjects } from '../models/WhiteLabelEcommerce.js';
 
-const DEFAULT_OPERATIONS_URI = process.env.MONGODB_OPERATIONS_URI || process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/plexivia_operations_db';
+const DEFAULT_OPERATIONS_URI = process.env.MONGODB_OPERATIONS_URI || process.env.MONGODB_URI || 'mongodb://127.0.0.1:27025/plexivia_operations_db';
 
 export let operationsDb: mongoose.Connection;
 export let operationsDbConnection: mongoose.Connection;
