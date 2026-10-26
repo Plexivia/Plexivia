@@ -350,7 +350,7 @@ export default function WhitelabelDemoPreview({ onOpenDemoModal }: WhitelabelDem
                       <div className="p-2.5 bg-[#14262A] rounded-lg border border-white/5">
                         <span className="text-[10px] text-white/50 block">Blended ROAS</span>
                         <span className="text-base font-bold text-[#58C1C3]">4.82x</span>
-                        <span className="text-[9px] text-white/60 block">Ad Spend: $1,200</span>
+                        <span className="text-[9px] text-white/60 block">Ad Spend: ৳1,40,000</span>
                       </div>
                       <div className="p-2.5 bg-[#14262A] rounded-lg border border-white/5">
                         <span className="text-[10px] text-white/50 block">Cart Recovery</span>

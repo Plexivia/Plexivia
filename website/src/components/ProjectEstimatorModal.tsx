@@ -22,10 +22,10 @@ const serviceOptions = [
 ];
 
 const budgetRanges = [
-  '$500 - $1,500 (Starter)',
-  '$1,500 - $3,500 (Growth)',
-  '$3,500 - $8,000 (Enterprise)',
-  '$8,000+ (Full-Scale Custom)',
+  '৳50,000 - ৳1,50,000 (Starter)',
+  '৳1,50,000 - ৳3,50,000 (Growth)',
+  '৳3,50,000 - ৳8,00,000 (Enterprise)',
+  '৳8,00,000+ (Full-Scale Custom)',
 ];
 
 const timelineOptions = [

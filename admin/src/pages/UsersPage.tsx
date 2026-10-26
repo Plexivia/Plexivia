@@ -206,7 +206,7 @@ export const UsersPage: React.FC = () => {
                     <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
                       <span>Billing Rate:</span>
                       <strong className="text-slate-900 dark:text-white font-mono">
-                        ${u.hourly_rate} / hr
+                        ৳{u.hourly_rate} / hr
                       </strong>
                     </div>
                   )}

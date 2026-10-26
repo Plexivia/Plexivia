@@ -17,6 +17,7 @@ import {
   Coins
 } from 'lucide-react';
 
+// Render accounts and financial ledger page with BDT retainer and payroll metrics
 export const AccountsPage: React.FC = () => {
   const { clients, users } = useData();
   const [searchQuery, setSearchQuery] = useState('');
@@ -47,7 +48,6 @@ export const AccountsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
@@ -57,56 +57,51 @@ export const AccountsPage: React.FC = () => {
             </h1>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Agency cashflow, monthly retainer revenue, payroll disbursement forecasts, and billing logs.
+            Agency cashflow, monthly retainer revenue, payroll disbursement forecasts, and billing logs (BDT).
           </p>
         </div>
       </div>
 
-      {/* Financial Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* MRR */}
         <div className="p-4 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 shadow-xs space-y-2">
           <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-mono">
             <span>Monthly Runrate (MRR)</span>
             <ArrowUpRight className="w-4 h-4 text-emerald-500" />
           </div>
           <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
-            ${totalMonthlyRetainers.toLocaleString()}
+            ৳{totalMonthlyRetainers.toLocaleString('en-BD')}
           </div>
           <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium block">
             +{safeClients.length} active client retainers
           </span>
         </div>
 
-        {/* Estimated Annual Revenue */}
         <div className="p-4 rounded-2xl bg-cyan-50 dark:bg-cyan-950/20 border border-cyan-200 dark:border-cyan-500/20 shadow-xs space-y-2">
           <div className="flex items-center justify-between text-cyan-700 dark:text-cyan-400 text-xs font-mono">
             <span>Forecasted ARR</span>
             <TrendingUp className="w-4 h-4 text-cyan-500" />
           </div>
           <div className="text-2xl font-bold text-cyan-900 dark:text-cyan-300 font-mono">
-            ${(totalMonthlyRetainers * 12).toLocaleString()}
+            ৳{(totalMonthlyRetainers * 12).toLocaleString('en-BD')}
           </div>
           <span className="text-[11px] text-cyan-600/70 dark:text-cyan-400/70 font-medium block">
             Annualized contract value
           </span>
         </div>
 
-        {/* Payroll Expense */}
         <div className="p-4 rounded-2xl bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-500/20 shadow-xs space-y-2">
           <div className="flex items-center justify-between text-purple-700 dark:text-purple-400 text-xs font-mono">
             <span>Est. Monthly Payroll</span>
             <Coins className="w-4 h-4 text-purple-500" />
           </div>
           <div className="text-2xl font-bold text-purple-900 dark:text-purple-300 font-mono">
-            ${totalMonthlyPayroll.toLocaleString()}
+            ৳{totalMonthlyPayroll.toLocaleString('en-BD')}
           </div>
           <span className="text-[11px] text-purple-600/70 dark:text-purple-400/70 font-medium block">
             {safeUsers.length} team engineers & ops
           </span>
         </div>
 
-        {/* Net Monthly Cashflow */}
         <div className={`p-4 rounded-2xl border shadow-xs space-y-2 ${
           netMonthlyCashflow >= 0
             ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-500/20'
@@ -125,7 +120,7 @@ export const AccountsPage: React.FC = () => {
           <div className={`text-2xl font-bold font-mono ${
             netMonthlyCashflow >= 0 ? 'text-emerald-800 dark:text-emerald-300' : 'text-rose-800 dark:text-rose-300'
           }`}>
-            ${Math.abs(netMonthlyCashflow).toLocaleString()}
+            ৳{Math.abs(netMonthlyCashflow).toLocaleString('en-BD')}
           </div>
           <span className={`text-[11px] font-medium block ${
             netMonthlyCashflow >= 0 ? 'text-emerald-600/70 dark:text-emerald-400/70' : 'text-rose-600/70 dark:text-rose-400/70'
@@ -135,7 +130,6 @@ export const AccountsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Filter & Search */}
       <div className="p-4 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3 flex-1">
           <div className="relative flex-1 max-w-md">
@@ -161,13 +155,12 @@ export const AccountsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Client Accounts Billing Ledger Table */}
       <div className="bg-white dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-xs overflow-hidden">
         <div className="p-4 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Receipt className="w-4 h-4 text-cyan-500" />
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white font-mono">
-              Client Monthly Billing & Retainer Ledger
+              Client Monthly Billing & Retainer Ledger (BDT)
             </h3>
           </div>
           <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
@@ -182,8 +175,8 @@ export const AccountsPage: React.FC = () => {
                 <th className="p-3">Client / Business</th>
                 <th className="p-3">Slug</th>
                 <th className="p-3">Architecture</th>
-                <th className="p-3">Monthly Retainer</th>
-                <th className="p-3">Annualized Value</th>
+                <th className="p-3">Monthly Retainer (BDT)</th>
+                <th className="p-3">Annualized Value (BDT)</th>
                 <th className="p-3">Contract Status</th>
               </tr>
             </thead>
@@ -200,10 +193,10 @@ export const AccountsPage: React.FC = () => {
                     {client.client_type === 'MULTI_TENANT_ECOMMERCE' ? 'Multi-Tenant' : 'Single-Tenant'}
                   </td>
                   <td className="p-3 font-bold text-emerald-600 dark:text-emerald-400 font-mono">
-                    ${(client.monthly_retainer || 0).toLocaleString()} / mo
+                    ৳{(client.monthly_retainer || 0).toLocaleString('en-BD')} / mo
                   </td>
                   <td className="p-3 text-slate-700 dark:text-slate-300 font-mono">
-                    ${((client.monthly_retainer || 0) * 12).toLocaleString()} / yr
+                    ৳{((client.monthly_retainer || 0) * 12).toLocaleString('en-BD')} / yr
                   </td>
                   <td className="p-3">
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${

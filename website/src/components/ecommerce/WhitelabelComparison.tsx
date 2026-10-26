@@ -23,7 +23,7 @@ const comparisonFeatures = [
   {
     feature: '1-Click Express Checkout',
     whitelabel: 'Built-in single page with auto-district',
-    shopify: 'Restricted (Shopify Plus required: $2,000/mo)',
+    shopify: 'Restricted (Shopify Plus required: ৳2,40,000/mo)',
     woocommerce: 'Requires 4-5 buggy third-party plugins',
     highlight: false,
   },
@@ -43,9 +43,9 @@ const comparisonFeatures = [
   },
   {
     feature: 'Monthly App Subscription Costs',
-    whitelabel: '$0 (All core sales apps built-in)',
-    shopify: '$150 - $600/month recurring apps',
-    woocommerce: '$50 - $200/month plugin licenses',
+    whitelabel: '৳0 (All core sales apps built-in)',
+    shopify: '৳18,000 - ৳70,000/month recurring apps',
+    woocommerce: '৳6,000 - ৳25,000/month plugin licenses',
     highlight: true,
   },
   {
@@ -143,7 +143,7 @@ export default function WhitelabelComparison({ onOpenDemoModal }: WhitelabelComp
             <div className="bg-[#14262A]/90 p-5 border-t border-[#58C1C3]/20 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="text-xs text-[#F5F7F7]/70 text-center sm:text-left">
                 💡 <strong className="text-[#97CC6F]">Average Annual Merchant Savings:</strong> Scaling stores save between{' '}
-                <strong className="text-white">$3,500 to $18,000+ USD</strong> every year by eliminating app fees & 2% transaction cuts.
+                <strong className="text-white">৳4,00,000 to ৳20,00,000+ BDT</strong> every year by eliminating app fees & 2% transaction cuts.
               </div>
               <button
                 onClick={onOpenDemoModal}

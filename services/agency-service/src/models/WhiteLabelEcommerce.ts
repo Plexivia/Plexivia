@@ -609,24 +609,6 @@ export const seedDefaultWhiteLabelProjects = async (conn: mongoose.Connection) =
             }
           );
         }
-
-        const generalProjectExists = await generalProjectsCol.findOne({ name: item.name });
-        if (!generalProjectExists) {
-          await generalProjectsCol.insertOne({
-            dId: item.dId,
-            id: item.dId,
-            client_dId: '',
-            project_type_dId: projectTypeDId,
-            name: item.name,
-            description: `White-label multi-tenant ecommerce platform for ${item.name}`,
-            status: 'In Progress',
-            progress: 100,
-            priority: 'High',
-            due_date: '2026-12-31',
-            tasks_count: 12,
-            created_at: new Date().toISOString(),
-          });
-        }
       } catch (err: any) {
         console.warn(`⚠️ [seedProject:${item.clientKey}] error:`, err.message);
       }

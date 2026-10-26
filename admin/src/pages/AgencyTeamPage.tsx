@@ -92,7 +92,7 @@ export const AgencyTeamPage: React.FC = () => {
                   {member.hourly_rate !== undefined && (
                     <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
                       <span>Hourly Billing:</span>
-                      <strong className="text-slate-900 dark:text-white font-mono">${member.hourly_rate} / hr</strong>
+                      <strong className="text-slate-900 dark:text-white font-mono">৳{member.hourly_rate} / hr</strong>
                     </div>
                   )}
                 </div>

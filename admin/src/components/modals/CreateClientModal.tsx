@@ -191,7 +191,6 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
             </div>
           </div>
 
-          {/* Contact Phone */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
               Contact Phone (Optional)
@@ -202,19 +201,18 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
                 type="tel"
                 value={contactPhone}
                 onChange={e => setContactPhone(e.target.value)}
-                placeholder="+1 (555) 000-0000"
+                placeholder="+880 1700-000000"
                 className="w-full pl-9 pr-3.5 py-2.5 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono"
               />
             </div>
           </div>
 
-          {/* Monthly Retainer */}
           <div className="md:col-span-2">
             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-              Monthly Retainer ($ USD)
+              Monthly Retainer (৳ BDT)
             </label>
             <div className="relative">
-              <DollarSign className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <span className="text-sm font-bold text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 font-mono">৳</span>
               <input
                 type="number"
                 min={0}

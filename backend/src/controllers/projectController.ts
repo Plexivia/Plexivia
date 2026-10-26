@@ -72,26 +72,37 @@ export const createProject = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: 'Project name is required' });
     }
 
-    const clientDId = data.clientDId || data.client_dId || data.clientId || data.client_id;
-    const projectTypeDId = data.projectTypeDId || data.project_type_dId;
+    const clientDId = data.clientDId || data.client_dId || data.clientId || data.client_id || '';
+    const projectTypeDId = data.projectTypeDId || data.project_type_dId || '';
     const ProjectModel = getProjectModel();
     const dId = generateDId();
+    const progressVal = Number(data.progress ?? data.progress_percent ?? data.progressPercent ?? 0);
 
     const created = await ProjectModel.create({
       dId,
+      id: dId,
       client_dId: clientDId,
+      client_id: clientDId,
+      client_name: data.client_name || data.clientName || '',
       project_type_dId: projectTypeDId,
+      project_type: data.project_type || data.projectType || 'ECOMMERCE_MULTITENANT',
       name: projectName.trim(),
+      project_name: projectName.trim(),
+      project_code: (data.project_code || data.projectCode || 'PRJ').trim().toUpperCase(),
       description: data.description || '',
-      status: data.status || 'Planning',
-      progress: Number(data.progress || data.progressPercent || 0),
+      git_repo_url: data.git_repo_url || data.gitRepoUrl || '',
+      production_url: data.production_url || data.productionUrl || '',
+      lead_id: data.lead_id || data.leadId || '',
+      lead_name: data.lead_name || data.leadName || '',
+      status: data.status || 'ACTIVE',
+      progress: progressVal,
+      progress_percent: progressVal,
       priority: data.priority || 'Medium',
       due_date: data.due_date || data.dueDate || new Date().toISOString(),
       tasks_count: 0,
       created_at: new Date().toISOString(),
     });
 
-    // Also link project to client record if client exists
     if (clientDId) {
       const ClientModel = getClientModel();
       await ClientModel.findOneAndUpdate(

@@ -7,12 +7,23 @@ export { IClient, getClientModel };
 
 export interface IProject extends Document {
   dId: string;
+  id?: string;
   client_dId?: string;
+  client_id?: string;
+  client_name?: string;
   project_type_dId?: string;
+  project_type?: string;
   name: string;
+  project_name?: string;
+  project_code?: string;
   description?: string;
-  status: 'Planning' | 'In Progress' | 'Review' | 'Completed' | 'Archived';
+  git_repo_url?: string;
+  production_url?: string;
+  lead_id?: string;
+  lead_name?: string;
+  status: string;
   progress: number;
+  progress_percent?: number;
   priority: 'Low' | 'Medium' | 'High' | 'Critical';
   due_date: string;
   tasks_count: number;
@@ -58,12 +69,23 @@ export interface IEmployee extends Document {
 const ProjectSchema = new Schema<IProject>(
   {
     dId: { type: String, required: true, unique: true, index: true, default: generateDId },
+    id: { type: String, index: true },
     client_dId: { type: String, index: true },
+    client_id: { type: String, index: true },
+    client_name: { type: String, default: '' },
     project_type_dId: { type: String, index: true },
+    project_type: { type: String, default: 'ECOMMERCE_MULTITENANT' },
     name: { type: String, required: true },
+    project_name: { type: String, default: '' },
+    project_code: { type: String, default: '' },
     description: { type: String, default: '' },
-    status: { type: String, enum: ['Planning', 'In Progress', 'Review', 'Completed', 'Archived'], default: 'Planning' },
+    git_repo_url: { type: String, default: '' },
+    production_url: { type: String, default: '' },
+    lead_id: { type: String, default: '' },
+    lead_name: { type: String, default: '' },
+    status: { type: String, default: 'ACTIVE' },
     progress: { type: Number, default: 0 },
+    progress_percent: { type: Number, default: 0 },
     priority: { type: String, enum: ['Low', 'Medium', 'High', 'Critical'], default: 'Medium' },
     due_date: { type: String, required: true },
     tasks_count: { type: Number, default: 0 },

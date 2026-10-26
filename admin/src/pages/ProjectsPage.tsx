@@ -13,11 +13,13 @@ import {
   RefreshCw,
   Building,
   User,
-  Activity
+  Activity,
+  Trash2
 } from 'lucide-react';
 
+// Render agency projects management directory and status dashboard
 export const ProjectsPage: React.FC = () => {
-  const { projects, clients, refreshAll, loading } = useData();
+  const { projects, clients, deleteProject, refreshAll, loading } = useData();
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
@@ -26,10 +28,10 @@ export const ProjectsPage: React.FC = () => {
   const safeClients = Array.isArray(clients) ? clients : [];
 
   const filteredProjects = useMemo(() => {
-    return safeProjects.filter((p) => {
+    return safeProjects.filter((p: any) => {
       const matchSearch =
-        (p.project_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (p.project_code || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (p.project_name || p.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (p.project_code || p.dId || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         (p.client_name || '').toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchStatus = statusFilter === 'ALL' || p.status === statusFilter;
@@ -43,6 +45,7 @@ export const ProjectsPage: React.FC = () => {
   const planningProjects = safeProjects.filter((p) => p.status === 'PLANNING').length;
   const completedProjects = safeProjects.filter((p) => p.status === 'COMPLETED').length;
 
+  // Render status badge element for project status
   const getStatusBadge = (status?: ProjectStatus) => {
     switch (status) {
       case 'ACTIVE':
@@ -195,36 +198,43 @@ export const ProjectsPage: React.FC = () => {
 
       {/* Projects Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {filteredProjects.map((p) => {
-          const client = safeClients.find((c) => c.id === p.client_id);
-          const progress = p.progress_percent || 0;
+        {filteredProjects.map((p: any) => {
+          const client = safeClients.find((c) => c.id === (p.client_id || p.client_dId));
+          const progress = p.progress_percent ?? p.progress ?? 0;
+          const projectId = p.id || p.dId;
 
           return (
             <div
-              key={p.id}
+              key={projectId}
               className="p-5 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 hover:border-cyan-500/40 transition-all duration-300 shadow-xs flex flex-col justify-between space-y-4 group"
             >
               <div className="space-y-3">
-                {/* Header: Project Code & Status */}
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <span className="text-[11px] font-mono font-bold text-cyan-600 dark:text-cyan-400">
-                      {p.project_code || 'PRJ'}
+                      {p.project_code || p.dId || 'PRJ'}
                     </span>
                     <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-300 transition-colors mt-0.5">
-                      {p.project_name}
+                      {p.project_name || p.name}
                     </h3>
                   </div>
-                  {getStatusBadge(p.status)}
+                  <div className="flex items-center gap-1.5">
+                    {getStatusBadge(p.status)}
+                    <button
+                      onClick={() => deleteProject(projectId)}
+                      title="Delete Project"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition cursor-pointer"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
 
-                {/* Client info */}
                 <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-mono">
                   <Building className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                   <span className="truncate">{p.client_name || client?.business_name || 'Direct Client'}</span>
                 </div>
 
-                {/* Progress bar */}
                 <div className="space-y-1.5 pt-2">
                   <div className="flex items-center justify-between text-xs font-mono">
                     <span className="text-slate-500 dark:text-slate-400">Progress</span>

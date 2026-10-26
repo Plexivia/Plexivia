@@ -107,7 +107,7 @@ export const ClientsDirectoryPage: React.FC = () => {
             Monthly Retainer Runrate
           </span>
           <div className="text-2xl font-bold text-emerald-800 dark:text-emerald-300 font-mono mt-2">
-            ${totalMRR.toLocaleString()} / mo
+            ৳{totalMRR.toLocaleString('en-BD')} / mo
           </div>
           <span className="text-[11px] text-emerald-600/70 dark:text-emerald-400/70 mt-0.5 block">Recurring services</span>
         </div>
@@ -204,10 +204,10 @@ export const ClientsDirectoryPage: React.FC = () => {
               <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
                 <div>
                   <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-mono block">
-                    Retainer
+                    Retainer (BDT)
                   </span>
                   <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400 font-mono">
-                    ${(client.monthly_retainer || 0).toLocaleString()} / mo
+                    ৳{(client.monthly_retainer || 0).toLocaleString('en-BD')} / mo
                   </span>
                 </div>
 
