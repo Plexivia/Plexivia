@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import * as hubController from '../controllers/hubController.js';
+import * as webmailController from '../controllers/webmailController.js';
 import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
@@ -27,6 +28,11 @@ router.get('/git/repos', hubController.getGitRepos);
 router.get('/mail/logs', hubController.getMailLogs);
 router.post('/mail/send-test', hubController.sendTestMail);
 
+// Webmail (support mailbox over IMAP/SMTP)
+router.get('/webmail/messages', webmailController.listMessages);
+router.get('/webmail/messages/:uid', webmailController.getMessage);
+router.post('/webmail/send', webmailController.sendWebmail);
+
 // Activities & Audit Trail
 router.get('/activities', hubController.getActivities);
 router.post('/activities', hubController.logActivity);
@@ -39,6 +45,7 @@ router.post('/timelogs', hubController.createTimeLog);
 router.get('/support/tickets', hubController.getSupportTickets);
 router.post('/support/tickets', hubController.createSupportTicket);
 router.post('/support/tickets/:ticketId/messages', hubController.addSupportTicketMessage);
+router.patch('/support/tickets/:ticketId/status', hubController.updateSupportTicketStatus);
 
 // Client Project Documentation
 router.get('/docs', hubController.getProjectDocs);

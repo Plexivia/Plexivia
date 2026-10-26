@@ -22,7 +22,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   useEffect(() => {
+    // Only prompt re-login when a session existed and expired, not before the first sign-in
     const handleUnauthorized = () => {
+      if (!localStorage.getItem('accessToken')) return;
       setIsLoginModalOpen(true);
     };
 

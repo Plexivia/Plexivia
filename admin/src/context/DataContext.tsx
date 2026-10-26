@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { useAuthStore } from '@/store/useAuthStore';
 import {
   Client,
   Project,
@@ -139,9 +140,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
+  // Load data only once signed in, and reload whenever the signed-in user changes
+  const authUser = useAuthStore((state) => state.user);
   useEffect(() => {
+    if (!authUser || !localStorage.getItem('accessToken')) {
+      setLoading(false);
+      return;
+    }
     refreshAll();
-  }, [refreshAll]);
+  }, [authUser, refreshAll]);
 
   // Timer Tick
   useEffect(() => {

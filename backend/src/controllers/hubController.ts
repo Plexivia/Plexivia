@@ -146,6 +146,37 @@ export const addSupportTicketMessage = async (req: Request, res: Response) => {
   }
 };
 
+// Update a support ticket's status (and optionally priority)
+const TICKET_STATUSES = ['OPEN', 'IN_PROGRESS', 'WAITING_CLIENT', 'RESOLVED', 'CLOSED'];
+const TICKET_PRIORITIES = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
+
+export const updateSupportTicketStatus = async (req: Request, res: Response) => {
+  try {
+    const ticketId = req.params.ticketId as string;
+    const status = String(req.body?.status || '').toUpperCase();
+    const priority = req.body?.priority ? String(req.body.priority).toUpperCase() : undefined;
+
+    if (!TICKET_STATUSES.includes(status)) {
+      return res.status(400).json({ success: false, message: `Status must be one of ${TICKET_STATUSES.join(', ')}` });
+    }
+    if (priority && !TICKET_PRIORITIES.includes(priority)) {
+      return res.status(400).json({ success: false, message: `Priority must be one of ${TICKET_PRIORITIES.join(', ')}` });
+    }
+
+    const ticket = await getSupportTicketModel().findOneAndUpdate(
+      { dId: ticketId },
+      { $set: { status, ...(priority ? { priority } : {}), updated_at: new Date().toISOString() } },
+      { new: true }
+    );
+    if (!ticket) {
+      return res.status(404).json({ success: false, message: `Ticket '${ticketId}' not found` });
+    }
+    return res.json({ success: true, status: 'success', data: ticket });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message || 'Failed to update ticket' });
+  }
+};
+
 // Retrieve client project documentation articles
 export const getProjectDocs = async (req: Request, res: Response) => {
   try {

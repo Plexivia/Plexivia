@@ -1,4 +1,7 @@
 import {
+  LayoutDashboard,
+  Mail,
+  LifeBuoy,
   FolderKanban,
   Building2,
   Users,
@@ -20,10 +23,25 @@ export const NAVIGATION_MENU_GROUPS: MenuGroup[] = [
   {
     items: [
       {
-        title: 'Users',
-        url: '/users',
-        icon: UserCheck,
+        title: 'Overview',
+        url: '/overview',
+        icon: LayoutDashboard,
       },
+      {
+        title: 'Webmail',
+        url: '/webmail',
+        icon: Mail,
+      },
+      {
+        title: 'Support Desk',
+        url: '/support',
+        icon: LifeBuoy,
+      },
+    ],
+  },
+  {
+    label: 'Workspace',
+    items: [
       {
         title: 'Projects',
         url: '/projects',
@@ -92,6 +110,16 @@ export const NAVIGATION_MENU_GROUPS: MenuGroup[] = [
             icon: FileUser,
           },
         ],
+      },
+    ],
+  },
+  {
+    label: 'Administration',
+    items: [
+      {
+        title: 'Users',
+        url: '/users',
+        icon: UserCheck,
       },
     ],
   },

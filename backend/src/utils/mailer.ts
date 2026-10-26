@@ -41,73 +41,35 @@ const createFallbackTransporter = () => {
   });
 };
 
-// Generate high fidelity HTML template for OTP verification emails
-export const renderOtpEmailHtml = (otpCode: string, recipientEmail: string): string => {
-  return `<!DOCTYPE html>
+// Shared light email layout: white card on a soft gray background, readable in every mail client
+const renderEmailLayout = (title: string, label: string, body: string): string => `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Your Plexivia Verification Code</title>
+  <meta name="color-scheme" content="light" />
+  <meta name="supported-color-schemes" content="light" />
+  <title>${title}</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #09090b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f4f4f5;">
-  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #09090b; padding: 40px 16px;">
+<body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #111827;">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f3f4f6; padding: 32px 16px;">
     <tr>
       <td align="center">
-        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 520px; background-color: #121214; border-radius: 16px; border: 1px solid #27272a; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
-          <!-- Header Banner -->
+        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 520px; background-color: #ffffff; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden;">
           <tr>
-            <td style="background: linear-gradient(135deg, #09090b 0%, #18181b 100%); padding: 32px 32px 24px 32px; border-bottom: 1px solid #27272a; text-align: center;">
-              <div style="font-size: 24px; font-weight: 900; letter-spacing: 2px; color: #ffffff; text-transform: uppercase; margin-bottom: 4px;">
-                PLEXIVIA
-              </div>
-              <div style="font-size: 11px; font-weight: 700; letter-spacing: 1px; color: #38bdf8; text-transform: uppercase;">
-                Identity & Access Management
-              </div>
+            <td style="padding: 28px 32px 20px 32px; border-bottom: 1px solid #e5e7eb; text-align: center;">
+              <div style="font-size: 22px; font-weight: 800; letter-spacing: 2px; color: #0f172a;">PLEXIVIA</div>
+              <div style="font-size: 12px; font-weight: 600; letter-spacing: 0.5px; color: #0369a1; margin-top: 4px;">${label}</div>
             </td>
           </tr>
-
-          <!-- Main Content Body -->
           <tr>
-            <td style="padding: 32px;">
-              <h2 style="font-size: 18px; font-weight: 700; color: #ffffff; margin: 0 0 12px 0;">
-                One-Time Verification Code
-              </h2>
-              <p style="font-size: 13px; line-height: 22px; color: #a1a1aa; margin: 0 0 24px 0;">
-                You are receiving this code to verify your sign-in attempt for account <strong style="color: #e4e4e7;">${recipientEmail}</strong>. Please enter the verification code below to proceed:
-              </p>
-
-              <!-- OTP Code Display Card -->
-              <div style="background-color: #09090b; border: 1.5px solid #0284c7; border-radius: 12px; padding: 20px; text-align: center; margin: 0 0 24px 0;">
-                <span style="font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; font-size: 34px; font-weight: 800; letter-spacing: 10px; color: #38bdf8; display: inline-block;">
-                  ${otpCode}
-                </span>
-              </div>
-
-              <!-- Expiry & Security Notice -->
-              <div style="background-color: #18181b; border: 1px solid #27272a; border-radius: 10px; padding: 14px 16px; margin-bottom: 24px;">
-                <table width="100%" border="0" cellspacing="0" cellpadding="0">
-                  <tr>
-                    <td style="font-size: 12px; color: #a1a1aa; line-height: 18px;">
-                      ⏱️ <strong>Expiration:</strong> This verification code is valid for <strong>3 minutes</strong> only.<br />
-                      🛡️ <strong>Security Tip:</strong> Never share this code with anyone. Plexivia staff will never ask for your authentication codes.
-                    </td>
-                  </tr>
-                </table>
-              </div>
-
-              <p style="font-size: 11px; color: #71717a; line-height: 18px; margin: 0;">
-                If you did not initiate this authentication request, please secure your administrative account or contact your administrator immediately.
-              </p>
+            <td style="padding: 28px 32px;">
+${body}
             </td>
           </tr>
-
-          <!-- Footer -->
           <tr>
-            <td style="background-color: #09090b; padding: 20px 32px; border-top: 1px solid #27272a; text-align: center;">
-              <p style="font-size: 11px; color: #52525b; margin: 0;">
-                © 2026 Plexivia Ecosystem. All rights reserved. • High Security Vault
-              </p>
+            <td style="background-color: #f9fafb; padding: 18px 32px; border-top: 1px solid #e5e7eb; text-align: center;">
+              <p style="font-size: 12px; color: #6b7280; margin: 0;">© 2026 Plexivia. All rights reserved.</p>
             </td>
           </tr>
         </table>
@@ -116,82 +78,53 @@ export const renderOtpEmailHtml = (otpCode: string, recipientEmail: string): str
   </table>
 </body>
 </html>`;
-};
 
-// Generate high fidelity HTML template for MFA authenticator QR setup emails
-export const renderMfaEmailHtml = (secretKey: string, qrCodeImageUrl: string, recipientEmail: string): string => {
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Configure Multi-Factor Authentication</title>
-</head>
-<body style="margin: 0; padding: 0; background-color: #09090b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f4f4f5;">
-  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #09090b; padding: 40px 16px;">
-    <tr>
-      <td align="center">
-        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 520px; background-color: #121214; border-radius: 16px; border: 1px solid #27272a; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
-          <!-- Header Banner -->
-          <tr>
-            <td style="background: linear-gradient(135deg, #09090b 0%, #18181b 100%); padding: 32px 32px 24px 32px; border-bottom: 1px solid #27272a; text-align: center;">
-              <div style="font-size: 24px; font-weight: 900; letter-spacing: 2px; color: #ffffff; text-transform: uppercase; margin-bottom: 4px;">
-                PLEXIVIA
-              </div>
-              <div style="font-size: 11px; font-weight: 700; letter-spacing: 1px; color: #38bdf8; text-transform: uppercase;">
-                Multi-Factor Authenticator Setup
-              </div>
-            </td>
-          </tr>
-
-          <!-- Main Content Body -->
-          <tr>
-            <td style="padding: 32px; text-align: center;">
-              <h2 style="font-size: 18px; font-weight: 700; color: #ffffff; margin: 0 0 12px 0;">
-                Setup Two-Factor Authenticator
-              </h2>
-              <p style="font-size: 13px; line-height: 22px; color: #a1a1aa; margin: 0 0 24px 0; text-align: left;">
-                Scan the QR code below using your preferred authenticator application (Google Authenticator, Microsoft Authenticator, 1Password, or Apple Keychain) for account <strong style="color: #e4e4e7;">${recipientEmail}</strong>:
+// Generate HTML template for OTP verification emails
+export const renderOtpEmailHtml = (otpCode: string, recipientEmail: string): string =>
+  renderEmailLayout(
+    'Your Plexivia Verification Code',
+    'Sign-in verification',
+    `              <h1 style="font-size: 20px; font-weight: 700; color: #111827; margin: 0 0 12px 0;">Your verification code</h1>
+              <p style="font-size: 15px; line-height: 24px; color: #374151; margin: 0 0 24px 0;">
+                Use this code to sign in to <strong style="color: #111827;">${recipientEmail}</strong>:
               </p>
-
-              <!-- QR Code Display Frame -->
-              <div style="background-color: #ffffff; border-radius: 12px; padding: 16px; display: inline-block; margin: 0 auto 24px auto; box-shadow: 0 8px 24px rgba(0,0,0,0.4);">
-                <img src="${qrCodeImageUrl}" alt="Plexivia MFA QR Code" width="200" height="200" style="display: block; width: 200px; height: 200px;" />
+              <div style="background-color: #f0f9ff; border: 2px solid #0284c7; border-radius: 10px; padding: 20px; text-align: center; margin: 0 0 24px 0;">
+                <span style="font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; font-size: 36px; font-weight: 800; letter-spacing: 10px; color: #0c4a6e;">${otpCode}</span>
               </div>
-
-              <!-- Manual Key Input -->
-              <div style="background-color: #09090b; border: 1px solid #27272a; border-radius: 10px; padding: 16px; margin-bottom: 24px; text-align: left;">
-                <div style="font-size: 11px; font-weight: 700; color: #71717a; text-transform: uppercase; margin-bottom: 6px;">
-                  Manual Setup Key (If unable to scan)
-                </div>
-                <div style="font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; font-size: 15px; font-weight: 700; color: #38bdf8; letter-spacing: 2px;">
-                  ${secretKey}
-                </div>
-              </div>
-
-              <div style="background-color: #18181b; border: 1px solid #27272a; border-radius: 10px; padding: 14px 16px; text-align: left;">
-                <p style="font-size: 12px; color: #a1a1aa; line-height: 18px; margin: 0;">
-                  🔒 Once scanned, your authenticator app will generate a fresh 6-digit rolling code every 30 seconds for all future logins.
-                </p>
-              </div>
-            </td>
-          </tr>
-
-          <!-- Footer -->
-          <tr>
-            <td style="background-color: #09090b; padding: 20px 32px; border-top: 1px solid #27272a; text-align: center;">
-              <p style="font-size: 11px; color: #52525b; margin: 0;">
-                © 2026 Plexivia Ecosystem. All rights reserved. • Enterprise IAM
+              <p style="font-size: 14px; line-height: 22px; color: #374151; margin: 0 0 8px 0;">
+                This code expires in <strong>3 minutes</strong>.
               </p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
-};
+              <p style="font-size: 14px; line-height: 22px; color: #374151; margin: 0 0 20px 0;">
+                Never share this code with anyone. Plexivia staff will never ask for it.
+              </p>
+              <p style="font-size: 13px; line-height: 20px; color: #6b7280; margin: 0;">
+                If you did not try to sign in, you can ignore this email and consider changing your password.
+              </p>`
+  );
+
+// Generate HTML template for MFA authenticator QR setup emails
+export const renderMfaEmailHtml = (secretKey: string, qrCodeImageUrl: string, recipientEmail: string): string =>
+  renderEmailLayout(
+    'Set up your authenticator app',
+    'Two-factor authentication setup',
+    `              <h1 style="font-size: 20px; font-weight: 700; color: #111827; margin: 0 0 12px 0;">Set up your authenticator app</h1>
+              <p style="font-size: 15px; line-height: 24px; color: #374151; margin: 0 0 24px 0;">
+                Scan this QR code with Google Authenticator, Microsoft Authenticator, 1Password or Apple Passwords for <strong style="color: #111827;">${recipientEmail}</strong>.
+              </p>
+              <div style="text-align: center; margin: 0 0 24px 0;">
+                <img src="${qrCodeImageUrl}" alt="Authenticator QR code" width="200" height="200" style="display: inline-block; width: 200px; height: 200px; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px; background-color: #ffffff;" />
+              </div>
+              <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; margin: 0 0 24px 0;">
+                <div style="font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Can't scan? Enter this key</div>
+                <div style="font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; font-size: 16px; font-weight: 700; color: #0c4a6e; letter-spacing: 2px; word-break: break-all;">${secretKey}</div>
+              </div>
+              <p style="font-size: 14px; line-height: 22px; color: #374151; margin: 0 0 8px 0;">
+                After scanning, enter the 6-digit code from the app on the sign-in page to finish setup.
+              </p>
+              <p style="font-size: 13px; line-height: 20px; color: #6b7280; margin: 0;">
+                Keep this email private. Anyone with this key can generate your sign-in codes.
+              </p>`
+  );
 
 // Dispatch transactional email with automatic secondary fallback handler
 export const sendMail = async (options: SendMailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> => {

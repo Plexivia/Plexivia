@@ -34,7 +34,7 @@ import { APP_NAME, APP_VERSION } from '@/configs/appConfig';
  * Universal Sidebar Component for Dashboard Template.
  * 
  * Features:
- * - space-y-3 spacing between menu items
+ * - Compact spacing between menu items
  * - Pure white icons on active / selected state and on hover
  * - Unified responsive collapsible behavior (icon collapse 48px <-> expanded 256px)
  * - Brand header with logo, title, and collapse trigger
@@ -133,17 +133,17 @@ export function UnifiedSidebar({
 
   const renderIcon = (icon, extraClassName = '') => {
     if (!icon) {
-      return <LucideIcons.FileText className={cn('w-4.5 h-4.5 shrink-0 transition-colors duration-200', extraClassName)} />;
+      return <LucideIcons.FileText className={cn('w-4 h-4 shrink-0 transition-colors duration-200', extraClassName)} />;
     }
     if (typeof icon === 'function' || (typeof icon === 'object' && (icon.$$typeof || icon.render))) {
       const IconComponent = icon;
-      return <IconComponent className={cn('w-4.5 h-4.5 shrink-0 transition-colors duration-200', extraClassName)} />;
+      return <IconComponent className={cn('w-4 h-4 shrink-0 transition-colors duration-200', extraClassName)} />;
     }
     if (typeof icon === 'string') {
       const IconComponent = LucideIcons[icon] || LucideIcons.FileText;
-      return <IconComponent className={cn('w-4.5 h-4.5 shrink-0 transition-colors duration-200', extraClassName)} />;
+      return <IconComponent className={cn('w-4 h-4 shrink-0 transition-colors duration-200', extraClassName)} />;
     }
-    return <LucideIcons.FileText className={cn('w-4.5 h-4.5 shrink-0 transition-colors duration-200', extraClassName)} />;
+    return <LucideIcons.FileText className={cn('w-4 h-4 shrink-0 transition-colors duration-200', extraClassName)} />;
   };
 
   const userRole = String(user?.role || '').toLowerCase();
@@ -158,12 +158,12 @@ export function UnifiedSidebar({
       )}
     >
       {/* Brand Header */}
-      <SidebarHeader className="h-16 border-b border-sidebar-border px-3 flex items-center justify-center transition-all duration-300">
+      <SidebarHeader className="h-12 border-b border-sidebar-border px-3 flex items-center justify-center transition-all duration-300">
         {isCollapsed ? (
           <button
             type="button"
             onClick={() => setOpen(true)}
-            className="size-9 rounded-full border border-cyan-500/30 hover:border-cyan-400/50 bg-sidebar-accent hover:bg-sidebar-accent/80 text-cyan-300 hover:text-white flex items-center justify-center shrink-0 shadow-xs transition-all duration-200 cursor-pointer"
+            className="size-8 rounded-full border border-cyan-500/30 hover:border-cyan-400/50 bg-sidebar-accent hover:bg-sidebar-accent/80 text-cyan-300 hover:text-white flex items-center justify-center shrink-0 shadow-xs transition-all duration-200 cursor-pointer"
             title={'Open Sidebar'}
             aria-label="Open Sidebar"
           >
@@ -214,9 +214,9 @@ export function UnifiedSidebar({
                   <img
                     src={logo}
                     alt="Plexivia"
-                    className="h-6.5 w-auto max-w-[150px] object-contain transition-transform duration-200 hover:scale-[1.02]"
+                    className="h-5.5 w-auto max-w-[140px] object-contain transition-transform duration-200 hover:scale-[1.02]"
                   />
-                  <span className="text-[10px] font-mono font-medium text-cyan-400/80 tracking-wide mt-0.5">
+                  <span className="text-[10px] font-mono font-medium text-cyan-400/80 tracking-wide leading-none">
                     v{APP_VERSION}
                   </span>
                 </div>
@@ -239,7 +239,7 @@ export function UnifiedSidebar({
       </SidebarHeader>
 
       {/* Main Navigation Content */}
-      <SidebarContent className="p-2 space-y-4">
+      <SidebarContent className="p-1.5 gap-1">
         {menuGroups.map((group, groupIdx) => {
           // Role filtering for groups
           if (group.roles && group.roles.length > 0) {
@@ -265,7 +265,7 @@ export function UnifiedSidebar({
               <SidebarGroup className="p-0">
                 {groupLabel && (
                   <CollapsibleTrigger asChild>
-                    <SidebarGroupLabel className="px-3 pt-2 pb-1 text-[11px] font-extrabold tracking-widest text-cyan-400 uppercase flex items-center justify-between cursor-pointer hover:text-cyan-300 select-none group/label">
+                    <SidebarGroupLabel className="h-7 px-2.5 pt-1 pb-0.5 text-[10px] font-extrabold tracking-widest text-cyan-400 uppercase flex items-center justify-between cursor-pointer hover:text-cyan-300 select-none group/label">
                       <span>{groupLabel}</span>
                       <ChevronRight
                         className={cn(
@@ -279,8 +279,7 @@ export function UnifiedSidebar({
                 )}
                 <CollapsibleContent>
                   <SidebarGroupContent>
-                    {/* Applied space-y-3 between menu items */}
-                    <SidebarMenu className="space-y-3">
+                                        <SidebarMenu className="gap-0.5">
                       {group.items?.map((item, itemIdx) => {
                         // Role filtering for items
                         if (item.roles && item.roles.length > 0) {
@@ -316,12 +315,12 @@ export function UnifiedSidebar({
                                     handleGroupClick(itemId);
                                   }}
                                   className={cn(
-                                    'group w-full justify-between cursor-pointer font-medium text-sm py-2 px-3 rounded-xl transition-all duration-200 text-sidebar-foreground hover:text-white hover:bg-sidebar-accent',
+                                    'group w-full h-8 justify-between cursor-pointer font-medium text-[13px] py-1.5 px-2.5 rounded-lg transition-all duration-200 text-sidebar-foreground hover:text-white hover:bg-sidebar-accent',
                                     isAnyChildActive &&
                                       'bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/30 shadow-xs'
                                   )}
                                 >
-                                  <div className="flex items-center gap-2.5 min-w-0">
+                                  <div className="flex items-center gap-2 min-w-0">
                                     {renderIcon(
                                       item.icon,
                                       cn(
@@ -334,7 +333,7 @@ export function UnifiedSidebar({
                                   </div>
                                   <ChevronRight
                                     className={cn(
-                                      'w-4 h-4 transition-transform duration-200',
+                                      'w-3.5 h-3.5 transition-transform duration-200',
                                       isAnyChildActive
                                         ? 'text-cyan-300'
                                         : 'text-cyan-400 group-hover:text-white',
@@ -344,8 +343,7 @@ export function UnifiedSidebar({
                                   />
                                 </SidebarMenuButton>
                                 <CollapsibleContent>
-                                  {/* Submenu with space-y-2 */}
-                                  <SidebarMenuSub className="ml-5 border-l-2 border-cyan-400/30 pl-3 my-2 space-y-2">
+                                                                    <SidebarMenuSub className="ml-4 border-l border-cyan-400/30 pl-2 my-0.5 gap-0.5">
                                     {childList.map((subItem, subIdx) => {
                                       if (subItem.roles && subItem.roles.length > 0) {
                                         const hasRole = subItem.roles.includes(userRole) || subItem.roles.includes(userSubRole);
@@ -364,7 +362,7 @@ export function UnifiedSidebar({
                                             isActive={isSubActive}
                                             onClick={(e) => handleNavClick(e, subItem)}
                                             className={cn(
-                                              'group cursor-pointer text-[13px] rounded-lg py-2 px-2.5 flex items-center gap-2 transition-all duration-200',
+                                              'group h-7 cursor-pointer text-[12.5px] rounded-md py-1 px-2 flex items-center gap-2 transition-all duration-200',
                                               isSubActive
                                                 ? '!bg-gradient-to-r !from-cyan-500 !to-cyan-600 !text-slate-950 font-bold shadow-xs'
                                                 : 'text-sidebar-foreground/85 hover:text-white hover:bg-sidebar-accent font-medium'
@@ -374,7 +372,7 @@ export function UnifiedSidebar({
                                               renderIcon(
                                                 subItem.icon,
                                                 cn(
-                                                  'w-4 h-4 shrink-0 transition-colors',
+                                                  'w-3.5 h-3.5 shrink-0 transition-colors',
                                                   isSubActive
                                                     ? '!text-slate-950 group-hover:!text-slate-950'
                                                     : 'text-cyan-400 group-hover:text-white'
@@ -410,17 +408,17 @@ export function UnifiedSidebar({
                               tooltip={itemLabel}
                               onClick={(e) => handleNavClick(e, item)}
                               className={cn(
-                                'group cursor-pointer text-sm font-medium py-2 px-3 rounded-xl transition-all duration-200 flex items-center justify-between',
+                                'group h-8 cursor-pointer text-[13px] font-medium py-1.5 px-2.5 rounded-lg transition-all duration-200 flex items-center justify-between',
                                 isActive
                                   ? '!bg-gradient-to-r !from-cyan-500 !to-cyan-600 !text-slate-950 font-bold shadow-xs'
                                   : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-white'
                               )}
                             >
-                              <div className="flex items-center gap-2.5 min-w-0">
+                              <div className="flex items-center gap-2 min-w-0">
                                 {renderIcon(
                                   item.icon,
                                   cn(
-                                    'w-4.5 h-4.5 shrink-0 transition-colors',
+                                    'w-4 h-4 shrink-0 transition-colors',
                                     isActive
                                       ? '!text-slate-950 group-hover:!text-slate-950'
                                       : 'text-cyan-400 group-hover:text-white'
@@ -465,12 +463,12 @@ export function UnifiedSidebar({
       </SidebarContent>
 
       {/* Footer Info */}
-      <SidebarFooter className="border-t border-sidebar-border p-2 flex items-center justify-center overflow-hidden transition-all duration-300">
+      <SidebarFooter className="border-t border-sidebar-border p-1.5 flex items-center justify-center overflow-hidden transition-all duration-300">
         {isCollapsed ? (
           <button
             type="button"
             onClick={onProfileClick}
-            className="relative size-9 rounded-full border border-cyan-500/40 bg-sidebar-accent hover:bg-sidebar-accent/80 text-cyan-300 flex items-center justify-center shrink-0 transition-all duration-200 cursor-pointer mx-auto shadow-xs"
+            className="relative size-8 rounded-full border border-cyan-500/40 bg-sidebar-accent hover:bg-sidebar-accent/80 text-cyan-300 flex items-center justify-center shrink-0 transition-all duration-200 cursor-pointer mx-auto shadow-xs"
             title={user?.name || user?.fullName || 'My Profile'}
             aria-label="Profile"
           >
@@ -485,16 +483,16 @@ export function UnifiedSidebar({
                 {user?.name ? user.name[0].toUpperCase() : user?.fullName ? user.fullName[0].toUpperCase() : 'U'}
               </span>
             )}
-            <span className="ring-sidebar absolute right-0 bottom-0 block size-2.5 rounded-full bg-emerald-400 ring-2" />
+            <span className="ring-sidebar absolute right-0 bottom-0 block size-2 rounded-full bg-emerald-400 ring-2" />
           </button>
         ) : (
-          <div className="flex items-center justify-between gap-2.5 px-2.5 py-2 rounded-xl bg-sidebar-accent border border-sidebar-border w-full overflow-hidden shadow-xs">
+          <div className="flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg bg-sidebar-accent border border-sidebar-border w-full overflow-hidden shadow-xs">
             <div
               onClick={onProfileClick}
-              className="flex items-center gap-2.5 min-w-0 cursor-pointer hover:opacity-90 transition-opacity"
+              className="flex items-center gap-2 min-w-0 cursor-pointer hover:opacity-90 transition-opacity"
               title={user?.name || user?.fullName || 'My Profile'}
             >
-              <div className="relative size-9 rounded-full bg-cyan-500/20 border border-cyan-400/30 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+              <div className="relative size-7 rounded-full bg-cyan-500/20 border border-cyan-400/30 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
                 {user?.avatar || user?.avatarUrl || user?.photoUrl ? (
                   <img
                     src={user.avatar || user.avatarUrl || user.photoUrl}
@@ -504,13 +502,13 @@ export function UnifiedSidebar({
                 ) : (
                   user?.name ? user.name[0].toUpperCase() : user?.fullName ? user.fullName[0].toUpperCase() : 'U'
                 )}
-                <span className="ring-sidebar absolute right-0 bottom-0 block size-2.5 rounded-full bg-emerald-400 ring-2" />
+                <span className="ring-sidebar absolute right-0 bottom-0 block size-2 rounded-full bg-emerald-400 ring-2" />
               </div>
               <div className="flex flex-col min-w-0 text-left">
                 <span className="text-xs font-bold text-sidebar-foreground truncate leading-tight">
                   {user?.name || user?.fullName || user?.email?.split('@')[0] || 'User'}
                 </span>
-                <span className="text-[10.5px] text-cyan-300/80 font-medium truncate mt-0.5 capitalize">
+                <span className="text-[10px] text-cyan-300/80 font-medium truncate leading-tight capitalize">
                   {user?.subRole ? user.subRole.replace(/_/g, ' ') : (user?.role || 'Staff')}
                 </span>
               </div>
@@ -518,11 +516,11 @@ export function UnifiedSidebar({
             <button
               type="button"
               onClick={onLogout}
-              className="size-8 rounded-lg bg-rose-600 hover:bg-rose-700 text-white border border-rose-500 shadow-xs transition-all duration-200 cursor-pointer flex items-center justify-center shrink-0"
+              className="size-7 rounded-md bg-rose-600 hover:bg-rose-700 text-white border border-rose-500 shadow-xs transition-all duration-200 cursor-pointer flex items-center justify-center shrink-0"
               title={lang === 'BN' ? 'Logout' : 'Sign Out'}
               aria-label="Logout"
             >
-              <LogOut className="w-4 h-4 text-white" />
+              <LogOut className="w-3.5 h-3.5 text-white" />
             </button>
           </div>
         )}

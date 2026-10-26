@@ -19,6 +19,9 @@ import { CreateTaskModal } from '@/components/modals/CreateTaskModal';
 import { TaskDetailModal } from '@/components/modals/TaskDetailModal';
 
 // Pages
+import { OverviewPage } from '@/pages/OverviewPage';
+import { WebmailPage } from '@/pages/WebmailPage';
+import { SupportDeskPage } from '@/pages/SupportDeskPage';
 import { UsersPage } from '@/pages/UsersPage';
 import { ProjectsPage } from '@/pages/ProjectsPage';
 import { TasksPage } from '@/pages/TasksPage';
@@ -44,7 +47,7 @@ export function PublicAuthRoute({ children }: { children: React.ReactNode }) {
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
   if (user && token) {
-    return <Navigate to="/projects" replace />;
+    return <Navigate to="/overview" replace />;
   }
 
   return <>{children}</>;
@@ -62,7 +65,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           sidebar={
             <UnifiedSidebar
               menuGroups={NAVIGATION_MENU_GROUPS}
-              brandPath="/projects"
+              brandPath="/overview"
               user={user}
               onLogout={logout}
             />
@@ -103,7 +106,31 @@ export function AppRoutes() {
       {/* Main Dashboard Shell Routes */}
       <Route
         path="/"
-        element={<Navigate to="/projects" replace />}
+        element={<Navigate to="/overview" replace />}
+      />
+      <Route
+        path="/overview"
+        element={
+          <AppShell>
+            <OverviewPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/webmail"
+        element={
+          <AppShell>
+            <WebmailPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/support"
+        element={
+          <AppShell>
+            <SupportDeskPage />
+          </AppShell>
+        }
       />
       <Route
         path="/users"
@@ -171,7 +198,7 @@ export function AppRoutes() {
       />
 
       {/* Catch-all fallback */}
-      <Route path="*" element={<Navigate to="/projects" replace />} />
+      <Route path="*" element={<Navigate to="/overview" replace />} />
     </Routes>
   );
 }
