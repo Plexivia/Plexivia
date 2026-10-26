@@ -15,6 +15,7 @@ export interface IAdmin extends Document {
   is_active: boolean;
   two_factor_enabled: boolean;
   two_factor_secret?: string;
+  two_factor_pending_secret?: string;
   permissions?: Record<string, any>;
   created_at: string;
   updated_at: string;
@@ -34,6 +35,7 @@ const AdminSchema = new Schema<IAdmin>(
     is_active: { type: Boolean, default: true },
     two_factor_enabled: { type: Boolean, default: true },
     two_factor_secret: { type: String, default: '' },
+    two_factor_pending_secret: { type: String },
     permissions: { type: Schema.Types.Mixed, default: {} },
     created_at: { type: String, default: () => new Date().toISOString() },
     updated_at: { type: String, default: () => new Date().toISOString() },
@@ -45,6 +47,7 @@ const AdminSchema = new Schema<IAdmin>(
       transform: (_doc, ret: Record<string, any>) => {
         delete ret.password_hash;
         delete ret.two_factor_secret;
+        delete ret.two_factor_pending_secret;
         return ret;
       },
     },

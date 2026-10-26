@@ -101,8 +101,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       const headers = twoFactorToken ? { Authorization: `Bearer ${twoFactorToken}` } : {};
       const { data } = await apiClient.post('/api/v1/auth/login/2fa/send-email-otp', { email }, { headers });
       return data;
-    } catch {
-      return { success: true, message: 'Verification code sent to your email.', expiresInSeconds: 180 };
+    } catch (err: any) {
+      throw new Error(getGenericErrorMessage(err, 'Could not send the verification code.'));
     }
   },
 
@@ -160,8 +160,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       const headers = twoFactorToken ? { Authorization: `Bearer ${twoFactorToken}` } : {};
       const { data } = await apiClient.post('/api/v1/auth/2fa/resend', {}, { headers });
       return data;
-    } catch {
-      return { success: true, message: 'Verification code resent.', expiresInSeconds: 180 };
+    } catch (err: any) {
+      throw new Error(getGenericErrorMessage(err, 'Could not resend the verification code.'));
     }
   },
 
@@ -170,8 +170,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       const headers = twoFactorToken ? { Authorization: `Bearer ${twoFactorToken}` } : {};
       const { data } = await apiClient.post('/api/v1/auth/2fa/send-qr', {}, { headers });
       return data;
-    } catch {
-      return { success: true, message: 'QR code instructions sent.' };
+    } catch (err: any) {
+      throw new Error(getGenericErrorMessage(err, 'Could not send the authenticator QR code.'));
     }
   },
 

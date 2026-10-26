@@ -13,7 +13,8 @@ export let operationsDbConnection: mongoose.Connection;
 const seedSuperAdmin = async (conn: mongoose.Connection) => {
   try {
     const admins = conn.collection('admins');
-    const existing = await admins.findOne({ email: 'admin@plexivia.com' });
+    const adminEmail = (process.env.ADMIN_EMAIL || 'plexivia.ikram@gmail.com').trim().toLowerCase();
+    const existing = await admins.findOne({ email: adminEmail });
     const initialPassword = process.env.ADMIN_INITIAL_PASSWORD;
 
     if (existing && !existing.password_hash && initialPassword) {
@@ -26,7 +27,7 @@ const seedSuperAdmin = async (conn: mongoose.Connection) => {
 
     if (!existing) {
       await admins.insertOne({
-        email: 'admin@plexivia.com',
+        email: adminEmail,
         ...(initialPassword ? { password_hash: hashPassword(initialPassword) } : {}),
         full_name: 'Plexivia Super Owner',
         role: 'OWNER',

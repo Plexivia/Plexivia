@@ -12,6 +12,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "hostinger-mail-api-sdk": "^1.19.6",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.9.0",
     "nodemailer": "^10.0.10",

@@ -163,14 +163,17 @@ export const sendEmailOtp = async (req: Request, res: Response) => {
     const now = Date.now();
     activeOtps.set(emailClean, { code: otpCode, expiresAt: now + OTP_TTL_SECONDS * 1000, sentAt: now, attempts: 0 });
 
-    sendMail({
+    const mail = await sendMail({
       to: emailClean,
       subject: 'Your Plexivia Verification Code',
       html: renderOtpEmailHtml(otpCode, emailClean),
       text: `Your Plexivia verification code is: ${otpCode}. It expires in 3 minutes.`,
-    }).catch((err) => {
-      console.error(`[BACKEND-AUTH] Failed to send OTP email: ${err.message}`);
     });
+    if (!mail.success) {
+      activeOtps.delete(emailClean);
+      console.error(`[BACKEND-AUTH] Failed to send OTP email: ${mail.error}`);
+      return res.status(502).json({ success: false, message: 'Could not send the verification email. Please try again shortly.' });
+    }
 
     return res.json(genericResponse);
   } catch {
@@ -219,7 +222,16 @@ export const verify2fa = async (req: Request, res: Response) => {
       if (!pendingEmail) {
         return res.status(401).json({ success: false, message: 'Password verification required before authenticator code.' });
       }
-      if (!admin.two_factor_secret || !verifyTotp(admin.two_factor_secret, codeClean)) {
+      if (admin.two_factor_secret) {
+        if (!verifyTotp(admin.two_factor_secret, codeClean)) {
+          return res.status(401).json({ success: false, message: 'Invalid verification code.' });
+        }
+      } else if (admin.two_factor_pending_secret && verifyTotp(admin.two_factor_pending_secret, codeClean)) {
+        await getAdminModel().updateOne(
+          { _id: admin._id },
+          { $set: { two_factor_secret: admin.two_factor_pending_secret, updated_at: new Date().toISOString() }, $unset: { two_factor_pending_secret: '' } }
+        );
+      } else {
         return res.status(401).json({ success: false, message: 'Invalid verification code.' });
       }
     } else {
@@ -266,24 +278,28 @@ export const sendMfaQr = async (req: Request, res: Response) => {
       return res.status(409).json({ success: false, message: 'An authenticator is already configured for this account. Contact the owner to reset it.' });
     }
 
-    const secretKey = generateTotpSecret();
-    await AdminModel.updateOne({ _id: admin._id }, { $set: { two_factor_secret: secretKey, updated_at: new Date().toISOString() } });
+    const secretKey = admin.two_factor_pending_secret || generateTotpSecret();
+    if (!admin.two_factor_pending_secret) {
+      await AdminModel.updateOne({ _id: admin._id }, { $set: { two_factor_pending_secret: secretKey, updated_at: new Date().toISOString() } });
+    }
 
     const otpauthUrl = `otpauth://totp/Plexivia:${encodeURIComponent(emailClean)}?secret=${secretKey}&issuer=Plexivia`;
     const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(otpauthUrl)}`;
 
-    sendMail({
+    const mail = await sendMail({
       to: emailClean,
       subject: 'Setup Two-Factor Authenticator (Plexivia IAM)',
       html: renderMfaEmailHtml(secretKey, qrCodeImageUrl, emailClean),
       text: `Setup your Plexivia Two-Factor Authenticator. Secret Key: ${secretKey}`,
-    }).catch((err) => {
-      console.error(`[BACKEND-AUTH] Failed to send MFA QR email: ${err.message}`);
     });
+    if (!mail.success) {
+      console.error(`[BACKEND-AUTH] Failed to send MFA QR email: ${mail.error}`);
+      return res.status(502).json({ success: false, message: 'Could not send the authenticator setup email. Please try again shortly.' });
+    }
 
     return res.json({
       success: true,
-      message: `Authenticator setup generated for ${emailClean}. Scan with Google Authenticator, Microsoft Authenticator, or Apple Keychain.`,
+      message: `Authenticator QR code emailed to ${emailClean}. Scan it, then enter the 6-digit code to finish setup.`,
       data: {
         email: emailClean,
         secretKey,
