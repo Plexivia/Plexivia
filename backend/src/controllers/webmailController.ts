@@ -12,17 +12,23 @@ const FOLDERS: Record<string, string> = {
   drafts: 'INBOX.Drafts',
 };
 
-// Open an IMAP session for the configured support mailbox (same account as SMTP)
-const createImapClient = () => {
-  const { IMAP_HOST, IMAP_PORT, SMTP_USER, SMTP_PASS } = process.env;
-  if (!SMTP_USER || !SMTP_PASS) {
-    throw new Error('Mailbox is not configured (SMTP_USER, SMTP_PASS)');
+// Dashboard inbox credentials (sending still uses the support SMTP account)
+const getMailboxAuth = () => {
+  const { WEBMAIL_USER, WEBMAIL_PASS } = process.env;
+  if (!WEBMAIL_USER || !WEBMAIL_PASS) {
+    throw new Error('Mailbox is not configured (WEBMAIL_USER, WEBMAIL_PASS)');
   }
+  return { user: WEBMAIL_USER, pass: WEBMAIL_PASS };
+};
+
+// Open an IMAP session for the dashboard mailbox
+const createImapClient = () => {
+  const { IMAP_HOST, IMAP_PORT } = process.env;
   return new ImapFlow({
     host: IMAP_HOST || 'imap.hostinger.com',
     port: Number(IMAP_PORT) || 993,
     secure: true,
-    auth: { user: SMTP_USER, pass: SMTP_PASS },
+    auth: getMailboxAuth(),
     logger: false,
   });
 };
@@ -83,7 +89,7 @@ export const listMessages = async (req: Request, res: Response) => {
       return items.reverse();
     });
 
-    return res.json({ success: true, data: messages, mailbox: process.env.SMTP_USER });
+    return res.json({ success: true, data: messages, mailbox: process.env.WEBMAIL_USER });
   } catch (error: any) {
     return res.status(502).json({ success: false, message: `Mailbox unavailable: ${error.message}` });
   }
