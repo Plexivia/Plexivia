@@ -7,7 +7,6 @@ import { ToastContainer } from '@/components/common/ToastContainer';
 import { GlobalSearchModal } from '@/components/common/GlobalSearchModal';
 import { GlobalErrorBoundary } from '@/components/common/GlobalErrorBoundary';
 import { NotificationDrawer } from '@/components/layout/NotificationDrawer';
-import { LoginModal } from '@/components/common/LoginModal';
 import { LoginPage } from '@/components/auth/LoginPage';
 import { NAVIGATION_MENU_GROUPS } from '@/constants/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -86,7 +85,6 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
                 isOpen={isNotificationsOpen}
                 onClose={() => setIsNotificationsOpen(false)}
               />
-              <LoginModal />
             </>
           }
         >

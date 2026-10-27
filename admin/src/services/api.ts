@@ -16,30 +16,25 @@ import {
   SystemStats,
 } from '../types';
 
+import type { Method } from 'axios';
+import { apiClient as http } from '@/lib/api-client';
+
 const TOKEN_KEY = 'plexi_jwt_token';
 const USER_KEY = 'plexi_active_user';
 
-// Fetch data from backend API with authentication headers
-export const apiFetch = async <T = any>(endpoint: string, options: RequestInit = {}): Promise<T> => {
-  const token = localStorage.getItem(TOKEN_KEY) || localStorage.getItem('accessToken');
-  const headers = new Headers(options.headers || {});
-  headers.set('Content-Type', 'application/json');
-  if (token) headers.set('Authorization', 'Bearer ' + token);
+// Fetch data through the shared axios client so the current access token and refresh flow are used
+const sendRequest = async <T = any>(url: string, options: RequestInit = {}): Promise<T> => {
+  const { data } = await http.request<T>({
+    url,
+    method: (options.method as Method) || 'GET',
+    data: options.body,
+  });
+  return data;
+};
 
-  const baseUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) ? import.meta.env.VITE_API_BASE_URL : '';
+export const apiFetch = <T = any>(endpoint: string, options: RequestInit = {}): Promise<T> => {
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-  const requestUrl = baseUrl ? `${baseUrl}/api${cleanEndpoint}` : `/api${cleanEndpoint}`;
-
-  try {
-    const res = await fetch(requestUrl, { ...options, headers });
-    if (!res.ok) {
-      if (res.status === 401) window.dispatchEvent(new CustomEvent('plexi:unauthorized'));
-      throw new Error('API Error: ' + res.status + ' ' + res.statusText);
-    }
-    return await res.json();
-  } catch (err) {
-    throw err;
-  }
+  return sendRequest<T>(`/api${cleanEndpoint}`, options);
 };
 
 // Extract array from various API response wrapper formats
@@ -150,11 +145,11 @@ export interface ApiClient {
 
 export const apiClient: ApiClient = {
   getToken(): string | null {
-    return localStorage.getItem(TOKEN_KEY) || localStorage.getItem('accessToken');
+    return localStorage.getItem('accessToken');
   },
 
   setToken(token: string) {
-    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.removeItem(TOKEN_KEY);
     localStorage.setItem('accessToken', token);
   },
 
@@ -183,27 +178,8 @@ export const apiClient: ApiClient = {
     localStorage.setItem('user', JSON.stringify(user));
   },
 
-  async request<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const token = this.getToken();
-    const headers = new Headers(options.headers || {});
-    headers.set('Content-Type', 'application/json');
-    if (token) {
-      headers.set('Authorization', 'Bearer ' + token);
-    }
-
-    const res = await fetch('/api' + endpoint, {
-      ...options,
-      headers,
-    });
-
-    if (!res.ok) {
-      if (res.status === 401) {
-        window.dispatchEvent(new CustomEvent('plexi:unauthorized'));
-      }
-      throw new Error('API Error: ' + res.status + ' ' + res.statusText);
-    }
-
-    return await res.json();
+  request<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    return sendRequest<T>('/api' + endpoint, options);
   },
 
   // Auth Operations
