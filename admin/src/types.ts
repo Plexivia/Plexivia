@@ -12,8 +12,12 @@ export type UserStatus = 'ACTIVE' | 'INACTIVE' | 'AWAY' | 'OFFLINE';
 
 export interface MenuItem {
   title: string;
-  url: string;
+  url?: string;
   icon?: any;
+  iconClass?: string;
+  isSectionLabel?: boolean;
+  exact?: boolean;
+  activePaths?: string[];
   badge?: string | number;
   badgeVariant?: 'default' | 'secondary' | 'destructive' | 'outline';
   items?: MenuItem[];

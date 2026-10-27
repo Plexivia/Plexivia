@@ -23,6 +23,10 @@ export interface MenuItem {
   path?: string;
   href?: string;
   icon?: any;
+  iconClass?: string;
+  isSectionLabel?: boolean;
+  exact?: boolean;
+  activePaths?: string[];
   badge?: string | number;
   badgeVariant?: 'default' | 'secondary' | 'destructive' | 'outline';
   items?: MenuItem[];

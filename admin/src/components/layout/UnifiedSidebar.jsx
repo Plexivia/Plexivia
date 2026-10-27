@@ -30,18 +30,8 @@ import { cn } from '@/lib/utils';
 import brandLogoImg from '@/assets/brand-dark.png';
 import { APP_NAME, APP_VERSION } from '@/configs/appConfig';
 
-/**
- * Universal Sidebar Component for Dashboard Template.
- * 
- * Features:
- * - Compact spacing between menu items
- * - Pure white icons on active / selected state and on hover
- * - Unified responsive collapsible behavior (icon collapse 48px <-> expanded 256px)
- * - Brand header with logo, title, and collapse trigger
- * - Smooth collapsible submenus with indicator lines
- * - Footer with user profile info, role badge, and Sign Out action
- */
-export function UnifiedSidebar({
+// Renders the universal collapsible navigation sidebar for the dashboard
+export const UnifiedSidebar = ({
   menuGroups = [],
   activeChecker = null,
   onItemSelect = null,
@@ -54,7 +44,7 @@ export function UnifiedSidebar({
   onProfileClick = null,
   lang = 'EN',
   className = '',
-}) {
+}) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { state, setOpen, isMobile, setOpenMobile } = useSidebar();
@@ -62,16 +52,19 @@ export function UnifiedSidebar({
 
   const [openMenus, setOpenMenus] = useState({});
 
+  // Evaluates whether a navigation menu item is active for the current route
   const isItemActive = (item) => {
-    if (!item) return false;
+    if (!item || item.isSectionLabel) return false;
     if (activeChecker) return activeChecker(item);
+    if (Array.isArray(item.activePaths) && item.activePaths.includes(location.pathname)) {
+      return true;
+    }
     const itemPath = item.url || item.path || item.href;
     if (!itemPath) return false;
-    if (itemPath === '/') return location.pathname === '/';
+    if (itemPath === '/' || item.exact) return location.pathname === itemPath;
     return location.pathname === itemPath || location.pathname.startsWith(itemPath + '/');
   };
 
-  // Keep parent menus persistently open when any child is active to prevent collapsible accordion flicker
   React.useEffect(() => {
     if (!Array.isArray(menuGroups)) return;
     setOpenMenus((prev) => {
@@ -95,6 +88,7 @@ export function UnifiedSidebar({
     });
   }, [menuGroups, location.pathname, activeChecker]);
 
+  // Toggles the open or collapsed state of a sidebar group or submenu
   const toggleGroup = (id) => {
     setOpenMenus((prev) => ({
       ...prev,
@@ -102,6 +96,7 @@ export function UnifiedSidebar({
     }));
   };
 
+  // Handles clicking a parent menu group header and expands the sidebar if collapsed
   const handleGroupClick = (id) => {
     if (isCollapsed) {
       setOpen(true);
@@ -114,7 +109,9 @@ export function UnifiedSidebar({
     }
   };
 
+  // Navigates to the selected menu item path and closes mobile drawer when needed
   const handleNavClick = (e, item) => {
+    if (item?.isSectionLabel) return;
     const itemPath = item.url || item.path || item.href;
     if (onItemSelect) {
       if (e && e.preventDefault) e.preventDefault();
@@ -131,6 +128,7 @@ export function UnifiedSidebar({
     }
   };
 
+  // Renders a Lucide icon component or fallback icon for a menu item
   const renderIcon = (icon, extraClassName = '') => {
     if (!icon) {
       return <LucideIcons.FileText className={cn('w-4 h-4 shrink-0 transition-colors duration-200', extraClassName)} />;
@@ -343,7 +341,7 @@ export function UnifiedSidebar({
                                   />
                                 </SidebarMenuButton>
                                 <CollapsibleContent>
-                                                                    <SidebarMenuSub className="ml-4 border-l border-cyan-400/30 pl-2 my-0.5 gap-0.5">
+                                  <SidebarMenuSub className="ml-4 border-l border-cyan-400/30 pl-2 my-0.5 gap-0.5">
                                     {childList.map((subItem, subIdx) => {
                                       if (subItem.roles && subItem.roles.length > 0) {
                                         const hasRole = subItem.roles.includes(userRole) || subItem.roles.includes(userSubRole);
@@ -353,8 +351,20 @@ export function UnifiedSidebar({
                                         const isExcluded = subItem.excludeRoles.includes(userRole) || subItem.excludeRoles.includes(userSubRole);
                                         if (isExcluded) return null;
                                       }
-                                      const isSubActive = isItemActive(subItem);
                                       const subLabel = lang === 'BN' ? (subItem.nameBn || subItem.titleBn || subItem.name || subItem.title || subItem.label) : (subItem.name || subItem.title || subItem.label);
+
+                                      if (subItem.isSectionLabel) {
+                                        return (
+                                          <div
+                                            key={subIdx}
+                                            className="px-2 pb-1 pt-2.5 text-[10px] font-bold uppercase tracking-wider text-cyan-400/75 group-data-[collapsible=icon]:hidden select-none"
+                                          >
+                                            {subLabel}
+                                          </div>
+                                        );
+                                      }
+
+                                      const isSubActive = isItemActive(subItem);
 
                                       return (
                                         <SidebarMenuSubItem key={subIdx}>
@@ -375,7 +385,7 @@ export function UnifiedSidebar({
                                                   'w-3.5 h-3.5 shrink-0 transition-colors',
                                                   isSubActive
                                                     ? '!text-slate-950 group-hover:!text-slate-950'
-                                                    : 'text-cyan-400 group-hover:text-white'
+                                                    : subItem.iconClass || 'text-cyan-400 group-hover:text-white'
                                                 )
                                               )}
                                             <span

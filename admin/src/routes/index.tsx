@@ -12,13 +12,6 @@ import { LoginPage } from '@/components/auth/LoginPage';
 import { NAVIGATION_MENU_GROUPS } from '@/constants/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 
-// Modals
-import { CreateProjectModal } from '@/components/modals/CreateProjectModal';
-import { CreateClientModal } from '@/components/modals/CreateClientModal';
-import { CreateTaskModal } from '@/components/modals/CreateTaskModal';
-import { TaskDetailModal } from '@/components/modals/TaskDetailModal';
-
-// Pages
 import { OverviewPage } from '@/pages/OverviewPage';
 import { WebmailPage } from '@/pages/WebmailPage';
 import { SupportDeskPage } from '@/pages/SupportDeskPage';
@@ -27,11 +20,24 @@ import { ProjectsPage } from '@/pages/ProjectsPage';
 import { TasksPage } from '@/pages/TasksPage';
 import { ClientsDirectoryPage } from '@/pages/ClientsDirectoryPage';
 import { AgencyTeamPage } from '@/pages/AgencyTeamPage';
-import { AccountsPage } from '@/pages/AccountsPage';
 import { DocumentStudioPage } from '@/features/document-studio/pages/DocumentStudioPage';
 
-// Route Guards
-export function ProtectedRoute({ children }: { children: React.ReactNode }) {
+import { BalanceOverview as BalanceOverviewPage } from '@/pages/accounts/balanceOverview';
+import { AddNewBillPage } from '@/pages/accounts/addNewBill';
+import { AllBillsPage } from '@/pages/accounts/allBills';
+import { BillTypesPage } from '@/pages/accounts/billTypes';
+import { AddNewPaymentPage } from '@/pages/accounts/addNewPayment';
+import { AllPaymentsPage } from '@/pages/accounts/allPayments';
+import { PaymentTypesPage, PaymentMethodsPage } from '@/pages/accounts/paymentTypes';
+import { InvestorsPage } from '@/pages/accounts/investors';
+import { InvestmentsListPage } from '@/pages/accounts/investmentsList';
+
+import { BillingPage } from '@/pages/billing/billingOverview';
+import { BillingsPage } from '@/pages/billing/billings';
+import { PaymentsPage } from '@/pages/billing/payments';
+
+// Guards routes that require an authenticated user session
+export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuthStore();
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
@@ -40,9 +46,10 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   return <>{children}</>;
-}
+};
 
-export function PublicAuthRoute({ children }: { children: React.ReactNode }) {
+// Redirects authenticated users away from public login routes
+export const PublicAuthRoute = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuthStore();
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
@@ -51,10 +58,10 @@ export function PublicAuthRoute({ children }: { children: React.ReactNode }) {
   }
 
   return <>{children}</>;
-}
+};
 
-// Authenticated layout shell wrapper
-export function AppShell({ children }: { children: React.ReactNode }) {
+// Renders the authenticated dashboard layout shell around page content
+export const AppShell = ({ children }: { children: React.ReactNode }) => {
   const { user, logout } = useAuthStore();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
@@ -88,12 +95,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </GlobalErrorBoundary>
     </ProtectedRoute>
   );
-}
+};
 
-export function AppRoutes() {
+// Defines all application routes for the admin dashboard
+export const AppRoutes = () => {
   return (
     <Routes>
-      {/* Public Auth Routes */}
       <Route
         path="/login"
         element={
@@ -103,7 +110,6 @@ export function AppRoutes() {
         }
       />
 
-      {/* Main Dashboard Shell Routes */}
       <Route
         path="/"
         element={<Navigate to="/overview" replace />}
@@ -172,14 +178,186 @@ export function AppRoutes() {
           </AppShell>
         }
       />
+
       <Route
         path="/accounts"
         element={
           <AppShell>
-            <AccountsPage />
+            <BalanceOverviewPage />
           </AppShell>
         }
       />
+      <Route
+        path="/accounts/balance"
+        element={
+          <AppShell>
+            <BalanceOverviewPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/accounts/bills"
+        element={
+          <AppShell>
+            <AllBillsPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/accounts/bills/new"
+        element={
+          <AppShell>
+            <AddNewBillPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/accounts/bills/types"
+        element={
+          <AppShell>
+            <BillTypesPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/accounts/payments"
+        element={
+          <AppShell>
+            <AllPaymentsPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/accounts/payments/new"
+        element={
+          <AppShell>
+            <AddNewPaymentPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/accounts/payments/methods"
+        element={
+          <AppShell>
+            <PaymentMethodsPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/accounts/payments/types"
+        element={
+          <AppShell>
+            <PaymentTypesPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/accounts/payment-methods"
+        element={
+          <AppShell>
+            <PaymentMethodsPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/accounts/investors"
+        element={
+          <AppShell>
+            <InvestorsPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/accounts/investments"
+        element={
+          <AppShell>
+            <InvestmentsListPage />
+          </AppShell>
+        }
+      />
+
+      <Route
+        path="/billing"
+        element={
+          <AppShell>
+            <BillingPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/billing/billings"
+        element={
+          <AppShell>
+            <BillingsPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/billing/payments"
+        element={
+          <AppShell>
+            <PaymentsPage />
+          </AppShell>
+        }
+      />
+
+      <Route
+        path="/dashboard/accounts"
+        element={<Navigate to="/accounts/balance" replace />}
+      />
+      <Route
+        path="/dashboard/accounts/balance"
+        element={<Navigate to="/accounts/balance" replace />}
+      />
+      <Route
+        path="/dashboard/accounts/bills"
+        element={<Navigate to="/accounts/bills" replace />}
+      />
+      <Route
+        path="/dashboard/accounts/bills/new"
+        element={<Navigate to="/accounts/bills/new" replace />}
+      />
+      <Route
+        path="/dashboard/accounts/bills/types"
+        element={<Navigate to="/accounts/bills/types" replace />}
+      />
+      <Route
+        path="/dashboard/accounts/payments"
+        element={<Navigate to="/accounts/payments" replace />}
+      />
+      <Route
+        path="/dashboard/accounts/payments/new"
+        element={<Navigate to="/accounts/payments/new" replace />}
+      />
+      <Route
+        path="/dashboard/accounts/payments/methods"
+        element={<Navigate to="/accounts/payments/methods" replace />}
+      />
+      <Route
+        path="/dashboard/accounts/payments/types"
+        element={<Navigate to="/accounts/payments/types" replace />}
+      />
+      <Route
+        path="/dashboard/accounts/investors"
+        element={<Navigate to="/accounts/investors" replace />}
+      />
+      <Route
+        path="/dashboard/accounts/investments"
+        element={<Navigate to="/accounts/investments" replace />}
+      />
+      <Route
+        path="/dashboard/billing"
+        element={<Navigate to="/billing" replace />}
+      />
+      <Route
+        path="/dashboard/billing/billings"
+        element={<Navigate to="/billing/billings" replace />}
+      />
+      <Route
+        path="/dashboard/billing/payments"
+        element={<Navigate to="/billing/payments" replace />}
+      />
+
       <Route
         path="/documents"
         element={
@@ -197,10 +375,9 @@ export function AppRoutes() {
         }
       />
 
-      {/* Catch-all fallback */}
       <Route path="*" element={<Navigate to="/overview" replace />} />
     </Routes>
   );
-}
+};
 
 export default AppRoutes;
