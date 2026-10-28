@@ -1,6 +1,5 @@
-﻿import React, { createContext, useContext, useEffect, useState } from 'react';
-
-type Theme = 'dark' | 'light';
+﻿import React, { createContext, useContext } from 'react';
+import { useThemeStore, type Theme } from '@/store/useThemeStore';
 
 interface ThemeContextType {
   theme: Theme;
@@ -10,32 +9,9 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+// Legacy context kept for older components; theme state and the html "dark" class come from useThemeStore
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setThemeState] = useState<Theme>(() => {
-    const saved = localStorage.getItem('plexi_theme');
-    if (saved === 'dark' || saved === 'light') return saved;
-    return 'dark'; // Default to cyberpunk dark mode
-  });
-
-  useEffect(() => {
-    const root = document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-      root.classList.remove('light');
-    } else {
-      root.classList.remove('dark');
-      root.classList.add('light');
-    }
-    localStorage.setItem('plexi_theme', theme);
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setThemeState(prev => (prev === 'dark' ? 'light' : 'dark'));
-  };
-
-  const setTheme = (t: Theme) => {
-    setThemeState(t);
-  };
+  const { theme, toggleTheme, setTheme } = useThemeStore();
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>

@@ -155,17 +155,16 @@ function printElementInIsolatedFrame(targetEl: HTMLElement, pdfFileName: string,
         visibility: visible !important;
       }
       ${isMultiPage ? `
-      /* Multi-page documents: margins come from @page so every page gets top/bottom space */
-      @page {
-        size: A4 portrait;
-        margin: 10mm 0 !important;
-      }
+      /* Multi-page documents: padding repeats on every printed page (box-decoration-break),
+         so pages keep top/bottom space even when the print dialog's margins are set to None */
       .printable-a4-paper,
       [id*="canvas"],
       [id*="printable"] {
         min-height: 0 !important;
-        padding: 0 10mm !important;
+        padding: 15mm !important;
         display: block !important;
+        -webkit-box-decoration-break: clone !important;
+        box-decoration-break: clone !important;
         page-break-inside: auto !important;
         break-inside: auto !important;
       }

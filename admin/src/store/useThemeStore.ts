@@ -13,11 +13,8 @@ const getInitialTheme = (): Theme => {
       }
       return saved;
     }
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    if (prefersDark) {
-      document.documentElement.classList.add('dark');
-      return 'dark';
-    }
+    // No saved choice: default to light regardless of the OS colour scheme
+    document.documentElement.classList.remove('dark');
   }
   return 'light';
 };
