@@ -72,6 +72,9 @@ export function getDocumentRecipientName(data: any): string {
   );
 }
 
+// Documents that can run past one A4 page; they get page margins that repeat on every page
+const MULTI_PAGE_DOCUMENT_IDS = ['printable-resume-canvas'];
+
 /**
  * Prints a target DOM element inside an isolated, invisible iframe.
  */
@@ -103,6 +106,8 @@ function printElementInIsolatedFrame(targetEl: HTMLElement, pdfFileName: string,
   headElements.forEach((node) => {
     stylesHtml += node.outerHTML + '\n';
   });
+
+  const isMultiPage = MULTI_PAGE_DOCUMENT_IDS.includes(targetEl.id);
 
   const printOverrides = `
     <style>
@@ -149,6 +154,22 @@ function printElementInIsolatedFrame(targetEl: HTMLElement, pdfFileName: string,
         position: relative !important;
         visibility: visible !important;
       }
+      ${isMultiPage ? `
+      /* Multi-page documents: margins come from @page so every page gets top/bottom space */
+      @page {
+        size: A4 portrait;
+        margin: 10mm 0 !important;
+      }
+      .printable-a4-paper,
+      [id*="canvas"],
+      [id*="printable"] {
+        min-height: 0 !important;
+        padding: 0 10mm !important;
+        display: block !important;
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+      }
+      ` : ''}
       .no-print, .no-print * {
         display: none !important;
         visibility: hidden !important;

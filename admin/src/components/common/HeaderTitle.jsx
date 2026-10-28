@@ -1,22 +1,27 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 /**
- * Universal Header Title component for Plexivia ERP.
- * 
- * Renders the signature Dark Blue / Sky Indigo gradient banner with glowing ambient lighting,
- * high-contrast typography, and flexible action toolbars across all app pages and Document Studio.
- * 
+ * Universal page bar for Plexivia ERP.
+ *
+ * Inside the V2 layout it renders into the full-width #v2-page-bar slot under the navbar
+ * (background spans the full width, content is held to the page max width).
+ * Elsewhere it falls back to rendering inline.
+ *
  * @param {Object} props
- * @param {string} props.title - Main header title
- * @param {string} [props.subtitle] - Subtitle / description text
+ * @param {string} props.title - Page title
+ * @param {string} [props.subtitle] - Accepted for compatibility; not shown in the page bar
  * @param {string} [props.description] - Alias for subtitle
  * @param {React.ReactNode|string|Function} [props.icon] - Lucide icon name, component, or element
  * @param {string} [props.badge] - Optional badge / pill tag text
- * @param {React.ReactNode} [props.actions] - Right side action elements (buttons, filters, toolbars)
- * @param {React.ReactNode} [props.children] - Additional elements or action slot fallback
- * @param {'general'|'printables'|'printable'} [props.variant='general'] - Variation layout style
+ * @param {React.ReactNode} [props.actions] - Right side page actions (export, reset, filters)
+ * @param {React.ReactNode} [props.children] - Action slot fallback
+ * @param {boolean} [props.showBack=true] - Show the back button
+ * @param {boolean} [props.showRefresh=true] - Show the refresh button
+ * @param {Function} [props.onRefresh] - Custom refresh handler (defaults to reloading the route)
  * @param {string} [props.className] - Additional container class names
  * @param {string} [props.titleClassName] - Additional title class names
  * @param {string} [props.subtitleClassName] - Additional subtitle class names
@@ -29,13 +34,32 @@ export function HeaderTitle({
   badge,
   actions,
   children,
-  variant = 'general',
+  showBack = true,
+  showRefresh = true,
+  onRefresh,
   className = '',
   titleClassName = '',
   subtitleClassName = '',
 }) {
-  const resolvedSubtitle = subtitle || description;
+  const navigate = useNavigate();
+  const [slot, setSlot] = useState(null);
   const actionElements = actions || children;
+
+  useEffect(() => {
+    setSlot(document.getElementById('v2-page-bar'));
+  }, []);
+
+  // Goes to the previous page, or the overview when there is no history
+  const handleBack = () => {
+    if (window.history.length > 1) navigate(-1);
+    else navigate('/overview');
+  };
+
+  // Uses the page's own refresh when given, otherwise re-renders the current route
+  const handleRefresh = () => {
+    if (onRefresh) onRefresh();
+    else navigate(0);
+  };
 
   const renderIcon = (iconClass) => {
     if (!Icon) return null;
@@ -50,61 +74,58 @@ export function HeaderTitle({
     return <IconComponent className={cn(iconClass, 'shrink-0')} />;
   };
 
-  return (
-    <div
-      className={cn(
-        'no-print bg-gradient-to-r from-sky-950 via-indigo-950 to-black rounded-2xl sm:rounded-3xl p-5 sm:p-6 text-white shadow-xl border border-sky-800/40 relative overflow-hidden transition-all select-none',
-        className
-      )}
-    >
-      {/* Decorative ambient background glows */}
-      <div className="absolute -top-24 -right-24 w-72 h-72 bg-sky-500/15 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        {/* Left: Heading & Description */}
-        <div className="space-y-1.5 min-w-0 flex-1">
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <h1
-              className={cn(
-                'text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2.5',
-                titleClassName
-              )}
+  const bar = (
+    <div className={cn('no-print w-full select-none border-b border-white/10 bg-[#161a20] text-white', className)}>
+      <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between gap-3 px-4 py-2.5 md:px-6">
+        {/* Left: Back + Title */}
+        <div className="flex min-w-0 items-center gap-2.5">
+          {showBack && (
+            <button
+              type="button"
+              onClick={handleBack}
+              title="Go back"
+              className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-rose-600 text-white transition-colors hover:bg-rose-500 cursor-pointer"
             >
-              {renderIcon('size-6 text-sky-400')}
-              <span className="truncate">{title}</span>
-            </h1>
-            {badge && (
-              <span
-                className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-400/30 truncate max-w-xs sm:max-w-md inline-block"
-                title={typeof badge === 'string' ? badge : undefined}
-              >
-                {badge}
-              </span>
-            )}
-          </div>
-
-          {resolvedSubtitle && (
-            <p
-              className={cn(
-                'text-xs sm:text-[13px] text-sky-100/80 max-w-3xl leading-relaxed',
-                subtitleClassName
-              )}
-            >
-              {resolvedSubtitle}
-            </p>
+              <LucideIcons.ArrowLeft className="size-4" />
+            </button>
           )}
+          {renderIcon('size-5 text-v2-primary')}
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h1 className={cn('truncate text-base font-bold tracking-tight text-white', titleClassName)}>
+                {title}
+              </h1>
+              {badge && (
+                <span
+                  className="hidden max-w-xs truncate rounded-full border border-v2-primary/30 bg-v2-primary/15 px-2 py-0.5 text-[10px] font-semibold text-v2-primary sm:inline-block"
+                  title={typeof badge === 'string' ? badge : undefined}
+                >
+                  {badge}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* Right: Actions Container */}
-        {actionElements && (
-          <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
-            {actionElements}
-          </div>
-        )}
+        {/* Right: Refresh + page actions */}
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {showRefresh && (
+            <button
+              type="button"
+              onClick={handleRefresh}
+              title="Refresh"
+              className="flex size-8 items-center justify-center rounded-lg bg-sky-500 text-white transition-colors hover:bg-sky-400 cursor-pointer"
+            >
+              <LucideIcons.RotateCw className="size-4" />
+            </button>
+          )}
+          {actionElements}
+        </div>
       </div>
     </div>
   );
+
+  return slot ? createPortal(bar, slot) : bar;
 }
 
 /**

@@ -174,10 +174,10 @@ export function MoneyReceipt({ initialData = null, isLocked = false, onSavedSucc
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={handleReset}
-              className="flex items-center space-x-1.5 bg-rose-600/20 hover:bg-rose-600/40 text-rose-100 hover:text-white text-xs font-semibold px-3 py-1.5 rounded-xl border border-rose-400/40 transition-colors cursor-pointer shadow-2xs"
+              className="flex items-center space-x-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
               title="Reset Form"
             >
-              <RefreshCw className="w-3.5 h-3.5 text-rose-300" />
+              <RefreshCw className="w-3.5 h-3.5" />
               <span>Reset</span>
             </button>
 

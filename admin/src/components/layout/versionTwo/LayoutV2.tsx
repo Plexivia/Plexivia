@@ -43,7 +43,7 @@ export const LayoutV2 = ({ menuGroups, user, onLogout, onOpenNotifications, moda
   };
 
   return (
-    <div className="min-h-dvh bg-background text-foreground lg:flex">
+    <div className="h-dvh overflow-hidden bg-background text-foreground lg:flex">
       <SidebarV2
         menuGroups={menuGroups}
         user={user}
@@ -52,6 +52,7 @@ export const LayoutV2 = ({ menuGroups, user, onLogout, onOpenNotifications, moda
         isMobileOpen={isMobileOpen}
         onHoverChange={setIsHovered}
         onNavigate={handleNavigate}
+        onLogout={onLogout}
       />
 
       {isMobileOpen && (
@@ -63,18 +64,18 @@ export const LayoutV2 = ({ menuGroups, user, onLogout, onOpenNotifications, moda
 
       <div
         className={cn(
-          'flex min-w-0 flex-1 flex-col transition-all duration-300 ease-in-out',
-          isExpanded || isHovered ? 'lg:ms-[290px]' : 'lg:ms-[90px]'
+          'flex h-dvh min-w-0 flex-1 flex-col overflow-y-auto transition-[margin] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] scrollbar-theme',
+          isExpanded || isHovered ? 'lg:ms-[250px]' : 'lg:ms-[72px]'
         )}
       >
         <HeaderV2
-          user={user}
           isMobileOpen={isMobileOpen}
           onToggleSidebar={handleToggleSidebar}
           onOpenNotifications={onOpenNotifications}
-          onLogout={onLogout}
         />
-        <main className="mx-auto w-full max-w-[1440px] space-y-6 p-4 md:p-6">
+        {/* Full-width page bar; HeaderTitle portals its content here */}
+        <div id="v2-page-bar" className="empty:hidden" />
+        <main className="mx-auto w-full max-w-[1400px] space-y-6 p-4 md:p-6">
           {children}
         </main>
       </div>

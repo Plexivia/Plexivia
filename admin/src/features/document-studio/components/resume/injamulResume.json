@@ -1,0 +1,157 @@
+{
+  "personalInfo": {
+    "fullName": "Injamul Hossain Khan",
+    "title": "Civil Engineer",
+    "email": "ihkhan8897@gmail.com",
+    "phone": "+8801708733424",
+    "location": "1/27/2/7, South Mugdapara, Dhaka-1214, Bangladesh",
+    "summary": "To build up a dynamic career in Civil Engineering field where I can demonstrate my technical and managerial skills and contribute to the organization by working in a friendly & challenging environment.",
+    "avatarUrl": "/resume/injamul-photo.png"
+  },
+  "personalDetails": {
+    "fatherName": "Yousuf Ali Khan",
+    "motherName": "Bithy Akther",
+    "dateOfBirth": "26/11/2002",
+    "gender": "Male",
+    "nationality": "Bangladeshi",
+    "religion": "Islam",
+    "bloodGroup": "A+",
+    "maritalStatus": "Unmarried",
+    "height": "5'6\"",
+    "mobile": "01708733424",
+    "presentAddress": "South Mugdapara, Dhaka",
+    "permanentAddress": "Vill: Dawra, P/O: Qoraliapara, P.S.: Mirzapur, Dist: Tangail"
+  },
+  "thesis": {
+    "title": "Accident Hotspot Prediction Using Artificial Intelligence and Explainable Models for Safer Transportation Systems"
+  },
+  "experience": [
+    {
+      "id": "exp-1",
+      "company": "AE Construction",
+      "role": "Civil Engineer",
+      "location": "Tangail, Bangladesh",
+      "project": "Periodic maintenance of an existing road (LGED/GOBM/Tang/25-26/RW-62)",
+      "client": "LGED",
+      "startDate": "August 2026",
+      "endDate": "Present",
+      "isCurrent": true,
+      "bullets": [
+        "Supervise daily construction execution per Senior Engineer directions and contract standards.",
+        "Review working drawings, alignments, and cross-sections to verify quantity estimations and prevent discrepancies.",
+        "Ensure proper compaction and bed level for Sub-Grade, Improved Sub-Grade, Sub-Base, Base, Binder, and Wearing courses.",
+        "Inspect material proportioning and temperature controls in accordance with approved mix design.",
+        "Ensure all materials used and construction work performed strictly meet required specification."
+      ]
+    }
+  ],
+  "education": [
+    {
+      "id": "edu-1",
+      "degree": "BSc in Civil Engineering",
+      "institution": "Shahjalal University of Science and Technology (SUST)",
+      "location": "Sylhet",
+      "startDate": "",
+      "endDate": "2024",
+      "grade": "3.25 out of 4.00"
+    },
+    {
+      "id": "edu-2",
+      "degree": "H.S.C",
+      "institution": "Govt. Kabi Nazrul College",
+      "location": "Dhaka",
+      "startDate": "",
+      "endDate": "2020",
+      "grade": "5.00"
+    },
+    {
+      "id": "edu-3",
+      "degree": "S.S.C",
+      "institution": "Motijheel Govt. Boy's High School",
+      "location": "Dhaka",
+      "startDate": "",
+      "endDate": "2018",
+      "grade": "5.00"
+    }
+  ],
+  "skills": [
+    {
+      "id": "skill-1",
+      "category": "Microsoft Office Packages",
+      "items": ["MS Word", "MS Excel", "MS PowerPoint"]
+    },
+    {
+      "id": "skill-2",
+      "category": "Drawing Software",
+      "items": ["AutoCAD 2D", "ETABS", "SAFE", "PLAXIS 2D", "SketchUp"]
+    }
+  ],
+  "fieldwork": [
+    {
+      "id": "fieldwork-1",
+      "title": "Construction Engineering Field Study",
+      "date": "April 2022",
+      "location": "Pathantula, Sylhet",
+      "description": "Observed multi-story building workflows, focusing on RCC roof slab casting, pre-pour rebar inspection, formwork stability, and concrete vibration techniques."
+    },
+    {
+      "id": "fieldwork-2",
+      "title": "Structural Slab & Beam Inspection",
+      "date": "March 2025",
+      "location": "Kajolshah, Sylhet",
+      "description": "Studied one-way/two-way slab behaviors, primary/secondary beam layouts, and rebar detailing against structural blueprints alongside site engineers."
+    },
+    {
+      "id": "fieldwork-3",
+      "title": "Protecting groundwater through safely managed sanitation",
+      "date": "November 20, 2022",
+      "location": "",
+      "description": "Jointly organized by Department of Civil and Environmental Engineering (CEE), SUST & ITN-BUET (in association with Islamic Relief Bangladesh & World Vision Bangladesh)"
+    }
+  ],
+  "languages": [
+    { "id": "languages-1", "language": "Bangla", "speaking": "Excellent", "listening": "Excellent", "writing": "Excellent", "reading": "Excellent" },
+    { "id": "languages-2", "language": "English", "speaking": "Good", "listening": "Good", "writing": "Good", "reading": "Good" }
+  ],
+  "awards": [
+    {
+      "id": "awards-1",
+      "title": "Secured 2nd Runner-up - \"House of Trusses\" (Truss Design & Structural Analysis), Celencia: Season-1",
+      "description": "Organized by ACI BUET Student Chapter & ASCE Student Chapter, BUET"
+    }
+  ],
+  "activities": [
+    {
+      "id": "activities-1",
+      "title": "Sub-Organizer",
+      "organization": "ConCEPtum 1.0 (Inter-University Civil Engineering Competition), Sylhet Engineering College",
+      "date": "May 2024"
+    },
+    {
+      "id": "activities-2",
+      "title": "Joint Secretary (2025-2026)",
+      "organization": "SEC Civil Society, Department of Civil Engineering, Sylhet Engineering College",
+      "date": ""
+    }
+  ],
+  "references": [
+    {
+      "id": "references-1",
+      "name": "Sibbir Ahmed",
+      "designation": "Assistant Professor & Head of the Department",
+      "organization": "Department of Civil Engineering, Sylhet Engineering College",
+      "phone": "+880 1735-635271",
+      "email": "sibbircuet08@gmail.com"
+    }
+  ],
+  "declaration": {
+    "text": "I do hereby declare that all my information stated above in these Curriculum Vitae is true to the best of my knowledge and belief.",
+    "signatureUrl": "/resume/injamul-signature.png",
+    "signerName": "Injamul Hossain Khan",
+    "issuedDate": "Sept 2026"
+  },
+  "settings": {
+    "template": "engineer",
+    "accentColor": "#000000"
+  }
+}

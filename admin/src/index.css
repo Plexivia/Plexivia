@@ -58,23 +58,23 @@
 }
 
 :root {
-  --background: #f8fafb;
-  --foreground: #0c1618;
+  --background: #fafafa;
+  --foreground: #0a0a0a;
   --card: #ffffff;
-  --card-foreground: #0c1618;
+  --card-foreground: #0a0a0a;
   --popover: #ffffff;
-  --popover-foreground: #0c1618;
+  --popover-foreground: #0a0a0a;
   --primary: #0891b2;
   --primary-foreground: #ffffff;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0f172a;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
+  --secondary: rgba(0, 0, 0, 0.05);
+  --secondary-foreground: #0a0a0a;
+  --muted: rgba(0, 0, 0, 0.05);
+  --muted-foreground: #262626;
   --accent: #f0fdfa;
   --accent-foreground: #0e7490;
   --destructive: #ef4444;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
+  --border: rgba(0, 0, 0, 0.12);
+  --input: rgba(0, 0, 0, 0.15);
   --ring: #0891b2;
   --chart-1: #0891b2;
   --chart-2: #10b981;
@@ -147,6 +147,10 @@
     overflow: hidden;
     touch-action: pan-x pan-y;
     -webkit-overflow-scrolling: touch;
+  }
+  /* Slightly compact base scale (~94% of browser default) for all rem-based sizes */
+  html {
+    font-size: 15px;
   }
   body {
     @apply bg-background text-foreground;
@@ -260,6 +264,11 @@
   @page {
     size: A4 portrait;
     margin: 0 !important;
+  }
+
+  /* Documents print at the browser-default scale regardless of the dashboard's compact root size */
+  html {
+    font-size: 16px !important;
   }
 
   html,

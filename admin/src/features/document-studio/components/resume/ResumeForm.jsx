@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { User, Briefcase, GraduationCap, Wrench, Settings, Plus, Trash2 } from 'lucide-react';
+import { User, Briefcase, GraduationCap, Wrench, Settings, Plus, Trash2, IdCard, BookOpen, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ResumeExtraForm, readImage } from './ResumeExtraForm';
 
 // Render interactive form controls for resume sections and styling
 export const ResumeForm = ({ data, onChange }) => {
@@ -149,9 +150,12 @@ export const ResumeForm = ({ data, onChange }) => {
       <div className="flex flex-wrap gap-1.5 border-b border-border pb-3">
         {[
           { id: 'personal', label: 'Personal', icon: User },
-          { id: 'experience', label: 'Experience', icon: Briefcase },
           { id: 'education', label: 'Education', icon: GraduationCap },
           { id: 'skills', label: 'Skills', icon: Wrench },
+          { id: 'experience', label: 'Experience', icon: Briefcase },
+          { id: 'academic', label: 'Academic', icon: BookOpen },
+          { id: 'recognition', label: 'Awards & More', icon: Award },
+          { id: 'details', label: 'Details', icon: IdCard },
           { id: 'settings', label: 'Template', icon: Settings }
         ].map(tab => {
           const Icon = tab.icon;
@@ -177,6 +181,34 @@ export const ResumeForm = ({ data, onChange }) => {
       {activeTab === 'personal' && (
         <div className="space-y-4 text-xs">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="sm:col-span-2 flex items-center gap-3">
+              <div className="w-16 h-20 rounded-lg border border-border bg-muted/40 overflow-hidden flex items-center justify-center shrink-0">
+                {data.personalInfo.avatarUrl ? (
+                  <img src={data.personalInfo.avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-6 h-6 text-muted-foreground opacity-50" />
+                )}
+              </div>
+              <div className="space-y-1">
+                <label className="block text-muted-foreground font-medium">Profile Photo</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={e => readImage(e.target.files?.[0], url => handlePersonalChange('avatarUrl', url))}
+                  className="text-[11px] text-muted-foreground"
+                />
+                {data.personalInfo.avatarUrl && (
+                  <button
+                    type="button"
+                    onClick={() => handlePersonalChange('avatarUrl', '')}
+                    className="block text-destructive hover:underline text-[11px]"
+                  >
+                    Remove photo
+                  </button>
+                )}
+              </div>
+            </div>
+
             <div>
               <label className="block text-muted-foreground font-medium mb-1">Full Name</label>
               <input
@@ -284,6 +316,36 @@ export const ResumeForm = ({ data, onChange }) => {
                     type="text"
                     value={exp.company}
                     onChange={e => handleUpdateExperience(exp.id, 'company', e.target.value)}
+                    className="w-full bg-background border border-input rounded-lg px-2.5 py-1.5 text-foreground outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-muted-foreground mb-0.5">Project</label>
+                  <input
+                    type="text"
+                    value={exp.project || ''}
+                    onChange={e => handleUpdateExperience(exp.id, 'project', e.target.value)}
+                    className="w-full bg-background border border-input rounded-lg px-2.5 py-1.5 text-foreground outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-muted-foreground mb-0.5">Client</label>
+                  <input
+                    type="text"
+                    value={exp.client || ''}
+                    onChange={e => handleUpdateExperience(exp.id, 'client', e.target.value)}
+                    className="w-full bg-background border border-input rounded-lg px-2.5 py-1.5 text-foreground outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-muted-foreground mb-0.5">Location</label>
+                  <input
+                    type="text"
+                    value={exp.location || ''}
+                    onChange={e => handleUpdateExperience(exp.id, 'location', e.target.value)}
                     className="w-full bg-background border border-input rounded-lg px-2.5 py-1.5 text-foreground outline-none"
                   />
                 </div>
@@ -555,16 +617,22 @@ export const ResumeForm = ({ data, onChange }) => {
         </div>
       )}
 
+      {/* TABS: DETAILS, ACADEMIC EXTRAS, AWARDS & MORE */}
+      {['details', 'academic', 'recognition'].includes(activeTab) && (
+        <ResumeExtraForm data={data} onChange={onChange} tab={activeTab} />
+      )}
+
       {/* TAB 5: SETTINGS & TEMPLATES */}
       {activeTab === 'settings' && (
         <div className="space-y-5 text-xs">
           <div>
             <label className="block text-muted-foreground font-medium mb-2">Design Template</label>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
               {[
                 { id: 'modern-executive', label: 'Modern Executive', desc: 'Header banner with accent color' },
                 { id: 'classic-professional', label: 'Classic Professional', desc: 'Elegant traditional serif typography' },
-                { id: 'technical-minimal', label: 'Technical Minimalist', desc: 'Monospace, compact developer grid' }
+                { id: 'technical-minimal', label: 'Technical Minimalist', desc: 'Monospace, compact developer grid' },
+                { id: 'engineer', label: 'Engineer', desc: 'Black-only CV with photo, tables and full biodata' }
               ].map(tmpl => (
                 <button
                   key={tmpl.id}

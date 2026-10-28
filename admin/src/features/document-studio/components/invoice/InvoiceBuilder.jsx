@@ -215,10 +215,10 @@ export function InvoiceBuilder({ initialData = null, isLocked = false, onSavedSu
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={handleReset}
-              className="flex items-center space-x-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-xl border border-white/15 transition-colors cursor-pointer"
+              className="flex items-center space-x-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
               title="Reset Form"
             >
-              <RefreshCw className="w-3.5 h-3.5 text-sky-300" />
+              <RefreshCw className="w-3.5 h-3.5" />
               <span>Reset</span>
             </button>
 

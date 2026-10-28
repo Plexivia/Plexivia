@@ -1,6 +1,11 @@
 import React from 'react';
 import { PrintablePaper } from '../common/PrintablePaper';
 import { Mail, Phone, MapPin, Printer } from 'lucide-react';
+import { ResumeExtraSections } from './ResumeExtraSections';
+
+// Format the project / client / location line shown under an experience heading
+const experienceMeta = (exp) =>
+  [exp.project && `Project: ${exp.project}`, exp.client && `Client: ${exp.client}`, exp.location].filter(Boolean).join(' • ');
 
 // Render printable formatted multi-template resume preview canvas
 export const ResumePreview = ({ data, onPrint }) => {
@@ -37,9 +42,16 @@ export const ResumePreview = ({ data, onPrint }) => {
               className="p-6 rounded-xl text-white space-y-2"
               style={{ backgroundColor: settings.accentColor || '#d87943' }}
             >
-              <h1 className="text-3xl font-extrabold tracking-tight">{personalInfo.fullName}</h1>
-              <p className="text-sm font-medium text-slate-100">{personalInfo.title}</p>
-              
+              <div className="flex items-start justify-between gap-4">
+                <div className="space-y-2">
+                  <h1 className="text-3xl font-extrabold tracking-tight">{personalInfo.fullName}</h1>
+                  <p className="text-sm font-medium text-slate-100">{personalInfo.title}</p>
+                </div>
+                {personalInfo.avatarUrl && (
+                  <img src={personalInfo.avatarUrl} alt="" className="w-24 h-28 object-cover rounded-lg border-2 border-white/60 shrink-0" />
+                )}
+              </div>
+
               <div className="flex flex-wrap items-center gap-4 text-xs text-slate-100 pt-2 border-t border-white/20">
                 <span className="flex items-center gap-1"><Mail className="w-3.5 h-3.5" /> {personalInfo.email}</span>
                 <span className="flex items-center gap-1"><Phone className="w-3.5 h-3.5" /> {personalInfo.phone}</span>
@@ -68,6 +80,7 @@ export const ResumePreview = ({ data, onPrint }) => {
                       <span>{exp.role} <span className="font-normal text-slate-600">at {exp.company}</span></span>
                       <span className="text-slate-600 font-normal">{exp.startDate} – {exp.isCurrent ? 'Present' : exp.endDate}</span>
                     </div>
+                    {experienceMeta(exp) && <div className="text-[11px] text-slate-500">{experienceMeta(exp)}</div>}
                     <ul className="list-disc list-inside space-y-1 text-slate-800 pl-1">
                       {exp.bullets.map((b, i) => (
                         <li key={i} className="leading-snug">{b}</li>
@@ -112,6 +125,8 @@ export const ResumePreview = ({ data, onPrint }) => {
                 </div>
               )}
             </div>
+
+            <ResumeExtraSections data={data} variant="modern" />
           </div>
         )}
 
@@ -119,6 +134,9 @@ export const ResumePreview = ({ data, onPrint }) => {
         {settings.template === 'classic-professional' && (
           <div className="space-y-5 text-slate-900 font-serif">
             <div className="text-center border-b-2 border-slate-900 pb-3">
+              {personalInfo.avatarUrl && (
+                <img src={personalInfo.avatarUrl} alt="" className="w-24 h-28 object-cover rounded-md border border-slate-300 mx-auto mb-2" />
+              )}
               <h1 className="text-2xl font-bold tracking-wide uppercase">{personalInfo.fullName}</h1>
               <p className="text-xs italic text-slate-700 mt-0.5">{personalInfo.title}</p>
               <div className="text-xs text-slate-600 mt-1 space-x-2 font-sans">
@@ -151,6 +169,7 @@ export const ResumePreview = ({ data, onPrint }) => {
                         <span>{exp.role}, {exp.company}</span>
                         <span className="font-normal italic text-slate-600 font-sans">{exp.startDate} – {exp.isCurrent ? 'Present' : exp.endDate}</span>
                       </div>
+                      {experienceMeta(exp) && <div className="text-[11px] text-slate-500 font-sans">{experienceMeta(exp)}</div>}
                       <ul className="list-disc list-inside space-y-1 text-slate-800 pt-1 font-sans">
                         {exp.bullets.map((b, i) => (
                           <li key={i}>{b}</li>
@@ -199,6 +218,8 @@ export const ResumePreview = ({ data, onPrint }) => {
                 </div>
               </div>
             )}
+
+            <ResumeExtraSections data={data} variant="classic" />
           </div>
         )}
 
@@ -213,6 +234,9 @@ export const ResumePreview = ({ data, onPrint }) => {
                   {personalInfo.email} | {personalInfo.phone} | {personalInfo.location}
                 </div>
               </div>
+              {personalInfo.avatarUrl && (
+                <img src={personalInfo.avatarUrl} alt="" className="w-20 h-24 object-cover border border-slate-400 shrink-0" />
+              )}
             </div>
 
             {personalInfo.summary && (
@@ -232,6 +256,7 @@ export const ResumePreview = ({ data, onPrint }) => {
                         <span>{exp.role} @ {exp.company}</span>
                         <span>{exp.startDate} - {exp.isCurrent ? 'NOW' : exp.endDate}</span>
                       </div>
+                      {experienceMeta(exp) && <div className="text-[11px] text-slate-500">{experienceMeta(exp)}</div>}
                       <ul className="list-disc list-inside text-[11px] space-y-0.5 text-slate-800">
                         {exp.bullets.map((b, i) => (
                           <li key={i}>{b}</li>
@@ -276,6 +301,102 @@ export const ResumePreview = ({ data, onPrint }) => {
                 </div>
               </div>
             )}
+
+            <ResumeExtraSections data={data} variant="technical" />
+          </div>
+        )}
+
+        {/* TEMPLATE 4: ENGINEER (black only) */}
+        {settings.template === 'engineer' && (
+          <div className="space-y-3.5 text-xs text-black [&_*]:text-black">
+            <div className="flex items-start justify-between gap-4 border-b-2 border-black pb-2.5">
+              <div>
+                <h1 className="text-2xl font-bold uppercase tracking-wide">{personalInfo.fullName}</h1>
+                <p className="text-sm font-bold mt-0.5">{personalInfo.title}</p>
+                <div className="text-[11.5px] mt-1.5 leading-snug">
+                  {personalInfo.location && <div>{personalInfo.location}</div>}
+                  <div>{[personalInfo.phone, personalInfo.email].filter(Boolean).join('  |  ')}</div>
+                </div>
+              </div>
+              {personalInfo.avatarUrl && (
+                <img src={personalInfo.avatarUrl} alt="" className="w-[92px] h-[112px] object-cover border border-black shrink-0" />
+              )}
+            </div>
+
+            {personalInfo.summary && (
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider border-b border-black pb-0.5 mb-1.5">Professional Summary / Career Objective</h3>
+                <p className="leading-snug">{personalInfo.summary}</p>
+              </div>
+            )}
+
+            {education.length > 0 && (
+              <div className="break-inside-avoid">
+                <h3 className="text-xs font-bold uppercase tracking-wider border-b border-black pb-0.5 mb-1.5">Education</h3>
+                <table className="w-full border-collapse text-left">
+                  <thead>
+                    <tr>
+                      {['Certificate', 'Institution', 'GPA/CGPA', 'Passing Year'].map(h => (
+                        <th key={h} className="border border-black px-1.5 py-0.5 font-bold">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {education.map(edu => (
+                      <tr key={edu.id} className="align-top">
+                        <td className="border border-black px-1.5 py-0.5">{edu.degree}</td>
+                        <td className="border border-black px-1.5 py-0.5">{edu.institution}{edu.location ? `, ${edu.location}` : ''}</td>
+                        <td className="border border-black px-1.5 py-0.5">{edu.grade}</td>
+                        <td className="border border-black px-1.5 py-0.5">{edu.endDate}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            <ResumeExtraSections data={data} variant="engineer" sections={['thesis', 'fieldwork', 'languages']} />
+
+            {skills.length > 0 && (
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider border-b border-black pb-0.5 mb-1.5">Technical Skills</h3>
+                {skills.map(sg => (
+                  <p key={sg.id}><span className="font-bold">{sg.category}: </span>{sg.items.join(', ')}</p>
+                ))}
+              </div>
+            )}
+
+            {experience.length > 0 && (
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider border-b border-black pb-0.5 mb-1.5">Internships / Work Experience</h3>
+                <div className="space-y-2.5">
+                  {experience.map(exp => (
+                    <div key={exp.id} className="break-inside-avoid">
+                      <div className="flex justify-between gap-3">
+                        <span className="font-bold">{exp.role} | {exp.company}</span>
+                        <span className="text-[11px] shrink-0">{exp.startDate} – {exp.isCurrent ? 'Present' : exp.endDate}{exp.location ? ` | ${exp.location}` : ''}</span>
+                      </div>
+                      {(exp.project || exp.client) && (
+                        <div className="text-[11px]">
+                          {[exp.project && `Project: ${exp.project}`, exp.client && `Client: ${exp.client}`].filter(Boolean).join(' • ')}
+                        </div>
+                      )}
+                      <ul className="list-disc ml-5 space-y-0.5 mt-0.5">
+                        {exp.bullets.map((b, i) => (
+                          <li key={i}>{b}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <ResumeExtraSections
+              data={data}
+              variant="engineer"
+              sections={['awards', 'activities', 'details', 'references', 'declaration']}
+            />
           </div>
         )}
 
