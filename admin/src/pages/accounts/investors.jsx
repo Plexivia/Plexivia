@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { TableV2, TablePaginationV2, useRowSelection } from '@/components/table/versionTwo';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -27,22 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
 import {
   Dialog,
   DialogContent,
@@ -73,6 +58,7 @@ export const InvestorsPage = () => {
   const [typeFilter, setTypeFilter] = useState('All');
   const [dateRange, setDateRange] = useState({ startDate: '', endDate: '', preset: 'all' });
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [returnModalOpen, setReturnModalOpen] = useState(false);
@@ -217,6 +203,97 @@ export const InvestorsPage = () => {
     setDeleteTarget(null);
   };
 
+  // Live invested / returned / net totals for an investor row
+  const getInvestorTotals = (inv) => {
+    const live = portfolioStats[inv.id];
+    const invested = live !== undefined ? live.taken : Number(inv.totalInvested) || 0;
+    const returned = live !== undefined ? live.returned : Number(inv.totalReturned) || 0;
+    return { invested, returned, netBalance: Math.max(0, invested - returned) };
+  };
+
+  const columns = [
+    {
+      key: 'name',
+      header: 'Investor Name',
+      render: (inv) => (
+        <span className="flex min-w-0 items-center gap-2 text-xs font-semibold text-foreground">
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-purple-500/15 text-xs font-bold text-purple-600">
+            {inv.name.charAt(0).toUpperCase()}
+          </span>
+          <span className="min-w-0">
+            <span className="block truncate">{inv.name}</span>
+            {inv.notes && <span className="block truncate text-[10px] font-normal text-muted-foreground">{inv.notes}</span>}
+          </span>
+        </span>
+      ),
+    },
+    {
+      key: 'type',
+      header: 'Type',
+      className: 'w-[120px]',
+      render: (inv) => (
+        <Badge variant="outline" className="text-[11px] bg-muted/40 font-medium">
+          {inv.type}
+        </Badge>
+      ),
+    },
+    {
+      key: 'contact',
+      header: 'Contact Info',
+      className: 'w-[200px]',
+      render: (inv) => (
+        <span className="block space-y-0.5 text-xs text-muted-foreground">
+          {inv.phone && <span className="flex items-center gap-1 truncate"><Phone className="size-3 shrink-0" /> {inv.phone}</span>}
+          {inv.email && <span className="flex items-center gap-1 truncate"><Mail className="size-3 shrink-0" /> {inv.email}</span>}
+        </span>
+      ),
+    },
+    {
+      key: 'invested',
+      header: 'Total Invested',
+      className: 'w-[130px]',
+      align: 'right',
+      render: (inv) => <span className="font-mono text-xs font-bold tabular-nums text-foreground">{formatCurrency(getInvestorTotals(inv).invested)}</span>,
+    },
+    {
+      key: 'returned',
+      header: 'Total Returned',
+      className: 'w-[130px]',
+      align: 'right',
+      render: (inv) => <span className="font-mono text-xs font-semibold tabular-nums text-emerald-600">{formatCurrency(getInvestorTotals(inv).returned)}</span>,
+    },
+    {
+      key: 'net',
+      header: 'Net Active Balance',
+      className: 'w-[150px]',
+      align: 'right',
+      render: (inv) => <span className="font-mono text-xs font-bold tabular-nums text-purple-600">{formatCurrency(getInvestorTotals(inv).netBalance)}</span>,
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      className: 'w-[110px]',
+      render: (inv) => {
+        const isActive = inv.status === 'Active';
+        return (
+          <Badge
+            variant="outline"
+            className={isActive ? 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30' : 'bg-muted text-muted-foreground'}
+          >
+            {isActive ? <CheckCircle2 className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
+            {inv.status}
+          </Badge>
+        );
+      },
+    },
+    {
+      key: 'createdAt',
+      header: 'Joined Date',
+      className: 'w-[120px]',
+      render: (inv) => <span className="text-xs text-muted-foreground">{inv.createdAt ? formatDate(inv.createdAt) : '—'}</span>,
+    },
+  ];
+
   return (
     <div className="page-container flex-1 space-y-6 p-4 md:p-8 pt-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-5">
@@ -352,193 +429,43 @@ export const InvestorsPage = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-xs">Investor Name</TableHead>
-                <TableHead className="text-xs">Type</TableHead>
-                <TableHead className="text-xs">Contact Info</TableHead>
-                <TableHead className="text-xs">Total Invested</TableHead>
-                <TableHead className="text-xs">Total Returned</TableHead>
-                <TableHead className="text-xs">Net Active Balance</TableHead>
-                <TableHead className="text-xs">Status</TableHead>
-                <TableHead className="text-xs">Joined Date</TableHead>
-                <TableHead className="w-[110px] text-right text-xs">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell><span className="h-4 w-32 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-5 w-20 block bg-muted animate-pulse rounded-full" /></TableCell>
-                    <TableCell><span className="h-4 w-36 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-4 w-20 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-4 w-20 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-4 w-20 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-5 w-16 block bg-muted animate-pulse rounded-full" /></TableCell>
-                    <TableCell><span className="h-4 w-20 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell className="text-right"><span className="h-8 w-16 ml-auto block bg-muted animate-pulse rounded" /></TableCell>
-                  </TableRow>
-                ))
-              ) : investors.length > 0 ? (
-                investors.map((inv) => {
-                  const live = portfolioStats[inv.id];
-                  const invested = live !== undefined ? live.taken : Number(inv.totalInvested) || 0;
-                  const returned = live !== undefined ? live.returned : Number(inv.totalReturned) || 0;
-                  const netBalance = Math.max(0, invested - returned);
-                  const isActive = inv.status === 'Active';
+        <TableV2
+          columns={columns}
+          rows={investors}
+          isLoading={isLoading}
+          error={false ? 'Failed to load investors.' : null}
+          emptyText='No investors found matching your query.'
+          onRowClick={(inv) => handleOpenEdit(inv)}
+          rowActions={(inv) => [
+            {
+              label: 'Record Return',
+              icon: CornerDownLeft,
+              onClick: () => {
+                setReturnTargetInvestorId(inv.id);
+                setReturnModalOpen(true);
+              },
+            },
+            { label: 'View Investments', icon: TrendingUp, onClick: () => navigate(`/accounts/investments?investorId=${inv.id}`) },
+            { label: 'Edit Investor', icon: Edit, onClick: () => handleOpenEdit(inv) },
+            { label: 'Delete Investor', icon: Trash2, destructive: true, separatorBefore: true, onClick: () => setDeleteTarget(inv) },
+          ]}
+        />
 
-                  return (
-                    <TableRow key={inv.id}>
-                      <TableCell className="font-semibold text-xs text-foreground">
-                        <div className="flex items-center gap-2">
-                          <div className="h-7 w-7 rounded-full bg-purple-500/15 text-purple-600 font-bold flex items-center justify-center text-xs">
-                            {inv.name.charAt(0).toUpperCase()}
-                          </div>
-                          <div>
-                            <div>{inv.name}</div>
-                            {inv.notes && <div className="text-[10px] text-muted-foreground font-normal line-clamp-1">{inv.notes}</div>}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="text-[11px] bg-muted/40 font-medium">
-                          {inv.type}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
-                        <div className="space-y-0.5">
-                          {inv.phone && <div className="flex items-center gap-1"><Phone className="w-3 h-3 text-muted-foreground" /> {inv.phone}</div>}
-                          {inv.email && <div className="flex items-center gap-1"><Mail className="w-3 h-3 text-muted-foreground" /> {inv.email}</div>}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-xs font-bold text-foreground font-mono">
-                        {formatCurrency(invested)}
-                      </TableCell>
-                      <TableCell className="text-xs font-semibold text-emerald-600 font-mono">
-                        {formatCurrency(returned)}
-                      </TableCell>
-                      <TableCell className="text-xs font-bold text-purple-600 font-mono">
-                        {formatCurrency(netBalance)}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={
-                            isActive
-                              ? 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30'
-                              : 'bg-muted text-muted-foreground'
-                          }
-                        >
-                          {isActive ? <CheckCircle2 className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
-                          {inv.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
-                        {inv.createdAt ? formatDate(inv.createdAt) : '—'}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-500/10 cursor-pointer"
-                            onClick={() => {
-                              setReturnTargetInvestorId(inv.id);
-                              setReturnModalOpen(true);
-                            }}
-                            title="Record Return / Repayment"
-                          >
-                            <CornerDownLeft className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-purple-600 hover:text-purple-700 hover:bg-purple-500/10"
-                            onClick={() => navigate(`/accounts/investments?investorId=${inv.id}`)}
-                            title="View Investments"
-                          >
-                            <TrendingUp className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-blue-500 hover:text-blue-600 hover:bg-blue-500/10"
-                            onClick={() => handleOpenEdit(inv)}
-                            title="Edit Investor"
-                          >
-                            <Edit className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                            onClick={() => setDeleteTarget(inv)}
-                            title="Delete Investor"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={9} className="h-28 text-center text-muted-foreground text-xs">
-                    No investors found matching your query.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-
-        {totalPages > 1 && (
-          <div className="border-t px-4 py-3 bg-muted/10">
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (currentPage > 1) setCurrentPage((p) => p - 1);
-                    }}
-                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                  />
-                </PaginationItem>
-                {Array.from({ length: totalPages }).map((_, i) => (
-                  <PaginationItem key={i + 1}>
-                    <PaginationLink
-                      href="#"
-                      isActive={currentPage === i + 1}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setCurrentPage(i + 1);
-                      }}
-                      className="cursor-pointer"
-                    >
-                      {i + 1}
-                    </PaginationLink>
-                  </PaginationItem>
-                ))}
-                <PaginationItem>
-                  <PaginationNext
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (currentPage < totalPages) setCurrentPage((p) => p + 1);
-                    }}
-                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </div>
-        )}
+        <TablePaginationV2
+          className="rounded-none border-0 border-t"
+          page={currentPage}
+          totalPages={totalPages}
+          total={investors.length}
+          pageSize={pageSize}
+          setPage={(p) => {
+            setCurrentPage(p);
+          }}
+          setPageSize={(size) => {
+            setPageSize(size);
+            setCurrentPage(1);
+          }}
+          shownCount={investors.length}
+        />
       </div>
 
       <Dialog open={addModalOpen} onOpenChange={setAddModalOpen}>

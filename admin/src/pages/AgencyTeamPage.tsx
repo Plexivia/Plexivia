@@ -10,6 +10,62 @@ import {
   Lock,
   User as UserIcon
 } from 'lucide-react';
+import { TableV2 } from '@/components/table/versionTwo';
+
+type Access = 'full' | 'partial' | 'none';
+interface RbacRow {
+  role: string;
+  roleClass: string;
+  cells: Record<string, [string, Access]>;
+}
+
+const ACCESS_CLASS: Record<Access, string> = {
+  full: 'text-emerald-600 dark:text-emerald-400',
+  partial: 'text-muted-foreground',
+  none: 'text-muted-foreground/60',
+};
+
+const RBAC_ROWS: RbacRow[] = [
+  {
+    role: 'SUPER_ADMIN',
+    roleClass: 'text-rose-500 dark:text-rose-400',
+    cells: { projects: ['Full Read/Write', 'full'], clients: ['Full Manage', 'full'], users: ['Full Control', 'full'], studio: ['Full Access', 'full'] },
+  },
+  {
+    role: 'PM (Project Manager)',
+    roleClass: 'text-purple-600 dark:text-purple-400',
+    cells: { projects: ['Full Manage', 'full'], clients: ['View & Edit', 'full'], users: ['View Only', 'none'], studio: ['Generate & Edit', 'full'] },
+  },
+  {
+    role: 'DEV (Developer)',
+    roleClass: 'text-cyan-600 dark:text-cyan-400',
+    cells: { projects: ['Manage Tasks', 'full'], clients: ['View Client Info', 'partial'], users: ['No Access', 'none'], studio: ['View Only', 'partial'] },
+  },
+  {
+    role: 'DESIGNER',
+    roleClass: 'text-amber-600 dark:text-amber-400',
+    cells: { projects: ['Manage UI Tasks', 'full'], clients: ['No Access', 'none'], users: ['No Access', 'none'], studio: ['No Access', 'none'] },
+  },
+];
+
+// Renders one permission cell with its access-level colour
+const accessCell = (key: string) => (row: RbacRow) => {
+  const [label, level] = row.cells[key];
+  return <span className={`font-mono text-[11px] ${ACCESS_CLASS[level]}`}>{label}</span>;
+};
+
+const RBAC_COLUMNS = [
+  {
+    key: 'role',
+    header: 'Role',
+    className: 'w-[200px]',
+    render: (row: RbacRow) => <span className={`font-mono text-[11px] font-bold ${row.roleClass}`}>{row.role}</span>,
+  },
+  { key: 'projects', header: 'Projects & Tasks', render: accessCell('projects') },
+  { key: 'clients', header: 'Clients & Billing', render: accessCell('clients') },
+  { key: 'users', header: 'User Management', render: accessCell('users') },
+  { key: 'studio', header: 'Document Studio', render: accessCell('studio') },
+];
 
 export const AgencyTeamPage: React.FC = () => {
   const { users, tasks } = useData();
@@ -132,48 +188,8 @@ export const AgencyTeamPage: React.FC = () => {
           </h3>
         </div>
 
-        <div className="overflow-x-auto scrollbar-theme">
-          <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
-            <thead className="bg-slate-50 dark:bg-slate-950/60 text-slate-500 dark:text-slate-400 font-mono uppercase text-[10px] border-b border-slate-200 dark:border-slate-800">
-              <tr>
-                <th className="p-3">Role</th>
-                <th className="p-3">Projects & Tasks</th>
-                <th className="p-3">Clients & Billing</th>
-                <th className="p-3">User Management</th>
-                <th className="p-3">Document Studio</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-mono text-[11px]">
-              <tr>
-                <td className="p-3 font-bold text-rose-500 dark:text-rose-400">SUPER_ADMIN</td>
-                <td className="p-3 text-emerald-600 dark:text-emerald-400">Full Read/Write</td>
-                <td className="p-3 text-emerald-600 dark:text-emerald-400">Full Manage</td>
-                <td className="p-3 text-emerald-600 dark:text-emerald-400">Full Control</td>
-                <td className="p-3 text-emerald-600 dark:text-emerald-400">Full Access</td>
-              </tr>
-              <tr>
-                <td className="p-3 font-bold text-purple-600 dark:text-purple-400">PM (Project Manager)</td>
-                <td className="p-3 text-emerald-600 dark:text-emerald-400">Full Manage</td>
-                <td className="p-3 text-emerald-600 dark:text-emerald-400">View & Edit</td>
-                <td className="p-3 text-slate-400 dark:text-slate-500">View Only</td>
-                <td className="p-3 text-emerald-600 dark:text-emerald-400">Generate & Edit</td>
-              </tr>
-              <tr>
-                <td className="p-3 font-bold text-cyan-600 dark:text-cyan-400">DEV (Developer)</td>
-                <td className="p-3 text-emerald-600 dark:text-emerald-400">Manage Tasks</td>
-                <td className="p-3 text-slate-500 dark:text-slate-400">View Client Info</td>
-                <td className="p-3 text-slate-400 dark:text-slate-500">No Access</td>
-                <td className="p-3 text-slate-500 dark:text-slate-400">View Only</td>
-              </tr>
-              <tr>
-                <td className="p-3 font-bold text-amber-600 dark:text-amber-400">DESIGNER</td>
-                <td className="p-3 text-emerald-600 dark:text-emerald-400">Manage UI Tasks</td>
-                <td className="p-3 text-slate-400 dark:text-slate-500">No Access</td>
-                <td className="p-3 text-slate-400 dark:text-slate-500">No Access</td>
-                <td className="p-3 text-slate-400 dark:text-slate-500">No Access</td>
-              </tr>
-            </tbody>
-          </table>
+        <div className="overflow-hidden rounded-lg border">
+          <TableV2 columns={RBAC_COLUMNS} rows={RBAC_ROWS} getRowId={(row: RbacRow) => row.role} minWidth="min-w-[720px]" />
         </div>
       </div>
 

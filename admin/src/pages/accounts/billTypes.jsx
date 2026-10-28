@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { TableV2, TablePaginationV2, useRowSelection } from '@/components/table/versionTwo';
 import { useTranslation } from 'react-i18next';
 import {
   Tag,
@@ -20,22 +21,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
-import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -56,7 +41,10 @@ export const BillTypesPage = () => {
   const [statusFilter, setStatusFilter] = useState('All');
   const [dateRange, setDateRange] = useState({ startDate: '', endDate: '', preset: 'all' });
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedIds, setSelectedIds] = useState([]);
+  const [pageSize, setPageSize] = useState(20);
+  const selection = useRowSelection();
+  const selectedIds = selection.ids;
+  const setSelectedIds = selection.setIds;
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingType, setEditingType] = useState(null);
@@ -72,7 +60,6 @@ export const BillTypesPage = () => {
   const isBulkDeleting = false;
   const totalPages = 1;
 
-  const isAllPageSelected = billTypes.length > 0 && billTypes.every((bt) => selectedIds.includes(bt.id));
 
   // Toggles selection of all bill categories on the current page
   const handleSelectAll = (checked) => {
@@ -156,6 +143,67 @@ export const BillTypesPage = () => {
     toast.success('Bill category deleted');
     setDeleteTarget(null);
   };
+
+  const columns = [
+    {
+      key: 'name',
+      header: 'Category Name',
+      className: 'w-[200px]',
+      render: (type) => (
+        <span className="flex items-center gap-2 text-xs font-semibold text-foreground">
+          <span className="size-2 shrink-0 rounded-full bg-primary" />
+          <span className="truncate">{type.name}</span>
+        </span>
+      ),
+    },
+    {
+      key: 'description',
+      header: 'Description',
+      render: (type) => <span className="block truncate text-xs text-muted-foreground">{type.description || '—'}</span>,
+    },
+    {
+      key: 'linkedBillsCount',
+      header: 'Linked Bills',
+      className: 'w-[120px]',
+      render: (type) => (
+        <Badge variant="outline" className="text-[11px] bg-muted/40">
+          {type.linkedBillsCount || 0} bills
+        </Badge>
+      ),
+    },
+    {
+      key: 'totalIncurred',
+      header: 'Total Incurred',
+      className: 'w-[140px]',
+      align: 'right',
+      render: (type) => (
+        <span className="font-mono text-xs font-bold tabular-nums text-foreground">৳{(type.totalIncurred || 0).toLocaleString()}</span>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      className: 'w-[120px]',
+      render: (type) => {
+        const isActive = type.status === 'Active';
+        return (
+          <Badge
+            variant="outline"
+            className={isActive ? 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30' : 'bg-muted text-muted-foreground'}
+          >
+            {isActive ? <CheckCircle2 className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
+            {type.status}
+          </Badge>
+        );
+      },
+    },
+    {
+      key: 'createdAt',
+      header: 'Created Date',
+      className: 'w-[130px]',
+      render: (type) => <span className="text-xs text-muted-foreground">{type.createdAt ? formatDate(type.createdAt) : '—'}</span>,
+    },
+  ];
 
   return (
     <div className="page-container flex-1 space-y-6 p-4 md:p-8 pt-6">
@@ -264,175 +312,36 @@ export const BillTypesPage = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[45px] px-4">
-                  <input
-                    type="checkbox"
-                    className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4 cursor-pointer"
-                    checked={isAllPageSelected}
-                    onChange={(e) => handleSelectAll(e.target.checked)}
-                  />
-                </TableHead>
-                <TableHead className="text-xs">Category Name</TableHead>
-                <TableHead className="text-xs">Description</TableHead>
-                <TableHead className="text-xs">Linked Bills</TableHead>
-                <TableHead className="text-xs">Total Incurred</TableHead>
-                <TableHead className="text-xs">Status</TableHead>
-                <TableHead className="text-xs">Created Date</TableHead>
-                <TableHead className="w-[100px] text-right text-xs">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell className="px-4"><span className="h-4 w-4 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-4 w-32 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-4 w-48 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-4 w-12 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-4 w-20 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-5 w-16 block bg-muted animate-pulse rounded-full" /></TableCell>
-                    <TableCell><span className="h-4 w-20 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell className="text-right"><span className="h-8 w-16 ml-auto block bg-muted animate-pulse rounded" /></TableCell>
-                  </TableRow>
-                ))
-              ) : billTypes.length > 0 ? (
-                billTypes.map((type) => {
-                  const billCount = type.linkedBillsCount || 0;
-                  const volume = type.totalIncurred || 0;
-                  const isActive = type.status === 'Active';
+        <TableV2
+          columns={columns}
+          rows={billTypes}
+          isLoading={isLoading}
+          error={false ? 'Failed to load bill categories.' : null}
+          emptyText='No bill categories found matching your query.'
+          selection={selection}
+          onRowClick={(type) => handleOpenEdit(type)}
+          rowActions={(type) => [
+            { label: 'Edit Category', icon: Edit, onClick: () => handleOpenEdit(type) },
+            { label: 'Delete Category', icon: Trash2, destructive: true, separatorBefore: true, onClick: () => setDeleteTarget(type) },
+          ]}
+        />
 
-                  return (
-                    <TableRow key={type.id}>
-                      <TableCell className="w-[45px] px-4">
-                        <input
-                          type="checkbox"
-                          className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4 cursor-pointer"
-                          checked={selectedIds.includes(type.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedIds([...selectedIds, type.id]);
-                            } else {
-                              setSelectedIds(selectedIds.filter((id) => id !== type.id));
-                            }
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell className="font-semibold text-xs text-foreground">
-                        <div className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-primary" />
-                          <span>{type.name}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-xs text-muted-foreground max-w-xs truncate">
-                        {type.description || '—'}
-                      </TableCell>
-                      <TableCell className="text-xs font-semibold text-foreground">
-                        <Badge variant="outline" className="text-[11px] bg-muted/40">
-                          {billCount} bills
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-xs font-bold text-foreground font-mono">
-                        ৳{volume.toLocaleString()}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={
-                            isActive
-                              ? 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30'
-                              : 'bg-muted text-muted-foreground'
-                          }
-                        >
-                          {isActive ? <CheckCircle2 className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
-                          {type.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
-                        {type.createdAt ? formatDate(type.createdAt) : '—'}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-blue-500 hover:text-blue-600 hover:bg-blue-500/10 cursor-pointer"
-                            onClick={() => handleOpenEdit(type)}
-                            title="Edit Category"
-                          >
-                            <Edit className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10 cursor-pointer"
-                            onClick={() => setDeleteTarget(type)}
-                            title="Delete Category"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={8} className="h-28 text-center text-muted-foreground text-xs">
-                    No bill categories found matching your query.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-
-        {totalPages > 1 && (
-          <div className="border-t px-4 py-3 bg-muted/10">
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (currentPage > 1) setCurrentPage((p) => p - 1);
-                    }}
-                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                  />
-                </PaginationItem>
-                {Array.from({ length: totalPages }).map((_, i) => (
-                  <PaginationItem key={i + 1}>
-                    <PaginationLink
-                      href="#"
-                      isActive={currentPage === i + 1}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setCurrentPage(i + 1);
-                      }}
-                      className="cursor-pointer"
-                    >
-                      {i + 1}
-                    </PaginationLink>
-                  </PaginationItem>
-                ))}
-                <PaginationItem>
-                  <PaginationNext
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (currentPage < totalPages) setCurrentPage((p) => p + 1);
-                    }}
-                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </div>
-        )}
+        <TablePaginationV2
+          className="rounded-none border-0 border-t"
+          page={currentPage}
+          totalPages={totalPages}
+          total={billTypes.length}
+          pageSize={pageSize}
+          setPage={(p) => {
+            setCurrentPage(p);
+            selection.clear();
+          }}
+          setPageSize={(size) => {
+            setPageSize(size);
+            setCurrentPage(1);
+          }}
+          shownCount={billTypes.length}
+        />
       </div>
 
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>

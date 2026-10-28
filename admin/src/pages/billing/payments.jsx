@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { TableV2, TablePaginationV2, useRowSelection } from '@/components/table/versionTwo';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Download, CheckCircle2, XCircle, Clock, Trash2, MoreHorizontal } from 'lucide-react';
@@ -11,23 +12,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -84,7 +68,10 @@ export const PaymentsPage = () => {
   const [statusFilter, setStatusFilter] = useState('All');
   const [methodFilter, setMethodFilter] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedIds, setSelectedIds] = useState([]);
+  const [pageSize, setPageSize] = useState(20);
+  const selection = useRowSelection();
+  const selectedIds = selection.ids;
+  const setSelectedIds = selection.setIds;
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
   const [singleDeleteTarget, setSingleDeleteTarget] = useState(null);
@@ -170,7 +157,26 @@ export const PaymentsPage = () => {
     }
   };
 
-  const isAllPageSelected = payments.length > 0 && payments.every((p) => selectedIds.includes(p.id));
+
+  const columns = [
+    {
+      key: 'invoiceId',
+      header: 'Invoice',
+      className: 'w-[150px]',
+      render: (p) => <span className="block truncate font-mono text-xs text-muted-foreground">{p.invoiceId}</span>,
+    },
+    { key: 'customerName', header: 'Customer' },
+    { key: 'method', header: 'Method', className: 'w-[120px]', render: (p) => getMethodBadge(p.method) },
+    { key: 'date', header: 'Date', className: 'w-[130px]' },
+    {
+      key: 'amount',
+      header: 'Amount',
+      className: 'w-[130px]',
+      align: 'right',
+      render: (p) => <span className="font-semibold tabular-nums text-foreground">৳{Number(p.amount || 0).toLocaleString()}</span>,
+    },
+    { key: 'status', header: 'Status', className: 'w-[130px]', render: (p) => getStatusBadge(p.status) },
+  ];
 
   return (
     <div className="page-container flex-1 space-y-6 p-4 md:p-8 pt-6">
@@ -292,187 +298,32 @@ export const PaymentsPage = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[50px] px-4">
-                  <input
-                    type="checkbox"
-                    className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4 cursor-pointer"
-                    checked={isAllPageSelected}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        const pageIds = payments.map((p) => p.id);
-                        const newSelected = Array.from(new Set([...selectedIds, ...pageIds]));
-                        setSelectedIds(newSelected);
-                      } else {
-                        const pageIds = payments.map((p) => p.id);
-                        setSelectedIds(selectedIds.filter((id) => !pageIds.includes(id)));
-                      }
-                    }}
-                  />
-                </TableHead>
-                <TableHead>Invoice</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Method</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-[60px] text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell className="w-[50px] px-4">
-                      <span className="h-4 w-4 block bg-muted animate-pulse rounded" />
-                    </TableCell>
-                    <TableCell><span className="h-4 w-24 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-4 w-32 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-5 w-16 block bg-muted animate-pulse rounded-full" /></TableCell>
-                    <TableCell><span className="h-4 w-24 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-4 w-16 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-5 w-20 block bg-muted animate-pulse rounded-full" /></TableCell>
-                    <TableCell className="text-right"><span className="h-8 w-8 ml-auto block bg-muted animate-pulse rounded-md" /></TableCell>
-                  </TableRow>
-                ))
-              ) : isError ? (
-                <TableRow>
-                  <TableCell colSpan={8} className="h-24 text-center text-red-500">
-                    Failed to load payments. Please refresh the page.
-                  </TableCell>
-                </TableRow>
-              ) : payments.length > 0 ? (
-                payments.map((p) => (
-                  <TableRow key={p.id}>
-                    <TableCell className="w-[50px] px-4">
-                      <input
-                        type="checkbox"
-                        className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4 cursor-pointer"
-                        checked={selectedIds.includes(p.id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedIds([...selectedIds, p.id]);
-                          } else {
-                            setSelectedIds(selectedIds.filter((id) => id !== p.id));
-                          }
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell className="text-muted-foreground font-mono text-xs">{p.invoiceId}</TableCell>
-                    <TableCell>{p.customerName}</TableCell>
-                    <TableCell>{getMethodBadge(p.method)}</TableCell>
-                    <TableCell className="whitespace-nowrap">{p.date}</TableCell>
-                    <TableCell className="font-medium whitespace-nowrap">৳{Number(p.amount || 0).toLocaleString()}</TableCell>
-                    <TableCell>{getStatusBadge(p.status)}</TableCell>
-                    <TableCell className="text-right w-[60px]">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger render={
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        } />
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive cursor-pointer"
-                            onClick={() => setSingleDeleteTarget({ id: p.id, invoiceId: p.invoiceId })}
-                          >
-                            Delete Payment
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
-                    No payments found.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+        <TableV2
+          columns={columns}
+          rows={payments}
+          isLoading={isLoading}
+          error={isError ? 'Failed to load payments. Please refresh the page.' : null}
+          emptyText='No payments found.'
+          selection={selection}
+          rowActions={(p) => [{ label: 'Delete Payment', icon: Trash2, destructive: true, onClick: () => setSingleDeleteTarget({ id: p.id, invoiceId: p.invoiceId }) }]}
+        />
 
-        {totalPages > 1 && (
-          <div className="border-t px-4 py-3 bg-muted/10">
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (currentPage > 1) {
-                        setCurrentPage((p) => p - 1);
-                        setSelectedIds([]);
-                      }
-                    }}
-                    aria-disabled={currentPage === 1}
-                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                  />
-                </PaginationItem>
-
-                {Array.from({ length: totalPages }).map((_, i) => {
-                  const pageNum = i + 1;
-                  const showPage =
-                    pageNum === 1 ||
-                    pageNum === totalPages ||
-                    Math.abs(pageNum - currentPage) <= 1;
-
-                  if (!showPage) {
-                    if (pageNum === 2 || pageNum === totalPages - 1) {
-                      return (
-                        <PaginationItem key={`ellipsis-${pageNum}`}>
-                          <PaginationEllipsis />
-                        </PaginationItem>
-                      );
-                    }
-                    return null;
-                  }
-
-                  return (
-                    <PaginationItem key={pageNum}>
-                      <PaginationLink
-                        href="#"
-                        isActive={currentPage === pageNum}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setCurrentPage(pageNum);
-                          setSelectedIds([]);
-                        }}
-                        className="cursor-pointer"
-                      >
-                        {pageNum}
-                      </PaginationLink>
-                    </PaginationItem>
-                  );
-                })}
-
-                <PaginationItem>
-                  <PaginationNext
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (currentPage < totalPages) {
-                        setCurrentPage((p) => p + 1);
-                        setSelectedIds([]);
-                      }
-                    }}
-                    aria-disabled={currentPage === totalPages}
-                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </div>
-        )}
+        <TablePaginationV2
+          className="rounded-none border-0 border-t"
+          page={currentPage}
+          totalPages={totalPages}
+          total={payments.length}
+          pageSize={pageSize}
+          setPage={(p) => {
+            setCurrentPage(p);
+            selection.clear();
+          }}
+          setPageSize={(size) => {
+            setPageSize(size);
+            setCurrentPage(1);
+          }}
+          shownCount={payments.length}
+        />
       </div>
 
       <ConfirmDeleteDialog

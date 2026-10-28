@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { TableV2, TablePaginationV2, useRowSelection } from '@/components/table/versionTwo';
 import { useTranslation } from 'react-i18next';
 import {
   CreditCard,
@@ -32,22 +33,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
 import {
   Dialog,
   DialogContent,
@@ -98,8 +83,11 @@ export const PaymentTypesPage = () => {
   const [statusFilter, setStatusFilter] = useState('All');
   const [dateRange, setDateRange] = useState({ startDate: '', endDate: '', preset: 'all' });
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const [copiedId, setCopiedId] = useState(null);
-  const [selectedIds, setSelectedIds] = useState([]);
+  const selection = useRowSelection();
+  const selectedIds = selection.ids;
+  const setSelectedIds = selection.setIds;
 
   const [modalOpen, setModalOpen] = useState(false);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
@@ -138,7 +126,6 @@ export const PaymentTypesPage = () => {
     return { total, active, mfs, bank, totalVolume };
   }, [paymentTypes, typeStats]);
 
-  const isAllPageSelected = paymentTypes.length > 0 && paymentTypes.every((item) => selectedIds.includes(item.id));
 
   // Toggles selection state for all payment methods on the current page
   const handleSelectAll = (checked) => {
@@ -272,6 +259,137 @@ export const PaymentTypesPage = () => {
       </Badge>
     );
   };
+
+  const columns = [
+    {
+      key: 'name',
+      header: 'Payment Method',
+      className: 'w-[230px]',
+      render: (type) => (
+        <span className="flex min-w-0 items-center gap-2.5 text-xs">
+          <span className="shrink-0 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-1.5 text-emerald-600 dark:text-emerald-400">
+            {type.category === 'bank' ? (
+              <Landmark className="w-3.5 h-3.5" />
+            ) : type.category === 'cash' ? (
+              <Banknote className="w-3.5 h-3.5" />
+            ) : type.category === 'mfs' ? (
+              <Smartphone className="w-3.5 h-3.5" />
+            ) : (
+              <CreditCard className="w-3.5 h-3.5" />
+            )}
+          </span>
+          <span className="min-w-0">
+            <span className="flex items-center gap-1.5">
+              <span className="truncate font-semibold text-foreground">{type.name}</span>
+              {type.isDefault && (
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-primary/10 text-primary border border-primary/20">
+                  Default
+                </Badge>
+              )}
+            </span>
+            {type.provider && (
+              <span className="block truncate text-[11px] text-muted-foreground">
+                Provider: <span className="font-medium text-foreground/80">{type.provider}</span>
+              </span>
+            )}
+          </span>
+        </span>
+      ),
+    },
+    { key: 'category', header: 'Category', className: 'w-[130px]', render: (type) => getCategoryBadge(type.category) },
+    {
+      key: 'account',
+      header: 'Account / Wallet Details',
+      stopClick: true,
+      render: (type) =>
+        type.accountNumber ? (
+          <span className="block space-y-0.5 text-xs">
+            <span className="flex items-center gap-1.5 font-mono font-semibold text-foreground">
+              <span className="truncate">{type.accountNumber}</span>
+              <button
+                type="button"
+                onClick={() => handleCopy(type.accountNumber, type.id)}
+                className="text-muted-foreground hover:text-foreground cursor-pointer p-0.5"
+                title="Copy Account Number"
+              >
+                {copiedId === type.id ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+              </button>
+            </span>
+            {type.accountName && (
+              <span className="block truncate text-[11px] text-muted-foreground">
+                Holder: <span className="text-foreground/80">{type.accountName}</span> ({type.accountType || 'Personal'})
+              </span>
+            )}
+            {type.branchName && (
+              <span className="block truncate text-[10px] text-muted-foreground/80">
+                Branch: {type.branchName} {type.routingNumber ? `• Routing: ${type.routingNumber}` : ''}
+              </span>
+            )}
+          </span>
+        ) : (
+          <span className="text-[11px] italic text-muted-foreground/50">No account details</span>
+        ),
+    },
+    {
+      key: 'fees',
+      header: 'Charge Fee',
+      className: 'w-[160px]',
+      render: (type) =>
+        (type.fees || []).length > 0 ? (
+          <span className="flex flex-wrap gap-1">
+            {type.fees.map((fee) => (
+              <Badge key={fee.name} variant="outline" className="text-[11px] font-mono text-amber-600 border-amber-500/30 bg-amber-500/5">
+                {fee.name}: {formatFeeRate(fee)}
+              </Badge>
+            ))}
+          </span>
+        ) : (
+          <span className="text-[11px] text-muted-foreground">No fees</span>
+        ),
+    },
+    {
+      key: 'linked',
+      header: 'Linked Payments',
+      className: 'w-[130px]',
+      render: (type) => {
+        const linkedCount = typeStats.counts[type.name] || 0;
+        return (
+          <Badge variant="outline" className="text-[11px] font-mono px-2 py-0.5">
+            {linkedCount} {linkedCount === 1 ? 'txn' : 'txns'}
+          </Badge>
+        );
+      },
+    },
+    {
+      key: 'volume',
+      header: 'Total Volume',
+      className: 'w-[140px]',
+      align: 'right',
+      render: (type) => (
+        <span className="font-mono text-xs font-semibold tabular-nums text-foreground">
+          ৳{(typeStats.volumes[type.name] || 0).toLocaleString('en-BD', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        </span>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      className: 'w-[110px]',
+      render: (type) => (
+        <Badge
+          variant={type.status === 'Active' ? 'default' : 'secondary'}
+          className={
+            type.status === 'Active'
+              ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-[11px] font-medium'
+              : 'bg-muted text-muted-foreground text-[11px]'
+          }
+        >
+          {type.status === 'Active' ? <CheckCircle2 className="w-3 h-3 mr-1 inline" /> : <XCircle className="w-3 h-3 mr-1 inline" />}
+          {type.status}
+        </Badge>
+      ),
+    },
+  ];
 
   return (
     <div className="page-container flex-1 space-y-6 p-4 md:p-8 pt-6">
@@ -454,285 +572,49 @@ export const PaymentTypesPage = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[45px] px-4">
-                  <input
-                    type="checkbox"
-                    className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 h-4 w-4 cursor-pointer"
-                    checked={isAllPageSelected}
-                    onChange={(e) => handleSelectAll(e.target.checked)}
-                  />
-                </TableHead>
-                <TableHead className="text-xs font-semibold">Payment Method</TableHead>
-                <TableHead className="text-xs font-semibold">Category</TableHead>
-                <TableHead className="text-xs font-semibold">Account / Wallet Details</TableHead>
-                <TableHead className="text-xs font-semibold">Charge Fee</TableHead>
-                <TableHead className="text-xs font-semibold">Linked Payments</TableHead>
-                <TableHead className="text-xs font-semibold">Total Volume</TableHead>
-                <TableHead className="text-xs font-semibold">Status</TableHead>
-                <TableHead className="w-[120px] text-right text-xs font-semibold">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell className="px-4"><span className="h-4 w-4 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-4 w-32 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-5 w-24 block bg-muted animate-pulse rounded-full" /></TableCell>
-                    <TableCell><span className="h-4 w-40 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-4 w-12 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-4 w-16 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-4 w-20 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-5 w-16 block bg-muted animate-pulse rounded-full" /></TableCell>
-                    <TableCell><span className="h-8 w-20 block bg-muted animate-pulse rounded ml-auto" /></TableCell>
-                  </TableRow>
-                ))
-              ) : paymentTypes.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={9} className="h-48 text-center">
-                    <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
-                      <div className="p-3 bg-muted/40 rounded-full">
-                        <CreditCard className="w-8 h-8 opacity-40" />
-                      </div>
-                      <p className="text-sm font-semibold text-foreground">No payment methods found</p>
-                      <p className="text-xs max-w-sm">
-                        Add payment methods such as bKash Personal, Nagad Merchant, BRAC Bank, or Cash on Delivery to organize and track your receipts.
-                      </p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleOpenAdd}
-                        className="mt-2 text-xs gap-1.5 cursor-pointer"
-                      >
-                        <PlusCircle className="w-3.5 h-3.5" />
-                        <span>Add First Payment Method</span>
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                paymentTypes.map((type) => {
-                  const linkedCount = typeStats.counts[type.name] || 0;
-                  const totalVolume = typeStats.volumes[type.name] || 0;
+        <TableV2
+          columns={columns}
+          rows={paymentTypes}
+          isLoading={isLoading}
+          error={false ? 'Failed to load payment methods.' : null}
+          emptyText={<div className="flex flex-col items-center justify-center gap-2 py-8 text-muted-foreground">
+              <div className="p-3 bg-muted/40 rounded-full">
+                <CreditCard className="w-8 h-8 opacity-40" />
+              </div>
+              <p className="text-sm font-semibold text-foreground">No payment methods found</p>
+              <p className="text-xs max-w-sm whitespace-normal">
+                Add payment methods such as bKash Personal, Nagad Merchant, BRAC Bank, or Cash on Delivery to organize and track your receipts.
+              </p>
+              <Button variant="outline" size="sm" onClick={handleOpenAdd} className="mt-2 text-xs gap-1.5 cursor-pointer">
+                <PlusCircle className="w-3.5 h-3.5" />
+                <span>Add First Payment Method</span>
+              </Button>
+            </div>}
+          selection={selection}
+          onRowClick={(type) => handleOpenDetails(type)}
+          rowActions={(type) => [
+            { label: 'View Full Details', icon: Eye, onClick: () => handleOpenDetails(type) },
+            { label: 'Edit', icon: Edit, onClick: () => handleOpenEdit(type) },
+            { label: 'Delete', icon: Trash2, destructive: true, separatorBefore: true, onClick: () => setDeleteTarget(type) },
+          ]}
+        />
 
-                  return (
-                    <TableRow key={type.id}>
-                      <TableCell className="w-[45px] px-4">
-                        <input
-                          type="checkbox"
-                          className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 h-4 w-4 cursor-pointer"
-                          checked={selectedIds.includes(type.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedIds([...selectedIds, type.id]);
-                            } else {
-                              setSelectedIds(selectedIds.filter((id) => id !== type.id));
-                            }
-                          }}
-                        />
-                      </TableCell>
-
-                      <TableCell className="font-semibold text-xs text-foreground">
-                        <div className="flex items-center gap-2.5">
-                          <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                            {type.category === 'bank' ? (
-                              <Landmark className="w-3.5 h-3.5" />
-                            ) : type.category === 'cash' ? (
-                              <Banknote className="w-3.5 h-3.5" />
-                            ) : type.category === 'mfs' ? (
-                              <Smartphone className="w-3.5 h-3.5" />
-                            ) : (
-                              <CreditCard className="w-3.5 h-3.5" />
-                            )}
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-semibold text-foreground">{type.name}</span>
-                              {type.isDefault && (
-                                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-primary/10 text-primary border border-primary/20">
-                                  Default
-                                </Badge>
-                              )}
-                            </div>
-                            {type.provider && (
-                              <p className="text-[11px] text-muted-foreground font-normal">
-                                Provider: <span className="font-medium text-foreground/80">{type.provider}</span>
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </TableCell>
-
-                      <TableCell>
-                        {getCategoryBadge(type.category)}
-                      </TableCell>
-
-                      <TableCell className="text-xs">
-                        {type.accountNumber ? (
-                          <div className="space-y-0.5">
-                            <div className="flex items-center gap-1.5 font-mono text-foreground font-semibold">
-                              <span>{type.accountNumber}</span>
-                              <button
-                                type="button"
-                                onClick={() => handleCopy(type.accountNumber, type.id)}
-                                className="text-muted-foreground hover:text-foreground cursor-pointer p-0.5"
-                                title="Copy Account Number"
-                              >
-                                {copiedId === type.id ? (
-                                  <Check className="w-3 h-3 text-emerald-600" />
-                                ) : (
-                                  <Copy className="w-3 h-3" />
-                                )}
-                              </button>
-                            </div>
-                            {type.accountName && (
-                              <p className="text-[11px] text-muted-foreground">
-                                Holder: <span className="text-foreground/80">{type.accountName}</span> ({type.accountType || 'Personal'})
-                              </p>
-                            )}
-                            {type.branchName && (
-                              <p className="text-[10px] text-muted-foreground/80">
-                                Branch: {type.branchName} {type.routingNumber ? `• Routing: ${type.routingNumber}` : ''}
-                              </p>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground/50 italic text-[11px]">No account details</span>
-                        )}
-                      </TableCell>
-
-                      <TableCell className="text-xs font-mono font-medium">
-                        {(type.fees || []).length > 0 ? (
-                          <div className="flex flex-wrap gap-1">
-                            {type.fees.map((fee) => (
-                              <Badge key={fee.name} variant="outline" className="text-[11px] font-mono text-amber-600 border-amber-500/30 bg-amber-500/5">
-                                {fee.name}: {formatFeeRate(fee)}
-                              </Badge>
-                            ))}
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground text-[11px]">No fees</span>
-                        )}
-                      </TableCell>
-
-                      <TableCell className="text-xs font-mono font-medium">
-                        <Badge variant="outline" className="text-[11px] font-mono px-2 py-0.5">
-                          {linkedCount} {linkedCount === 1 ? 'txn' : 'txns'}
-                        </Badge>
-                      </TableCell>
-
-                      <TableCell className="text-xs font-mono font-semibold text-foreground">
-                        ৳{totalVolume.toLocaleString('en-BD', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </TableCell>
-
-                      <TableCell>
-                        <Badge
-                          variant={type.status === 'Active' ? 'default' : 'secondary'}
-                          className={
-                            type.status === 'Active'
-                              ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-[11px] font-medium'
-                              : 'bg-muted text-muted-foreground text-[11px]'
-                          }
-                        >
-                          {type.status === 'Active' ? (
-                            <CheckCircle2 className="w-3 h-3 mr-1 inline" />
-                          ) : (
-                            <XCircle className="w-3 h-3 mr-1 inline" />
-                          )}
-                          {type.status}
-                        </Badge>
-                      </TableCell>
-
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-muted-foreground hover:text-emerald-600 cursor-pointer"
-                            onClick={() => handleOpenDetails(type)}
-                            title="View Full Details"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-muted-foreground hover:text-foreground cursor-pointer"
-                            onClick={() => handleOpenEdit(type)}
-                            title="Edit"
-                          >
-                            <Edit className="w-3.5 h-3.5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-muted-foreground hover:text-destructive cursor-pointer"
-                            onClick={() => setDeleteTarget(type)}
-                            title="Delete"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
-        </div>
-
-        {totalPages > 1 && (
-          <div className="p-4 border-t flex items-center justify-between">
-            <p className="text-xs text-muted-foreground">
-              Showing page <span className="font-semibold text-foreground">{currentPage}</span> of{' '}
-              <span className="font-semibold text-foreground">{totalPages}</span>
-            </p>
-            <Pagination className="justify-end w-auto mx-0">
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (currentPage > 1) setCurrentPage((p) => p - 1);
-                    }}
-                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                  />
-                </PaginationItem>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <PaginationItem key={page}>
-                    <PaginationLink
-                      href="#"
-                      isActive={currentPage === page}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setCurrentPage(page);
-                      }}
-                      className="cursor-pointer"
-                    >
-                      {page}
-                    </PaginationLink>
-                  </PaginationItem>
-                ))}
-                <PaginationItem>
-                  <PaginationNext
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (currentPage < totalPages) setCurrentPage((p) => p + 1);
-                    }}
-                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </div>
-        )}
+        <TablePaginationV2
+          className="rounded-none border-0 border-t"
+          page={currentPage}
+          totalPages={totalPages}
+          total={paymentTypes.length}
+          pageSize={pageSize}
+          setPage={(p) => {
+            setCurrentPage(p);
+            selection.clear();
+          }}
+          setPageSize={(size) => {
+            setPageSize(size);
+            setCurrentPage(1);
+          }}
+          shownCount={paymentTypes.length}
+        />
       </div>
 
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>

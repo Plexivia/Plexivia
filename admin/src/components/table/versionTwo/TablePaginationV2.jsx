@@ -24,6 +24,7 @@ const pageWindow = (current, total, size) => {
  * @param {(size: number) => void} props.setPageSize
  * @param {number} props.shownCount - Rows on the current page
  * @param {number[]} [props.pageSizeOptions]
+ * @param {string} [props.className] - e.g. 'rounded-none border-0 border-t' when placed inside a card
  */
 export function TablePaginationV2({
   page,
@@ -34,6 +35,7 @@ export function TablePaginationV2({
   setPageSize,
   shownCount,
   pageSizeOptions = PAGE_SIZE_OPTIONS,
+  className = '',
 }) {
   const isWide = useIsWide();
 
@@ -42,7 +44,7 @@ export function TablePaginationV2({
   const pages = pageWindow(page, Math.max(totalPages, 1), isWide ? 5 : 3);
 
   return (
-    <div className="space-y-3 rounded-lg border bg-card px-3 py-3">
+    <div className={cn('space-y-3 rounded-lg border bg-card px-3 py-3', className)}>
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm whitespace-nowrap text-muted-foreground">
           {total ? (

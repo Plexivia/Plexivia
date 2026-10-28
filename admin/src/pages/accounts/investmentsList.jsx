@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { TableV2, TablePaginationV2, useRowSelection } from '@/components/table/versionTwo';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import {
@@ -25,22 +26,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
 import {
   Dialog,
   DialogContent,
@@ -79,7 +64,10 @@ export const InvestmentsListPage = () => {
   const [investorFilter, setInvestorFilter] = useState(initialInvestorId);
   const [dateRange, setDateRange] = useState({ startDate: '', endDate: '', preset: 'all' });
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedIds, setSelectedIds] = useState([]);
+  const [pageSize, setPageSize] = useState(20);
+  const selection = useRowSelection();
+  const selectedIds = selection.ids;
+  const setSelectedIds = selection.setIds;
 
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [returnModalOpen, setReturnModalOpen] = useState(false);
@@ -122,7 +110,6 @@ export const InvestmentsListPage = () => {
     }
   }, [initialInvestorId]);
 
-  const isAllPageSelected = investments.length > 0 && investments.every((inv) => selectedIds.includes(inv.id));
 
   // Toggles selection state for all investments on the current page
   const handleSelectAll = (checked) => {
@@ -281,6 +268,70 @@ export const InvestmentsListPage = () => {
         );
     }
   };
+
+  // Taken / returned / outstanding amounts for an investment row
+  const getTrancheTotals = (inv) => {
+    const taken = Number(inv.takenAmount) || 0;
+    const returned = Number(inv.returnedAmount) || 0;
+    return { taken, returned, outstanding: Math.max(0, taken - returned) };
+  };
+
+  const columns = [
+    {
+      key: 'investorName',
+      header: 'Investor',
+      render: (inv) => (
+        <>
+          <span className="block truncate text-xs font-semibold text-foreground">{inv.investorName}</span>
+          {inv.notes && <span className="block truncate text-[11px] text-muted-foreground">{inv.notes}</span>}
+        </>
+      ),
+    },
+    {
+      key: 'taken',
+      header: 'Taken Amount',
+      className: 'w-[130px]',
+      align: 'right',
+      render: (inv) => <span className="font-mono text-xs font-bold tabular-nums text-foreground">{formatCurrency(getTrancheTotals(inv).taken)}</span>,
+    },
+    {
+      key: 'returned',
+      header: 'Returned Amount',
+      className: 'w-[140px]',
+      align: 'right',
+      render: (inv) => <span className="font-mono text-xs font-semibold tabular-nums text-emerald-600">{formatCurrency(getTrancheTotals(inv).returned)}</span>,
+    },
+    {
+      key: 'outstanding',
+      header: 'Net Outstanding',
+      className: 'w-[140px]',
+      align: 'right',
+      render: (inv) => <span className="font-mono text-xs font-bold tabular-nums text-purple-600">{formatCurrency(getTrancheTotals(inv).outstanding)}</span>,
+    },
+    {
+      key: 'takenDate',
+      header: 'Taken Date',
+      className: 'w-[115px]',
+      render: (inv) => <span className="text-xs text-muted-foreground">{inv.takenDate || '—'}</span>,
+    },
+    {
+      key: 'returnedDate',
+      header: 'Return / Maturity',
+      className: 'w-[130px]',
+      render: (inv) => <span className="text-xs text-muted-foreground">{inv.returnedDate || 'Ongoing'}</span>,
+    },
+    {
+      key: 'paymentMethod',
+      header: 'Method',
+      className: 'w-[130px]',
+      render: (inv) => (
+        <Badge variant="outline" className="text-[10px] bg-muted/40">
+          {inv.paymentMethod}
+        </Badge>
+      ),
+    },
+    { key: 'status', header: 'Status', className: 'w-[130px]', render: (inv) => getStatusBadge(inv.status) },
+  ];
 
   return (
     <div className="page-container flex-1 space-y-6 p-4 md:p-8 pt-6">
@@ -451,189 +502,45 @@ export const InvestmentsListPage = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[45px] px-4">
-                  <input
-                    type="checkbox"
-                    className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 h-4 w-4 cursor-pointer"
-                    checked={isAllPageSelected}
-                    onChange={(e) => handleSelectAll(e.target.checked)}
-                  />
-                </TableHead>
-                <TableHead className="text-xs">Investor</TableHead>
-                <TableHead className="text-xs">Taken Amount</TableHead>
-                <TableHead className="text-xs">Returned Amount</TableHead>
-                <TableHead className="text-xs">Net Outstanding</TableHead>
-                <TableHead className="text-xs">Taken Date</TableHead>
-                <TableHead className="text-xs">Return / Maturity</TableHead>
-                <TableHead className="text-xs">Method</TableHead>
-                <TableHead className="text-xs">Status</TableHead>
-                <TableHead className="w-[100px] text-right text-xs">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell className="px-4"><span className="h-4 w-4 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-4 w-32 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-4 w-20 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-4 w-20 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-4 w-20 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-4 w-20 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-4 w-20 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-4 w-16 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-5 w-16 block bg-muted animate-pulse rounded-full" /></TableCell>
-                    <TableCell className="text-right"><span className="h-8 w-16 ml-auto block bg-muted animate-pulse rounded" /></TableCell>
-                  </TableRow>
-                ))
-              ) : investments.length > 0 ? (
-                investments.map((inv) => {
-                  const taken = Number(inv.takenAmount) || 0;
-                  const returned = Number(inv.returnedAmount) || 0;
-                  const outstanding = Math.max(0, taken - returned);
+        <TableV2
+          columns={columns}
+          rows={investments}
+          isLoading={isLoading}
+          error={false ? 'Failed to load investments.' : null}
+          emptyText='No investment records found matching your filters.'
+          selection={selection}
+          onRowClick={(inv) => handleOpenEdit(inv)}
+          rowActions={(inv) => [
+            {
+              label: 'Record Repayment',
+              icon: CornerDownLeft,
+              hidden: getTrancheTotals(inv).outstanding <= 0,
+              onClick: () => {
+                setReturnTarget(inv);
+                setReturnModalOpen(true);
+              },
+            },
+            { label: 'Edit Investment', icon: Edit, onClick: () => handleOpenEdit(inv) },
+            { label: 'Delete Record', icon: Trash2, destructive: true, separatorBefore: true, onClick: () => setDeleteTarget(inv) },
+          ]}
+        />
 
-                  return (
-                    <TableRow key={inv.id}>
-                      <TableCell className="w-[45px] px-4">
-                        <input
-                          type="checkbox"
-                          className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 h-4 w-4 cursor-pointer"
-                          checked={selectedIds.includes(inv.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedIds([...selectedIds, inv.id]);
-                            } else {
-                              setSelectedIds(selectedIds.filter((id) => id !== inv.id));
-                            }
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <div className="font-semibold text-xs text-foreground line-clamp-1">{inv.investorName}</div>
-                        {inv.notes && <div className="text-[11px] text-muted-foreground line-clamp-1">{inv.notes}</div>}
-                      </TableCell>
-                      <TableCell className="text-xs font-bold text-foreground font-mono">
-                        {formatCurrency(taken)}
-                      </TableCell>
-                      <TableCell className="text-xs font-semibold text-emerald-600 font-mono">
-                        {formatCurrency(returned)}
-                      </TableCell>
-                      <TableCell className="text-xs font-bold text-purple-600 font-mono">
-                        {formatCurrency(outstanding)}
-                      </TableCell>
-                      <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
-                        {inv.takenDate || '—'}
-                      </TableCell>
-                      <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
-                        {inv.returnedDate || 'Ongoing'}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="text-[10px] bg-muted/40">
-                          {inv.paymentMethod}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{getStatusBadge(inv.status)}</TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger render={
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <span className="sr-only">Actions</span>
-                              <CreditCard className="h-4 w-4 text-muted-foreground" />
-                            </Button>
-                          } />
-                          <DropdownMenuContent align="end" className="text-xs">
-                            <DropdownMenuLabel>Investment Actions</DropdownMenuLabel>
-                            {outstanding > 0 && (
-                              <DropdownMenuItem
-                                className="cursor-pointer gap-2 text-emerald-600 font-semibold"
-                                onClick={() => {
-                                  setReturnTarget(inv);
-                                  setReturnModalOpen(true);
-                                }}
-                              >
-                                <CornerDownLeft className="w-3.5 h-3.5" />
-                                <span>Record Repayment</span>
-                              </DropdownMenuItem>
-                            )}
-                            <DropdownMenuItem
-                              className="cursor-pointer gap-2"
-                              onClick={() => handleOpenEdit(inv)}
-                            >
-                              <Edit className="w-3.5 h-3.5 text-blue-500" />
-                              <span>Edit Investment</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              className="text-destructive focus:text-destructive cursor-pointer gap-2"
-                              onClick={() => setDeleteTarget(inv)}
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                              <span>Delete Record</span>
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={10} className="h-28 text-center text-muted-foreground text-xs">
-                    No investment records found matching your filters.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-
-        {totalPages > 1 && (
-          <div className="border-t px-4 py-3 bg-muted/10">
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (currentPage > 1) setCurrentPage((p) => p - 1);
-                    }}
-                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                  />
-                </PaginationItem>
-                {Array.from({ length: totalPages }).map((_, i) => (
-                  <PaginationItem key={i + 1}>
-                    <PaginationLink
-                      href="#"
-                      isActive={currentPage === i + 1}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setCurrentPage(i + 1);
-                      }}
-                      className="cursor-pointer"
-                    >
-                      {i + 1}
-                    </PaginationLink>
-                  </PaginationItem>
-                ))}
-                <PaginationItem>
-                  <PaginationNext
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (currentPage < totalPages) setCurrentPage((p) => p + 1);
-                    }}
-                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </div>
-        )}
+        <TablePaginationV2
+          className="rounded-none border-0 border-t"
+          page={currentPage}
+          totalPages={totalPages}
+          total={investments.length}
+          pageSize={pageSize}
+          setPage={(p) => {
+            setCurrentPage(p);
+            selection.clear();
+          }}
+          setPageSize={(size) => {
+            setPageSize(size);
+            setCurrentPage(1);
+          }}
+          shownCount={investments.length}
+        />
       </div>
 
       <Dialog open={addModalOpen} onOpenChange={setAddModalOpen}>

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { TableV2, TablePaginationV2, useRowSelection } from '@/components/table/versionTwo';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -25,22 +26,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -85,7 +70,10 @@ export const AllPaymentsPage = () => {
   const [methodFilter, setMethodFilter] = useState('All');
   const [dateRange, setDateRange] = useState({ startDate: '', endDate: '', preset: 'all' });
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedIds, setSelectedIds] = useState([]);
+  const [pageSize, setPageSize] = useState(20);
+  const selection = useRowSelection();
+  const selectedIds = selection.ids;
+  const setSelectedIds = selection.setIds;
 
   const [viewPaymentTarget, setViewPaymentTarget] = useState(null);
   const [singleDeleteTarget, setSingleDeleteTarget] = useState(null);
@@ -181,7 +169,6 @@ export const AllPaymentsPage = () => {
     return <Badge className={`${cls} gap-1 font-medium text-[11px]`} variant="outline">{method}</Badge>;
   };
 
-  const isAllPageSelected = payments.length > 0 && payments.every((p) => selectedIds.includes(p.id));
 
   // Toggles selection state for all payments on the current page
   const handleSelectAll = (checked) => {
@@ -233,6 +220,56 @@ export const AllPaymentsPage = () => {
       setIsDeleting(false);
     }
   };
+
+  const columns = [
+    {
+      key: 'invoiceId',
+      header: 'Invoice / Trx ID',
+      className: 'w-[160px]',
+      render: (p) => (
+        <>
+          <span className="block truncate font-mono text-xs font-semibold text-foreground">{p.invoiceId}</span>
+          {p.trxId && <span className="block truncate font-mono text-[10px] text-muted-foreground">{p.trxId}</span>}
+        </>
+      ),
+    },
+    {
+      key: 'customerName',
+      header: 'Customer / Payer',
+      render: (p) => (
+        <>
+          <span className="block truncate text-xs font-semibold text-foreground">{p.customerName}</span>
+          {p.notes && <span className="block truncate text-[11px] text-muted-foreground">{p.notes}</span>}
+        </>
+      ),
+    },
+    { key: 'method', header: 'Method', className: 'w-[120px]', render: (p) => getMethodBadge(p.method || p.paymentMethod) },
+    {
+      key: 'date',
+      header: 'Payment Date',
+      className: 'w-[120px]',
+      render: (p) => <span className="text-xs text-muted-foreground">{p.date}</span>,
+    },
+    {
+      key: 'amount',
+      header: 'Amount',
+      className: 'w-[130px]',
+      align: 'right',
+      render: (p) => <span className="text-xs font-bold tabular-nums text-foreground">{formatCurrency(p.amount)}</span>,
+    },
+    {
+      key: 'paidAmount',
+      header: 'Paid',
+      className: 'w-[130px]',
+      align: 'right',
+      render: (p) => (
+        <span className="text-xs font-semibold tabular-nums text-emerald-600">
+          {formatCurrency(p.paidAmount || (p.status === 'Completed' ? p.amount : 0))}
+        </span>
+      ),
+    },
+    { key: 'status', header: 'Status', className: 'w-[120px]', render: (p) => getStatusBadge(p.status) },
+  ];
 
   return (
     <div className="page-container flex-1 space-y-6 p-4 md:p-8 pt-6">
@@ -373,171 +410,37 @@ export const AllPaymentsPage = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[45px] px-4">
-                  <input
-                    type="checkbox"
-                    className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4 cursor-pointer"
-                    checked={isAllPageSelected}
-                    onChange={(e) => handleSelectAll(e.target.checked)}
-                  />
-                </TableHead>
-                <TableHead className="text-xs">Invoice / Trx ID</TableHead>
-                <TableHead className="text-xs">Customer / Payer</TableHead>
-                <TableHead className="text-xs">Method</TableHead>
-                <TableHead className="text-xs">Payment Date</TableHead>
-                <TableHead className="text-xs">Amount</TableHead>
-                <TableHead className="text-xs">Paid</TableHead>
-                <TableHead className="text-xs">Status</TableHead>
-                <TableHead className="w-[80px] text-right text-xs">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell className="px-4"><span className="h-4 w-4 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-4 w-24 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-4 w-32 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-5 w-16 block bg-muted animate-pulse rounded-full" /></TableCell>
-                    <TableCell><span className="h-4 w-20 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-4 w-16 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-4 w-16 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-5 w-16 block bg-muted animate-pulse rounded-full" /></TableCell>
-                    <TableCell className="text-right"><span className="h-8 w-8 ml-auto block bg-muted animate-pulse rounded" /></TableCell>
-                  </TableRow>
-                ))
-              ) : isError ? (
-                <TableRow>
-                  <TableCell colSpan={9} className="h-28 text-center text-red-500 text-xs">
-                    Failed to load payments data. Please click refresh.
-                  </TableCell>
-                </TableRow>
-              ) : payments.length > 0 ? (
-                payments.map((p) => (
-                  <TableRow key={p.id}>
-                    <TableCell className="w-[45px] px-4">
-                      <input
-                        type="checkbox"
-                        className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4 cursor-pointer"
-                        checked={selectedIds.includes(p.id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedIds([...selectedIds, p.id]);
-                          } else {
-                            setSelectedIds(selectedIds.filter((id) => id !== p.id));
-                          }
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell className="font-mono text-xs font-semibold text-foreground">
-                      <div>{p.invoiceId}</div>
-                      {p.trxId && (
-                        <div className="text-[10px] text-muted-foreground">{p.trxId}</div>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="font-semibold text-xs text-foreground line-clamp-1">{p.customerName}</div>
-                      {p.notes && <div className="text-[11px] text-muted-foreground line-clamp-1">{p.notes}</div>}
-                    </TableCell>
-                    <TableCell>{getMethodBadge(p.method || p.paymentMethod)}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{p.date}</TableCell>
-                    <TableCell className="text-xs font-bold text-foreground whitespace-nowrap">{formatCurrency(p.amount)}</TableCell>
-                    <TableCell className="text-xs font-semibold text-emerald-600 whitespace-nowrap">{formatCurrency(p.paidAmount || (p.status === 'Completed' ? p.amount : 0))}</TableCell>
-                    <TableCell>{getStatusBadge(p.status)}</TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger render={
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        } />
-                        <DropdownMenuContent align="end" className="text-xs">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem
-                            className="cursor-pointer gap-2"
-                            onClick={() => setViewPaymentTarget(p)}
-                          >
-                            <Eye className="w-3.5 h-3.5 text-primary" />
-                            <span>View Details</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="cursor-pointer gap-2"
-                            onClick={() => navigate(`/accounts/payments/new?edit=${p.id}`)}
-                          >
-                            <Edit className="w-3.5 h-3.5 text-blue-500" />
-                            <span>Edit Payment</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive cursor-pointer gap-2"
-                            onClick={() => setSingleDeleteTarget(p)}
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                            <span>Delete Payment</span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={9} className="h-28 text-center text-muted-foreground text-xs">
-                    No payments found matching your filter criteria.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+        <TableV2
+          columns={columns}
+          rows={payments}
+          isLoading={isLoading}
+          error={isError ? 'Failed to load payments data. Please click refresh.' : null}
+          emptyText='No payments found matching your filter criteria.'
+          selection={selection}
+          onRowClick={(p) => setViewPaymentTarget(p)}
+          rowActions={(p) => [
+            { label: 'View Details', icon: Eye, onClick: () => setViewPaymentTarget(p) },
+            { label: 'Edit Payment', icon: Edit, onClick: () => navigate(`/accounts/payments/new?edit=${p.id}`) },
+            { label: 'Delete Payment', icon: Trash2, destructive: true, separatorBefore: true, onClick: () => setSingleDeleteTarget(p) },
+          ]}
+        />
 
-        {totalPages > 1 && (
-          <div className="border-t px-4 py-3 bg-muted/10">
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (currentPage > 1) setCurrentPage((p) => p - 1);
-                    }}
-                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                  />
-                </PaginationItem>
-                {Array.from({ length: totalPages }).map((_, i) => (
-                  <PaginationItem key={i + 1}>
-                    <PaginationLink
-                      href="#"
-                      isActive={currentPage === i + 1}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setCurrentPage(i + 1);
-                      }}
-                      className="cursor-pointer"
-                    >
-                      {i + 1}
-                    </PaginationLink>
-                  </PaginationItem>
-                ))}
-                <PaginationItem>
-                  <PaginationNext
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (currentPage < totalPages) setCurrentPage((p) => p + 1);
-                    }}
-                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </div>
-        )}
+        <TablePaginationV2
+          className="rounded-none border-0 border-t"
+          page={currentPage}
+          totalPages={totalPages}
+          total={payments.length}
+          pageSize={pageSize}
+          setPage={(p) => {
+            setCurrentPage(p);
+            selection.clear();
+          }}
+          setPageSize={(size) => {
+            setPageSize(size);
+            setCurrentPage(1);
+          }}
+          shownCount={payments.length}
+        />
       </div>
 
       <Dialog open={!!viewPaymentTarget} onOpenChange={(open) => !open && setViewPaymentTarget(null)}>

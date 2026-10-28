@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { TableV2, TablePaginationV2, useRowSelection } from '@/components/table/versionTwo';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -25,22 +26,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -77,7 +62,10 @@ export const AllBillsPage = () => {
   const [billTypeFilter, setBillTypeFilter] = useState('All');
   const [dateRange, setDateRange] = useState({ startDate: '', endDate: '', preset: 'all' });
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedIds, setSelectedIds] = useState([]);
+  const [pageSize, setPageSize] = useState(20);
+  const selection = useRowSelection();
+  const selectedIds = selection.ids;
+  const setSelectedIds = selection.setIds;
 
   const [viewBillTarget, setViewBillTarget] = useState(null);
   const [singleDeleteTarget, setSingleDeleteTarget] = useState(null);
@@ -167,7 +155,6 @@ export const AllBillsPage = () => {
     }
   };
 
-  const isAllPageSelected = billings.length > 0 && billings.every((b) => selectedIds.includes(b.id));
 
   // Toggles selection of all bills on the current page
   const handleSelectAll = (checked) => {
@@ -215,6 +202,89 @@ export const AllBillsPage = () => {
       setIsDeleting(false);
     }
   };
+
+  const columns = [
+    {
+      key: 'did',
+      header: 'Bill Ref / DID',
+      className: 'w-[150px]',
+      render: (b) => (
+        <span className="flex items-center gap-1.5 font-mono text-xs font-semibold text-foreground">
+          <FileText className="size-3.5 shrink-0 text-muted-foreground" />
+          <span className="truncate">{b.did || b.invoiceId}</span>
+        </span>
+      ),
+    },
+    {
+      key: 'title',
+      header: 'Title / Payee',
+      render: (b) => (
+        <>
+          <span className="block truncate text-xs font-semibold text-foreground">{b.title}</span>
+          <span className="block truncate text-[11px] text-muted-foreground">{b.vendor || b.customerName}</span>
+        </>
+      ),
+    },
+    {
+      key: 'billType',
+      header: 'Type',
+      className: 'w-[150px]',
+      render: (b) => (
+        <Badge
+          variant="outline"
+          className={`text-[11px] font-medium ${
+            b.billType === 'Investment Return'
+              ? 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30'
+              : 'bg-muted/40'
+          }`}
+        >
+          {b.billType}
+        </Badge>
+      ),
+    },
+    {
+      key: 'billingDate',
+      header: 'Billing Date',
+      className: 'w-[120px]',
+      render: (b) => <span className="text-xs text-muted-foreground">{b.billingDate || b.date}</span>,
+    },
+    {
+      key: 'dueDate',
+      header: 'Due Date',
+      className: 'w-[120px]',
+      render: (b) => <span className="text-xs text-muted-foreground">{b.dueDate || '—'}</span>,
+    },
+    {
+      key: 'totalAmount',
+      header: 'Total Amount',
+      className: 'w-[150px]',
+      align: 'right',
+      render: (b) => (
+        <>
+          <span className="block text-xs font-bold tabular-nums text-foreground">{formatCurrency(b.totalAmount)}</span>
+          {b.feeAmount > 0 && (
+            <span className="block truncate text-[10px] text-muted-foreground">
+              Bill {formatCurrency(b.billAmount)} + charge {formatCurrency(b.feeAmount)}
+            </span>
+          )}
+        </>
+      ),
+    },
+    {
+      key: 'paid',
+      header: 'Paid / Pending',
+      className: 'w-[150px]',
+      render: (b) => (
+        <span className="text-xs">
+          <span className="font-semibold text-emerald-600">{formatCurrency(b.paidAmount)}</span>
+          {b.pendingAmount > 0 && (
+            <span className="ml-1 text-[10px] text-muted-foreground">({formatCurrency(b.pendingAmount)} due)</span>
+          )}
+        </span>
+      ),
+    },
+    { key: 'status', header: 'Status', className: 'w-[120px]', render: (b) => getStatusBadge(b.status) },
+  ];
 
   return (
     <div className="page-container flex-1 space-y-6 p-4 md:p-8 pt-6">
@@ -358,197 +428,37 @@ export const AllBillsPage = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[45px] px-4">
-                  <input
-                    type="checkbox"
-                    className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4 cursor-pointer"
-                    checked={isAllPageSelected}
-                    onChange={(e) => handleSelectAll(e.target.checked)}
-                  />
-                </TableHead>
-                <TableHead className="text-xs">Bill Ref / DID</TableHead>
-                <TableHead className="text-xs">Title / Payee</TableHead>
-                <TableHead className="text-xs">Type</TableHead>
-                <TableHead className="text-xs">Billing Date</TableHead>
-                <TableHead className="text-xs">Due Date</TableHead>
-                <TableHead className="text-xs">Total Amount</TableHead>
-                <TableHead className="text-xs">Paid / Pending</TableHead>
-                <TableHead className="text-xs">Status</TableHead>
-                <TableHead className="w-[80px] text-right text-xs">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell className="px-4"><span className="h-4 w-4 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-4 w-20 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-4 w-36 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-4 w-24 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-4 w-20 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-4 w-20 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-4 w-16 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-4 w-20 block bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><span className="h-5 w-16 block bg-muted animate-pulse rounded-full" /></TableCell>
-                    <TableCell className="text-right"><span className="h-8 w-8 ml-auto block bg-muted animate-pulse rounded" /></TableCell>
-                  </TableRow>
-                ))
-              ) : isError ? (
-                <TableRow>
-                  <TableCell colSpan={10} className="h-28 text-center text-red-500 text-xs">
-                    Failed to load bills data. Please click refresh.
-                  </TableCell>
-                </TableRow>
-              ) : billings.length > 0 ? (
-                billings.map((b) => (
-                  <TableRow key={b.id}>
-                    <TableCell className="w-[45px] px-4">
-                      <input
-                        type="checkbox"
-                        className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4 cursor-pointer"
-                        checked={selectedIds.includes(b.id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedIds([...selectedIds, b.id]);
-                          } else {
-                            setSelectedIds(selectedIds.filter((id) => id !== b.id));
-                          }
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell className="font-mono text-xs font-semibold text-foreground">
-                      <div className="flex items-center gap-1.5">
-                        <FileText className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                        <span>{b.did || b.invoiceId}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="font-semibold text-xs text-foreground line-clamp-1">{b.title}</div>
-                      <div className="text-[11px] text-muted-foreground line-clamp-1">{b.vendor || b.customerName}</div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={`text-[11px] font-medium ${
-                          b.billType === 'Investment Return'
-                            ? 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30'
-                            : 'bg-muted/40'
-                        }`}
-                      >
-                        {b.billType}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{b.billingDate || b.date}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{b.dueDate || '—'}</TableCell>
-                    <TableCell className="text-xs whitespace-nowrap">
-                      <div className="font-bold text-foreground">{formatCurrency(b.totalAmount)}</div>
-                      {b.feeAmount > 0 && (
-                        <div className="text-[10px] text-muted-foreground">
-                          Bill {formatCurrency(b.billAmount)} + charge {formatCurrency(b.feeAmount)}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-xs whitespace-nowrap">
-                      <span className="text-emerald-600 font-semibold">{formatCurrency(b.paidAmount)}</span>
-                      {b.pendingAmount > 0 && (
-                        <span className="text-muted-foreground text-[10px] ml-1">({formatCurrency(b.pendingAmount)} due)</span>
-                      )}
-                    </TableCell>
-                    <TableCell>{getStatusBadge(b.status)}</TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger render={
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        } />
-                        <DropdownMenuContent align="end" className="text-xs">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem
-                            className="cursor-pointer gap-2"
-                            onClick={() => setViewBillTarget(b)}
-                          >
-                            <Eye className="w-3.5 h-3.5 text-primary" />
-                            <span>View Details</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="cursor-pointer gap-2"
-                            onClick={() => navigate(`/accounts/bills/new?edit=${b.id}`)}
-                          >
-                            <Edit className="w-3.5 h-3.5 text-blue-500" />
-                            <span>Edit Bill</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive cursor-pointer gap-2"
-                            onClick={() => setSingleDeleteTarget(b)}
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                            <span>Delete Bill</span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={10} className="h-28 text-center text-muted-foreground text-xs">
-                    No bills found matching your filter criteria.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+        <TableV2
+          columns={columns}
+          rows={billings}
+          isLoading={isLoading}
+          error={isError ? 'Failed to load bills data. Please click refresh.' : null}
+          emptyText='No bills found matching your filter criteria.'
+          selection={selection}
+          onRowClick={(b) => setViewBillTarget(b)}
+          rowActions={(b) => [
+            { label: 'View Details', icon: Eye, onClick: () => setViewBillTarget(b) },
+            { label: 'Edit Bill', icon: Edit, onClick: () => navigate(`/accounts/bills/new?edit=${b.id}`) },
+            { label: 'Delete Bill', icon: Trash2, destructive: true, separatorBefore: true, onClick: () => setSingleDeleteTarget(b) },
+          ]}
+        />
 
-        {totalPages > 1 && (
-          <div className="border-t px-4 py-3 bg-muted/10">
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (currentPage > 1) setCurrentPage((p) => p - 1);
-                    }}
-                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                  />
-                </PaginationItem>
-                {Array.from({ length: totalPages }).map((_, i) => (
-                  <PaginationItem key={i + 1}>
-                    <PaginationLink
-                      href="#"
-                      isActive={currentPage === i + 1}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setCurrentPage(i + 1);
-                      }}
-                      className="cursor-pointer"
-                    >
-                      {i + 1}
-                    </PaginationLink>
-                  </PaginationItem>
-                ))}
-                <PaginationItem>
-                  <PaginationNext
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (currentPage < totalPages) setCurrentPage((p) => p + 1);
-                    }}
-                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </div>
-        )}
+        <TablePaginationV2
+          className="rounded-none border-0 border-t"
+          page={currentPage}
+          totalPages={totalPages}
+          total={billings.length}
+          pageSize={pageSize}
+          setPage={(p) => {
+            setCurrentPage(p);
+            selection.clear();
+          }}
+          setPageSize={(size) => {
+            setPageSize(size);
+            setCurrentPage(1);
+          }}
+          shownCount={billings.length}
+        />
       </div>
 
       <Dialog open={!!viewBillTarget} onOpenChange={(open) => !open && setViewBillTarget(null)}>
