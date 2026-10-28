@@ -319,7 +319,7 @@ export const ResumePreview = ({ data, onPrint }) => {
                 </div>
               </div>
               {personalInfo.avatarUrl && (
-                <img src={personalInfo.avatarUrl} alt="" className="w-[92px] h-[112px] object-cover border border-black shrink-0" />
+                <img src={personalInfo.avatarUrl} alt="" className="w-[92px] h-[112px] object-cover object-top rounded-[2px] shrink-0" />
               )}
             </div>
 
@@ -337,17 +337,17 @@ export const ResumePreview = ({ data, onPrint }) => {
                   <thead>
                     <tr>
                       {['Certificate', 'Institution', 'GPA/CGPA', 'Passing Year'].map(h => (
-                        <th key={h} className="border border-black px-1.5 py-0.5 font-bold">{h}</th>
+                        <th key={h} className="border-b border-black px-1.5 py-0.5 font-bold">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {education.map(edu => (
                       <tr key={edu.id} className="align-top">
-                        <td className="border border-black px-1.5 py-0.5">{edu.degree}</td>
-                        <td className="border border-black px-1.5 py-0.5">{edu.institution}{edu.location ? `, ${edu.location}` : ''}</td>
-                        <td className="border border-black px-1.5 py-0.5">{edu.grade}</td>
-                        <td className="border border-black px-1.5 py-0.5">{edu.endDate}</td>
+                        <td className="border-b border-black/20 px-1.5 py-0.5">{edu.degree}</td>
+                        <td className="border-b border-black/20 px-1.5 py-0.5">{edu.institution}{edu.location ? `, ${edu.location}` : ''}</td>
+                        <td className="border-b border-black/20 px-1.5 py-0.5">{edu.grade}</td>
+                        <td className="border-b border-black/20 px-1.5 py-0.5">{edu.endDate}</td>
                       </tr>
                     ))}
                   </tbody>
