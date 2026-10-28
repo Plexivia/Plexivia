@@ -1,8 +1,5 @@
 import React, { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { UnifiedSidebar } from '@/components/layout/UnifiedSidebar';
-import { TopBreadcrumbBar } from '@/components/layout/TopBreadcrumbBar';
 import { ToastContainer } from '@/components/common/ToastContainer';
 import { GlobalSearchModal } from '@/components/common/GlobalSearchModal';
 import { GlobalErrorBoundary } from '@/components/common/GlobalErrorBoundary';
@@ -10,6 +7,7 @@ import { NotificationDrawer } from '@/components/layout/NotificationDrawer';
 import { LoginPage } from '@/components/auth/LoginPage';
 import { NAVIGATION_MENU_GROUPS } from '@/constants/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
+import { LayoutV2 } from '@/components/layout/versionTwo/LayoutV2';
 
 import { OverviewPage } from '@/pages/OverviewPage';
 import { WebmailPage } from '@/pages/WebmailPage';
@@ -67,16 +65,11 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
   return (
     <ProtectedRoute>
       <GlobalErrorBoundary>
-        <DashboardLayout
-          sidebar={
-            <UnifiedSidebar
-              menuGroups={NAVIGATION_MENU_GROUPS}
-              brandPath="/overview"
-              user={user}
-              onLogout={logout}
-            />
-          }
-          header={<TopBreadcrumbBar />}
+        <LayoutV2
+          menuGroups={NAVIGATION_MENU_GROUPS}
+          user={user}
+          onLogout={logout}
+          onOpenNotifications={() => setIsNotificationsOpen(true)}
           toasts={<ToastContainer />}
           modals={
             <>
@@ -89,7 +82,7 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
           }
         >
           {children}
-        </DashboardLayout>
+        </LayoutV2>
       </GlobalErrorBoundary>
     </ProtectedRoute>
   );
