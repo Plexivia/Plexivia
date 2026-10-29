@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { LucideIcon, TrendingUp, TrendingDown } from 'lucide-react';
 
 interface StatCardProps {
@@ -15,6 +15,7 @@ interface StatCardProps {
   onClick?: () => void;
 }
 
+// Render KPI telemetry card with adaptive light and dark surface styling
 export const StatCard: React.FC<StatCardProps> = ({
   title,
   value,
@@ -28,31 +29,31 @@ export const StatCard: React.FC<StatCardProps> = ({
   const variantMap = {
     cyan: {
       border: 'border-cyan-500/20 hover:border-cyan-500/40',
-      iconBg: 'bg-cyan-500/10 text-cyan-400',
+      iconBg: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400',
       glow: 'group-hover:shadow-[0_0_25px_rgba(56,189,248,0.15)]',
       progress: 'bg-cyan-500',
     },
     emerald: {
       border: 'border-emerald-500/20 hover:border-emerald-500/40',
-      iconBg: 'bg-emerald-500/10 text-emerald-400',
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
       glow: 'group-hover:shadow-[0_0_25px_rgba(52,211,153,0.15)]',
       progress: 'bg-emerald-500',
     },
     purple: {
       border: 'border-purple-500/20 hover:border-purple-500/40',
-      iconBg: 'bg-purple-500/10 text-purple-400',
+      iconBg: 'bg-purple-500/10 text-purple-600 dark:text-purple-400',
       glow: 'group-hover:shadow-[0_0_25px_rgba(168,85,247,0.15)]',
       progress: 'bg-purple-500',
     },
     amber: {
       border: 'border-amber-500/20 hover:border-amber-500/40',
-      iconBg: 'bg-amber-500/10 text-amber-400',
+      iconBg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
       glow: 'group-hover:shadow-[0_0_25px_rgba(251,191,36,0.15)]',
       progress: 'bg-amber-500',
     },
     rose: {
       border: 'border-rose-500/20 hover:border-rose-500/40',
-      iconBg: 'bg-rose-500/10 text-rose-400',
+      iconBg: 'bg-rose-500/10 text-rose-600 dark:text-rose-400',
       glow: 'group-hover:shadow-[0_0_25px_rgba(244,63,94,0.15)]',
       progress: 'bg-rose-500',
     },
@@ -63,29 +64,29 @@ export const StatCard: React.FC<StatCardProps> = ({
   return (
     <div
       onClick={onClick}
-      className={`group relative overflow-hidden rounded-2xl bg-slate-900/60 dark:bg-slate-900/80 border ${
+      className={`group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900/80 border ${
         style.border
-      } p-5 backdrop-blur-md transition-all duration-300 ${style.glow} ${
+      } p-5 backdrop-blur-md transition-all duration-300 shadow-xs ${style.glow} ${
         onClick ? 'cursor-pointer hover:-translate-y-0.5' : ''
       }`}
     >
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold tracking-wider text-slate-400 uppercase font-mono">
+        <span className="text-xs font-semibold tracking-wider text-slate-500 dark:text-slate-400 uppercase font-mono">
           {title}
         </span>
-        <div className={`p-2.5 rounded-xl border border-white/5 ${style.iconBg}`}>
+        <div className={`p-2.5 rounded-xl border border-slate-200/60 dark:border-white/5 ${style.iconBg}`}>
           <Icon className="w-5 h-5" />
         </div>
       </div>
 
       <div className="mt-4 flex items-baseline gap-2">
-        <span className="text-3xl font-bold tracking-tight text-white font-mono">
+        <span className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white font-mono">
           {value}
         </span>
         {trend && (
           <span
             className={`inline-flex items-center text-xs font-semibold font-mono ${
-              trend.isPositive ? 'text-emerald-400' : 'text-rose-400'
+              trend.isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
             }`}
           >
             {trend.isPositive ? (
@@ -98,15 +99,15 @@ export const StatCard: React.FC<StatCardProps> = ({
         )}
       </div>
 
-      {subtext && <p className="mt-1 text-xs text-slate-400 font-mono">{subtext}</p>}
+      {subtext && <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 font-mono">{subtext}</p>}
 
       {typeof progress === 'number' && (
         <div className="mt-4">
-          <div className="flex justify-between text-[11px] text-slate-400 mb-1 font-mono">
+          <div className="flex justify-between text-[11px] text-slate-500 dark:text-slate-400 mb-1 font-mono">
             <span>Progress</span>
             <span>{progress}%</span>
           </div>
-          <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+          <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
             <div
               className={`h-full ${style.progress} transition-all duration-500`}
               style={{ width: Math.min(100, Math.max(0, progress)) + '%' }}

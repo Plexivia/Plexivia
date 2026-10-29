@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { Modal } from '../common/Modal';
 import { useData } from '../../context/DataContext';
 import { ClientType, ClientStatus } from '../../types';
-import { Building2, Globe, Mail, Phone, DollarSign, Database } from 'lucide-react';
+import { Building2, Globe, Mail, Phone, Database } from 'lucide-react';
 
 interface CreateClientModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+// Render modal for onboarding a new enterprise client
 export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, onClose }) => {
   const { createClient } = useData();
   const [businessName, setBusinessName] = useState('');
@@ -21,6 +22,7 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
   const [monthlyRetainer, setMonthlyRetainer] = useState<number | string>('');
   const [loading, setLoading] = useState(false);
 
+  // Auto-generate client slug and domain from business name
   const handleNameChange = (name: string) => {
     setBusinessName(name);
     if (!clientKey) {
@@ -35,6 +37,7 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
     }
   };
 
+  // Validate and submit new client onboarding payload
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!businessName.trim() || !clientKey.trim() || !contactEmail.trim()) return;
@@ -54,7 +57,6 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
       });
 
       onClose();
-      // Reset
       setBusinessName('');
       setClientKey('');
       setPrimaryDomain('');
@@ -77,9 +79,8 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Business Name */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               Business Name *
             </label>
             <div className="relative">
@@ -90,14 +91,13 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
                 value={businessName}
                 onChange={e => handleNameChange(e.target.value)}
                 placeholder="e.g. Acme Corporation"
-                className="w-full pl-9 pr-3.5 py-2.5 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-lg text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-cyan-500 shadow-2xs"
               />
             </div>
           </div>
 
-          {/* Client Slug / Key */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               Client Identifier Slug *
             </label>
             <input
@@ -106,13 +106,12 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
               value={clientKey}
               onChange={e => setClientKey(e.target.value.toLowerCase())}
               placeholder="e.g. acme"
-              className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono"
+              className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-lg text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono shadow-2xs"
             />
           </div>
 
-          {/* Primary Domain */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               Primary Ingress Domain *
             </label>
             <div className="relative">
@@ -123,36 +122,34 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
                 value={primaryDomain}
                 onChange={e => setPrimaryDomain(e.target.value)}
                 placeholder="e.g. acme.com"
-                className="w-full pl-9 pr-3.5 py-2.5 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono"
+                className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-lg text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono shadow-2xs"
               />
             </div>
           </div>
 
-          {/* Tenant Architecture Type */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               Tenant Architecture Type *
             </label>
             <select
               value={clientType}
               onChange={e => setClientType(e.target.value as ClientType)}
-              className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-500 font-mono"
+              className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-lg text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 font-mono shadow-2xs"
             >
               <option value="MULTI_TENANT_ECOMMERCE">Multi-Tenant eCommerce</option>
               <option value="SINGLE_TENANT">Dedicated Single-Tenant</option>
             </select>
           </div>
 
-          {/* Shared Database Toggle (for multi-tenant) */}
           {clientType === 'MULTI_TENANT_ECOMMERCE' && (
-            <div className="md:col-span-2 p-3.5 rounded-xl bg-purple-950/20 border border-purple-500/20 flex items-center justify-between">
+            <div className="md:col-span-2 p-3.5 rounded-lg bg-cyan-50/70 dark:bg-cyan-950/20 border border-cyan-200 dark:border-cyan-500/20 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Database className="w-5 h-5 text-purple-400 shrink-0" />
+                <Database className="w-5 h-5 text-cyan-600 dark:text-cyan-400 shrink-0" />
                 <div>
-                  <span className="text-xs font-bold text-white block">
+                  <span className="text-xs font-bold text-slate-900 dark:text-white block">
                     Shared PostgreSQL Fleet Database
                   </span>
-                  <span className="text-[11px] text-slate-400">
+                  <span className="text-[11px] text-slate-600 dark:text-slate-400">
                     Route queries via dynamic Postgres search_path and tenant schema partition
                   </span>
                 </div>
@@ -161,7 +158,7 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
                 type="button"
                 onClick={() => setDatabaseShared(!databaseShared)}
                 className={`w-11 h-6 rounded-full transition-colors relative flex items-center px-1 cursor-pointer ${
-                  databaseShared ? 'bg-purple-600' : 'bg-slate-800'
+                  databaseShared ? 'bg-cyan-600' : 'bg-slate-300 dark:bg-slate-700'
                 }`}
               >
                 <div
@@ -173,9 +170,8 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
             </div>
           )}
 
-          {/* Contact Email */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               Primary Contact Email *
             </label>
             <div className="relative">
@@ -186,13 +182,13 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
                 value={contactEmail}
                 onChange={e => setContactEmail(e.target.value)}
                 placeholder="billing@client.com"
-                className="w-full pl-9 pr-3.5 py-2.5 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-lg text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-cyan-500 shadow-2xs"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               Contact Phone (Optional)
             </label>
             <div className="relative">
@@ -202,13 +198,13 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
                 value={contactPhone}
                 onChange={e => setContactPhone(e.target.value)}
                 placeholder="+880 1700-000000"
-                className="w-full pl-9 pr-3.5 py-2.5 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono"
+                className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-lg text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono shadow-2xs"
               />
             </div>
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               Monthly Retainer (৳ BDT)
             </label>
             <div className="relative">
@@ -219,25 +215,24 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
                 step={100}
                 value={monthlyRetainer}
                 onChange={e => setMonthlyRetainer(Number(e.target.value))}
-                className="w-full pl-9 pr-3.5 py-2.5 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-500 font-mono"
+                className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-lg text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 font-mono shadow-2xs"
               />
             </div>
           </div>
         </div>
 
-        {/* Buttons */}
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors cursor-pointer"
+            className="px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors cursor-pointer"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={loading}
-            className="flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-purple-600 hover:bg-purple-500 rounded-xl shadow-lg shadow-purple-950/50 transition-all disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-cyan-600 hover:bg-cyan-500 rounded-lg shadow-md shadow-cyan-500/20 transition-all disabled:opacity-50 cursor-pointer"
           >
             <Building2 className="w-4 h-4" />
             {loading ? 'Registering Client...' : 'Enroll & Initialize Client'}

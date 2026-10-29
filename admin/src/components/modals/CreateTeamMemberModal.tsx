@@ -2,13 +2,18 @@ import React, { useState } from 'react';
 import { Modal } from '../common/Modal';
 import { useData } from '../../context/DataContext';
 import { UserRole, UserStatus } from '../../types';
-import { UserPlus, Mail, UserCheck, DollarSign, Briefcase } from 'lucide-react';
+import { UserPlus, Mail, UserCheck, Briefcase, KeyRound, BellRing } from 'lucide-react';
+import * as SwitchUi from '@/components/ui/switch';
+
+// The JSX switch carries no prop types, so treat it as a loosely typed component
+const Switch = SwitchUi.Switch as React.FC<any>;
 
 interface CreateTeamMemberModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+// Render modal for adding and authorizing a new agency team member
 export const CreateTeamMemberModal: React.FC<CreateTeamMemberModalProps> = ({
   isOpen,
   onClose,
@@ -19,9 +24,12 @@ export const CreateTeamMemberModal: React.FC<CreateTeamMemberModalProps> = ({
   const [role, setRole] = useState<UserRole>('DEV');
   const [department, setDepartment] = useState('');
   const [hourlyRate, setHourlyRate] = useState<number | string>('');
-  const [avatar, setAvatar] = useState('');
+  const [avatar] = useState('');
+  const [password, setPassword] = useState('');
+  const [receiveMail, setReceiveMail] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // Update role and default department mapping
   const handleRoleChange = (selectedRole: UserRole) => {
     setRole(selectedRole);
     switch (selectedRole) {
@@ -43,6 +51,7 @@ export const CreateTeamMemberModal: React.FC<CreateTeamMemberModalProps> = ({
     }
   };
 
+  // Validate and submit new team member creation request
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim() || !email.trim()) return;
@@ -59,12 +68,15 @@ export const CreateTeamMemberModal: React.FC<CreateTeamMemberModalProps> = ({
           ('https://api.dicebear.com/7.x/bottts/svg?seed=' + encodeURIComponent(fullName)),
         status: 'ACTIVE' as UserStatus,
         hourly_rate: Number(hourlyRate) || 100,
-      });
+        receive_email_notifications: receiveMail,
+        ...(password.trim() ? { password: password.trim() } : {}),
+      } as any);
 
       onClose();
-      // Reset
       setFullName('');
       setEmail('');
+      setPassword('');
+      setReceiveMail(false);
     } catch (err) {
       console.error(err);
     } finally {
@@ -82,9 +94,8 @@ export const CreateTeamMemberModal: React.FC<CreateTeamMemberModalProps> = ({
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-3">
-          {/* Full Name */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               Full Name *
             </label>
             <div className="relative">
@@ -101,14 +112,13 @@ export const CreateTeamMemberModal: React.FC<CreateTeamMemberModalProps> = ({
                   }
                 }}
                 placeholder="e.g. David Zhao"
-                className="w-full pl-9 pr-3.5 py-2.5 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-lg text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-cyan-500 shadow-2xs"
               />
             </div>
           </div>
 
-          {/* Email */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               Agency Login Email *
             </label>
             <div className="relative">
@@ -119,23 +129,23 @@ export const CreateTeamMemberModal: React.FC<CreateTeamMemberModalProps> = ({
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="david.z@plexivia.com"
-                className="w-full pl-9 pr-3.5 py-2.5 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono"
+                className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-lg text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono shadow-2xs"
               />
             </div>
           </div>
 
-          {/* Role & Department */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                 Primary Role *
               </label>
               <select
                 value={role}
                 onChange={e => handleRoleChange(e.target.value as UserRole)}
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-500 font-mono"
+                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-lg text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 font-mono shadow-2xs"
               >
                 <option value="SUPER_ADMIN">Super Admin</option>
+                <option value="ADMIN">Admin</option>
                 <option value="PM">Project Manager</option>
                 <option value="DEV">Fullstack Developer</option>
                 <option value="DESIGNER">UI/UX Designer</option>
@@ -144,7 +154,7 @@ export const CreateTeamMemberModal: React.FC<CreateTeamMemberModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                 Department
               </label>
               <div className="relative">
@@ -153,14 +163,14 @@ export const CreateTeamMemberModal: React.FC<CreateTeamMemberModalProps> = ({
                   type="text"
                   value={department}
                   onChange={e => setDepartment(e.target.value)}
-                  className="w-full pl-9 pr-3.5 py-2.5 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-500"
+                  className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-lg text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 shadow-2xs"
                 />
               </div>
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               Internal Hourly Rate (৳ BDT)
             </label>
             <div className="relative">
@@ -170,25 +180,54 @@ export const CreateTeamMemberModal: React.FC<CreateTeamMemberModalProps> = ({
                 min={0}
                 value={hourlyRate}
                 onChange={e => setHourlyRate(Number(e.target.value))}
-                className="w-full pl-9 pr-3.5 py-2.5 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-500 font-mono"
+                className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-lg text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 font-mono shadow-2xs"
               />
             </div>
           </div>
         </div>
 
-        {/* Buttons */}
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+        <div className="space-y-3">
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+              Password <span className="normal-case font-normal text-slate-400">(optional — auto-generated if empty)</span>
+            </label>
+            <div className="relative">
+              <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="password"
+                minLength={8}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="Minimum 8 characters"
+                className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-lg text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono shadow-2xs"
+              />
+            </div>
+          </div>
+
+          <label className="flex items-center justify-between gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-950 cursor-pointer">
+            <span className="flex items-center gap-2.5">
+              <BellRing className="w-4 h-4 text-sky-500" />
+              <span>
+                <span className="block text-xs font-semibold text-slate-700 dark:text-slate-300">Get Mail</span>
+                <span className="block text-[11px] text-slate-500 dark:text-slate-400">Receive system and alert notification emails</span>
+              </span>
+            </span>
+            <Switch checked={receiveMail} onCheckedChange={setReceiveMail} />
+          </label>
+        </div>
+
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors cursor-pointer"
+            className="px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors cursor-pointer"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={loading}
-            className="flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-cyan-600 hover:bg-cyan-500 rounded-xl shadow-lg shadow-cyan-950/50 transition-all disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-cyan-600 hover:bg-cyan-500 rounded-lg shadow-md shadow-cyan-500/20 transition-all disabled:opacity-50 cursor-pointer"
           >
             <UserPlus className="w-4 h-4" />
             {loading ? 'Adding Member...' : 'Authorize Team Member'}

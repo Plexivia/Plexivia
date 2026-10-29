@@ -2,32 +2,32 @@ import { create } from 'zustand';
 
 export type Theme = 'light' | 'dark';
 
-// Corner roundness presets; the value feeds --radius, which every rounded-* class derives from
 export const RADIUS_OPTIONS = [
   { id: 'sharp', label: 'Sharp', value: '0.25rem' },
-  { id: 'medium', label: 'Medium', value: '0.5rem' },
-  { id: 'rounded', label: 'Rounded', value: '0.75rem' },
-  { id: 'soft', label: 'Soft', value: '1rem' },
+  { id: 'medium', label: 'Medium', value: '0.375rem' },
+  { id: 'rounded', label: 'Rounded', value: '0.5rem' },
+  { id: 'soft', label: 'Soft', value: '0.625rem' },
 ] as const;
 
 export type RadiusId = (typeof RADIUS_OPTIONS)[number]['id'];
 
 const DEFAULT_RADIUS: RadiusId = 'rounded';
 
-// Apply a saved radius to the document and return it
+// Apply a saved radius to the document root and return the active preset ID
 const getInitialRadius = (): RadiusId => {
   if (typeof window === 'undefined') return DEFAULT_RADIUS;
   let saved: string | null = null;
   try {
     saved = localStorage.getItem('plexivia_radius');
   } catch {
-    // Storage blocked: keep the default
+    saved = null;
   }
   const option = RADIUS_OPTIONS.find((o) => o.id === saved) || RADIUS_OPTIONS.find((o) => o.id === DEFAULT_RADIUS)!;
   document.documentElement.style.setProperty('--radius', option.value);
   return option.id;
 };
 
+// Resolve initial light or dark theme from localStorage and apply class to document
 const getInitialTheme = (): Theme => {
   if (typeof window !== 'undefined') {
     const saved = localStorage.getItem('plexivia_theme') as Theme | null;
@@ -39,7 +39,6 @@ const getInitialTheme = (): Theme => {
       }
       return saved;
     }
-    // No saved choice: default to light regardless of the OS colour scheme
     document.documentElement.classList.remove('dark');
   }
   return 'light';
@@ -59,6 +58,7 @@ export const useThemeStore = create<ThemeStore>((set, get) => ({
   isDark: getInitialTheme() === 'dark',
   radius: getInitialRadius(),
 
+  // Persist and apply a new corner radius preset
   setRadius: (radius: RadiusId) => {
     const option = RADIUS_OPTIONS.find((o) => o.id === radius);
     if (!option) return;
@@ -66,11 +66,12 @@ export const useThemeStore = create<ThemeStore>((set, get) => ({
     try {
       localStorage.setItem('plexivia_radius', radius);
     } catch {
-      // Not persisted, still applied for this session
+      void 0;
     }
     set({ radius });
   },
 
+  // Persist and apply light or dark theme
   setTheme: (theme: Theme) => {
     if (typeof window !== 'undefined') {
       if (theme === 'dark') {
@@ -83,6 +84,7 @@ export const useThemeStore = create<ThemeStore>((set, get) => ({
     set({ theme, isDark: theme === 'dark' });
   },
 
+  // Toggle between light and dark theme
   toggleTheme: () => {
     const nextTheme: Theme = get().theme === 'dark' ? 'light' : 'dark';
     get().setTheme(nextTheme);

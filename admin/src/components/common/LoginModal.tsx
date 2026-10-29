@@ -60,15 +60,15 @@ export const LoginModal: React.FC = () => {
       maxWidth="md"
     >
       <div className="space-y-4">
-        <div className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center gap-3">
-          <Shield className="w-5 h-5 text-cyan-400 shrink-0" />
-          <p className="text-xs text-cyan-300">
+        <div className="p-3 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center gap-3">
+          <Shield className="w-5 h-5 text-cyan-600 dark:text-cyan-400 shrink-0" />
+          <p className="text-xs text-cyan-800 dark:text-cyan-300">
             Internal microservice gateway for agency developers, designers, PMs, and SRE team.
           </p>
         </div>
 
         {errorMsg && (
-          <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-400">
+          <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-xs text-rose-600 dark:text-rose-400">
             {errorMsg}
           </div>
         )}
@@ -76,7 +76,7 @@ export const LoginModal: React.FC = () => {
         {step === 'email' ? (
           <form onSubmit={handleEmailNext} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                 Agency Email
               </label>
               <div className="relative">
@@ -88,7 +88,7 @@ export const LoginModal: React.FC = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
                   autoFocus
-                  className="w-full pl-9 pr-3.5 py-2.5 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono"
+                  className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-lg text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono shadow-2xs"
                 />
               </div>
             </div>
@@ -96,7 +96,7 @@ export const LoginModal: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 py-3 bg-cyan-500 hover:bg-cyan-400 text-white text-xs font-bold font-mono rounded-xl shadow-lg shadow-cyan-950/50 flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
+              className="w-full mt-2 py-3 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold font-mono rounded-lg shadow-md shadow-cyan-500/20 flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
             >
               <span>{loading ? 'Checking Account...' : 'Continue'}</span>
               <ArrowRight className="w-4 h-4" />
@@ -104,12 +104,12 @@ export const LoginModal: React.FC = () => {
           </form>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="flex items-center justify-between p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-300 font-mono">
+            <div className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-xs text-slate-700 dark:text-slate-300 font-mono">
               <span className="truncate">{email}</span>
               <button
                 type="button"
                 onClick={() => setStep('email')}
-                className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 cursor-pointer font-sans"
+                className="text-cyan-600 dark:text-cyan-400 hover:text-cyan-500 dark:hover:text-cyan-300 flex items-center gap-1 cursor-pointer font-sans"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
                 <span>Change</span>
@@ -117,7 +117,7 @@ export const LoginModal: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                 Password
               </label>
               <div className="relative">
@@ -129,7 +129,7 @@ export const LoginModal: React.FC = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   autoFocus
-                  className="w-full pl-9 pr-3.5 py-2.5 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono"
+                  className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-lg text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono shadow-2xs"
                 />
               </div>
             </div>
@@ -137,7 +137,7 @@ export const LoginModal: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 py-3 bg-cyan-500 hover:bg-cyan-400 text-white text-xs font-bold font-mono rounded-xl shadow-lg shadow-cyan-950/50 flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
+              className="w-full mt-2 py-3 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold font-mono rounded-lg shadow-md shadow-cyan-500/20 flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
             >
               <ShieldCheck className="w-4 h-4" />
               <span>{loading ? 'Authenticating...' : 'Sign In to Plexivia'}</span>
