@@ -96,7 +96,7 @@ export const LoginModal: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 py-3 bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white text-xs font-bold font-mono rounded-xl shadow-lg shadow-cyan-950/50 flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
+              className="w-full mt-2 py-3 bg-cyan-500 hover:bg-cyan-400 text-white text-xs font-bold font-mono rounded-xl shadow-lg shadow-cyan-950/50 flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
             >
               <span>{loading ? 'Checking Account...' : 'Continue'}</span>
               <ArrowRight className="w-4 h-4" />
@@ -137,7 +137,7 @@ export const LoginModal: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 py-3 bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white text-xs font-bold font-mono rounded-xl shadow-lg shadow-cyan-950/50 flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
+              className="w-full mt-2 py-3 bg-cyan-500 hover:bg-cyan-400 text-white text-xs font-bold font-mono rounded-xl shadow-lg shadow-cyan-950/50 flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
             >
               <ShieldCheck className="w-4 h-4" />
               <span>{loading ? 'Authenticating...' : 'Sign In to Plexivia'}</span>

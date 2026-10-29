@@ -197,7 +197,7 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
 
       {/* Section 1: Passenger / Client Details */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2 bg-gradient-to-r from-[#0B3A60] via-sky-800 to-sky-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
+        <div className="flex items-center gap-2 bg-[#0B3A60] text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
           <User className="w-4 h-4 text-sky-200" />
           <span>1. Client &amp; Passenger Information</span>
         </div>
@@ -274,7 +274,7 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
 
       {/* Section 2: Service Purpose & Authorizer */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2 bg-gradient-to-r from-[#0B3A60] via-sky-800 to-sky-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
+        <div className="flex items-center gap-2 bg-[#0B3A60] text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
           <Layers className="w-4 h-4 text-sky-200" />
           <span>2. Purpose, Service Head &amp; Officer</span>
         </div>
@@ -321,7 +321,7 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
 
       {/* Section 3: Payment & Amount */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2 bg-gradient-to-r from-[#0B3A60] via-sky-800 to-sky-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
+        <div className="flex items-center gap-2 bg-[#0B3A60] text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
           <DollarSign className="w-4 h-4 text-sky-200" />
           <span>3. Payment Method &amp; Amount Breakdown</span>
         </div>
@@ -384,7 +384,7 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
 
       {/* Section 4: Signatures & Authorizations */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2 bg-gradient-to-r from-[#0B3A60] via-sky-800 to-sky-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
+        <div className="flex items-center gap-2 bg-[#0B3A60] text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
           <FileText className="w-4 h-4 text-sky-200" />
           <span>4. Signatures &amp; Approvals</span>
         </div>

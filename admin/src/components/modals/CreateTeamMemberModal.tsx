@@ -188,7 +188,7 @@ export const CreateTeamMemberModal: React.FC<CreateTeamMemberModalProps> = ({
           <button
             type="submit"
             disabled={loading}
-            className="flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 rounded-xl shadow-lg shadow-cyan-950/50 transition-all disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-cyan-600 hover:bg-cyan-500 rounded-xl shadow-lg shadow-cyan-950/50 transition-all disabled:opacity-50 cursor-pointer"
           >
             <UserPlus className="w-4 h-4" />
             {loading ? 'Adding Member...' : 'Authorize Team Member'}

@@ -374,7 +374,7 @@ export const UnifiedSidebar = ({
                                             className={cn(
                                               'group h-7 cursor-pointer text-[12.5px] rounded-md py-1 px-2 flex items-center gap-2 transition-all duration-200',
                                               isSubActive
-                                                ? '!bg-gradient-to-r !from-cyan-500 !to-cyan-600 !text-slate-950 font-bold shadow-xs'
+                                                ? '!bg-cyan-500 !text-slate-950 font-bold shadow-xs'
                                                 : 'text-sidebar-foreground/85 hover:text-white hover:bg-sidebar-accent font-medium'
                                             )}
                                           >
@@ -420,7 +420,7 @@ export const UnifiedSidebar = ({
                               className={cn(
                                 'group h-8 cursor-pointer text-[13px] font-medium py-1.5 px-2.5 rounded-lg transition-all duration-200 flex items-center justify-between',
                                 isActive
-                                  ? '!bg-gradient-to-r !from-cyan-500 !to-cyan-600 !text-slate-950 font-bold shadow-xs'
+                                  ? '!bg-cyan-500 !text-slate-950 font-bold shadow-xs'
                                   : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-white'
                               )}
                             >

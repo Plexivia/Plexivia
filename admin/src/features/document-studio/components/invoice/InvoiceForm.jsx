@@ -174,9 +174,9 @@ export function InvoiceForm({ data, onChange, onSubmit, onReset, isSubmitting = 
             <div className="grid grid-cols-3 gap-1 bg-background p-1 rounded-xl border border-border">
               {['Paid', 'Pending', 'Overdue'].map((st) => {
                 const isSelected = data.paymentStatus === st;
-                let activeStyle = 'bg-emerald-600 text-white font-bold shadow-xs';
+                let activeStyle = 'bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow-xs';
                 if (st === 'Pending') activeStyle = 'bg-amber-500 text-white font-bold shadow-xs';
-                if (st === 'Overdue') activeStyle = 'bg-rose-600 text-white font-bold shadow-xs';
+                if (st === 'Overdue') activeStyle = 'bg-rose-600 hover:bg-rose-500 text-white font-bold shadow-xs';
 
                 return (
                   <button
@@ -200,7 +200,7 @@ export function InvoiceForm({ data, onChange, onSubmit, onReset, isSubmitting = 
 
       {/* Section 1: Client & Organization Details */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2 bg-gradient-to-r from-sky-600 via-sky-700 to-[#0B3A60] text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
+        <div className="flex items-center gap-2 bg-sky-600 hover:bg-sky-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
           <User className="w-4 h-4 text-sky-200" />
           <span>1. Billed To (Client &amp; Organization Details)</span>
         </div>
@@ -302,7 +302,7 @@ export function InvoiceForm({ data, onChange, onSubmit, onReset, isSubmitting = 
 
       {/* Section 2: Invoice Line Items */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between bg-gradient-to-r from-sky-600 via-sky-700 to-[#0B3A60] text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
+        <div className="flex items-center justify-between bg-sky-600 hover:bg-sky-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
           <div className="flex items-center gap-2">
             <Layers className="w-4 h-4 text-sky-200" />
             <span>2. Invoice Line Items &amp; Charges</span>
@@ -398,7 +398,7 @@ export function InvoiceForm({ data, onChange, onSubmit, onReset, isSubmitting = 
 
       {/* Section 3: Tax, Terms & Financial Totals */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2 bg-gradient-to-r from-sky-600 via-sky-700 to-[#0B3A60] text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
+        <div className="flex items-center gap-2 bg-sky-600 hover:bg-sky-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
           <DollarSign className="w-4 h-4 text-sky-200" />
           <span>3. VAT, Payment Terms &amp; Grand Total</span>
         </div>

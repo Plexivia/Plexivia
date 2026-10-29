@@ -164,7 +164,7 @@ export function ExperienceCertificateForm({ data = {}, onChange }) {
 
       {/* Issuing Company / Organization Section */}
       <div className="bg-card border border-border rounded-xl p-4 space-y-4">
-        <div className="flex items-center justify-between bg-gradient-to-r from-sky-600 via-sky-700 to-[#0B3A60] text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
+        <div className="flex items-center justify-between bg-sky-600 hover:bg-sky-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
           <div className="flex items-center gap-1.5">
             <Building2 className="w-4 h-4 text-sky-200" />
             <span>1. Issuing Company Information</span>
@@ -245,7 +245,7 @@ export function ExperienceCertificateForm({ data = {}, onChange }) {
 
       {/* Certificate Reference & Title */}
       <div className="bg-card border border-border rounded-xl p-4 space-y-4">
-        <div className="flex items-center gap-1.5 bg-gradient-to-r from-sky-600 via-sky-700 to-[#0B3A60] text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
+        <div className="flex items-center gap-1.5 bg-sky-600 hover:bg-sky-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
           <FileText className="w-4 h-4 text-sky-200" />
           <span>2. Certificate Title & Reference</span>
         </div>
@@ -287,7 +287,7 @@ export function ExperienceCertificateForm({ data = {}, onChange }) {
 
       {/* Employee / Client Details */}
       <div className="bg-card border border-border rounded-xl p-4 space-y-4">
-        <div className="flex items-center gap-1.5 bg-gradient-to-r from-sky-600 via-sky-700 to-[#0B3A60] text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
+        <div className="flex items-center gap-1.5 bg-sky-600 hover:bg-sky-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
           <User className="w-4 h-4 text-sky-200" />
           <span>3. Employee Details</span>
         </div>
@@ -403,7 +403,7 @@ export function ExperienceCertificateForm({ data = {}, onChange }) {
 
       {/* Body Statement & Responsibilities */}
       <div className="bg-card border border-border rounded-xl p-4 space-y-4">
-        <div className="flex items-center gap-1.5 bg-gradient-to-r from-sky-600 via-sky-700 to-[#0B3A60] text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
+        <div className="flex items-center gap-1.5 bg-sky-600 hover:bg-sky-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
           <Briefcase className="w-4 h-4 text-sky-200" />
           <span>4. Certificate Statement & Responsibilities</span>
         </div>
@@ -443,7 +443,7 @@ export function ExperienceCertificateForm({ data = {}, onChange }) {
 
       {/* Signatory & Authority Section */}
       <div className="bg-card border border-border rounded-xl p-4 space-y-4">
-        <div className="flex items-center gap-1.5 bg-gradient-to-r from-sky-600 via-sky-700 to-[#0B3A60] text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
+        <div className="flex items-center gap-1.5 bg-sky-600 hover:bg-sky-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
           <ShieldCheck className="w-4 h-4 text-sky-200" />
           <span>5. Authorized Signatory & Official Seal</span>
         </div>

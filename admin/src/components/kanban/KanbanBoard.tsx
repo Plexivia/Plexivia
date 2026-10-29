@@ -257,7 +257,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               title="Board View"
               className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono font-semibold transition-all cursor-pointer ${
                 viewMode === 'board'
-                  ? 'bg-gradient-to-r from-cyan-600 to-indigo-600 text-white shadow-xs'
+                  ? 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-xs'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
@@ -269,7 +269,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               title="List View"
               className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono font-semibold transition-all cursor-pointer ${
                 viewMode === 'list'
-                  ? 'bg-gradient-to-r from-cyan-600 to-indigo-600 text-white shadow-xs'
+                  ? 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-xs'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >

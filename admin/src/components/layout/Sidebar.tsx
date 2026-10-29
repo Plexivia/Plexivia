@@ -144,7 +144,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Brand Header */}
         <div className="h-18 flex items-center justify-between px-6 border-b border-slate-800/80 bg-slate-950/60">
           <div className="flex items-center gap-3">
-            <div className="relative w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-600 to-emerald-500 p-0.5 shadow-lg shadow-cyan-950/50">
+            <div className="relative w-9 h-9 rounded-xl bg-cyan-600 p-0.5 shadow-lg shadow-cyan-950/50">
               <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center overflow-hidden">
                 <Layers className="w-5 h-5 text-cyan-400" />
               </div>

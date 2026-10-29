@@ -221,7 +221,7 @@ export function AgreementForm({ formData, setFormData, onSubmit, onReset, isSubm
           <div className="space-y-4 animate-in fade-in-50 duration-150">
             {/* Header Office Details */}
             <div className="bg-card border border-border p-4 rounded-xl shadow-sm space-y-3">
-              <div className="flex items-center gap-2 bg-gradient-to-r from-sky-600 via-sky-700 to-[#0B3A60] text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
+              <div className="flex items-center gap-2 bg-sky-600 hover:bg-sky-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
                 <Building2 className="w-4 h-4 text-sky-200" />
                 <span>{t('agreement.companyHeader')}</span>
               </div>
@@ -265,7 +265,7 @@ export function AgreementForm({ formData, setFormData, onSubmit, onReset, isSubm
 
             {/* Parties Details */}
             <div className="bg-card border border-border p-4 rounded-xl shadow-sm space-y-3">
-              <div className="flex items-center gap-2 bg-gradient-to-r from-sky-600 via-sky-700 to-[#0B3A60] text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
+              <div className="flex items-center gap-2 bg-sky-600 hover:bg-sky-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
                 <User className="w-4 h-4 text-sky-200" />
                 <span>{t('agreement.partiesDetails')}</span>
               </div>
@@ -372,7 +372,7 @@ export function AgreementForm({ formData, setFormData, onSubmit, onReset, isSubm
 
             {/* Guardian Details */}
             <div className="bg-card border border-border p-4 rounded-xl shadow-sm space-y-3">
-              <div className="flex items-center gap-2 bg-gradient-to-r from-sky-600 via-sky-700 to-[#0B3A60] text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
+              <div className="flex items-center gap-2 bg-sky-600 hover:bg-sky-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
                 <Users className="w-4 h-4 text-sky-200" />
                 <span>{t('agreement.guardianDetails')}</span>
               </div>
@@ -441,7 +441,7 @@ export function AgreementForm({ formData, setFormData, onSubmit, onReset, isSubm
         {currentStep === 2 && (
           <div className="space-y-4 animate-in fade-in-50 duration-150">
             <div className="bg-card border border-border p-4 rounded-xl shadow-sm space-y-3">
-              <div className="flex items-center gap-2 bg-gradient-to-r from-sky-600 via-sky-700 to-[#0B3A60] text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
+              <div className="flex items-center gap-2 bg-sky-600 hover:bg-sky-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
                 <Briefcase className="w-4 h-4 text-sky-200" />
                 <span>{t('agreement.positionDetails')}</span>
               </div>
@@ -502,7 +502,7 @@ export function AgreementForm({ formData, setFormData, onSubmit, onReset, isSubm
           <div className="space-y-4 animate-in fade-in-50 duration-150">
             {/* Salary structure */}
             <div className="bg-card border border-border p-4 rounded-xl shadow-sm space-y-3">
-              <div className="flex items-center gap-2 bg-gradient-to-r from-sky-600 via-sky-700 to-[#0B3A60] text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
+              <div className="flex items-center gap-2 bg-sky-600 hover:bg-sky-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
                 <DollarSign className="w-4 h-4 text-sky-200" />
                 <span>{t('agreement.salaryDetails')}</span>
               </div>
@@ -581,7 +581,7 @@ export function AgreementForm({ formData, setFormData, onSubmit, onReset, isSubm
 
             {/* Leave Policy */}
             <div className="bg-card border border-border p-4 rounded-xl shadow-sm space-y-3">
-              <div className="flex items-center gap-2 bg-gradient-to-r from-sky-600 via-sky-700 to-[#0B3A60] text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
+              <div className="flex items-center gap-2 bg-sky-600 hover:bg-sky-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
                 <Calendar className="w-4 h-4 text-sky-200" />
                 <span>{t('agreement.salaryLeave')}</span>
               </div>
@@ -628,7 +628,7 @@ export function AgreementForm({ formData, setFormData, onSubmit, onReset, isSubm
 
             {/* Witnesses */}
             <div className="bg-card border border-border p-4 rounded-xl shadow-sm space-y-3">
-              <div className="flex items-center gap-2 bg-gradient-to-r from-sky-600 via-sky-700 to-[#0B3A60] text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
+              <div className="flex items-center gap-2 bg-sky-600 hover:bg-sky-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
                 <Users className="w-4 h-4 text-sky-200" />
                 <span>{t('agreement.witness1')} & {t('agreement.witness2')}</span>
               </div>

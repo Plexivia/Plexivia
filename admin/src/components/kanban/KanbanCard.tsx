@@ -140,7 +140,7 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({
           <div className="h-1 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-300 ${
-                completedChecklist === totalChecklist ? 'bg-emerald-500 dark:bg-emerald-400' : 'bg-gradient-to-r from-cyan-500 to-indigo-500'
+                completedChecklist === totalChecklist ? 'bg-emerald-500 dark:bg-emerald-400' : 'bg-cyan-500'
               }`}
               style={{ width: `${checklistPercent}%` }}
             />

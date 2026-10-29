@@ -184,7 +184,7 @@ export function CashVoucherForm({ data, onChange, onReset, onSave, onPreview, is
 
       {/* Expense Items */}
       <div className="bg-card border border-border rounded-2xl p-5 shadow-xs space-y-4">
-        <div className="flex items-center gap-2 bg-gradient-to-r from-sky-600 via-sky-700 to-[#0B3A60] text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
+        <div className="flex items-center gap-2 bg-sky-600 hover:bg-sky-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
           <span>{t('cashVoucherForm.expenseItems', '1. Expense Line Items & Breakdown')}</span>
         </div>
 
@@ -289,7 +289,7 @@ export function CashVoucherForm({ data, onChange, onReset, onSave, onPreview, is
 
       {/* Signatures */}
       <div className="bg-card border border-border rounded-2xl p-5 shadow-xs space-y-4">
-        <div className="flex items-center gap-2 bg-gradient-to-r from-sky-600 via-sky-700 to-[#0B3A60] text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
+        <div className="flex items-center gap-2 bg-sky-600 hover:bg-sky-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
           <span>{t('cashVoucherForm.signatures', '2. Signatures & Authorizations')}</span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

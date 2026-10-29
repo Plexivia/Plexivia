@@ -237,7 +237,7 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
           <button
             type="submit"
             disabled={loading}
-            className="flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 rounded-xl shadow-lg shadow-purple-950/50 transition-all disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-purple-600 hover:bg-purple-500 rounded-xl shadow-lg shadow-purple-950/50 transition-all disabled:opacity-50 cursor-pointer"
           >
             <Building2 className="w-4 h-4" />
             {loading ? 'Registering Client...' : 'Enroll & Initialize Client'}
