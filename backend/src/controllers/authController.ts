@@ -50,6 +50,13 @@ const issueSessionTokens = (admin: IAdmin) => {
   return { accessToken, refreshToken };
 };
 
+// Stamp the admin's last successful sign-in time without blocking the response
+const recordLogin = (admin: IAdmin) => {
+  getAdminModel()
+    .updateOne({ _id: admin._id }, { $set: { last_login_at: new Date().toISOString() } })
+    .catch(() => undefined);
+};
+
 // Check email + password and return the admin, or null on any mismatch
 const authenticateWithPassword = async (email: unknown, password: unknown): Promise<IAdmin | null> => {
   const emailClean = String(email).trim().toLowerCase();
@@ -76,6 +83,7 @@ const pendingTwoFactorResponse = (admin: IAdmin, message: string) => {
 const passwordStepResponse = (admin: IAdmin, message: string) => {
   if (admin.two_factor_enabled === false) {
     const { accessToken, refreshToken } = issueSessionTokens(admin);
+    recordLogin(admin);
     return {
       success: true,
       requires2fa: false,
@@ -239,6 +247,7 @@ export const verify2fa = async (req: Request, res: Response) => {
     }
 
     const { accessToken, refreshToken } = issueSessionTokens(admin);
+    recordLogin(admin);
 
     return res.json({
       success: true,

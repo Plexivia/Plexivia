@@ -37,7 +37,9 @@ router.patch('/admins/:id/permissions', requireAuth, requireRole('OWNER', 'SUPER
 // Legacy admin user list compatibility
 router.get('/users', requireAuth, requireRole('OWNER', 'ADMIN', 'SUPER_ADMIN'), userController.getUsers);
 router.post('/users', requireAuth, requireRole('OWNER', 'ADMIN', 'SUPER_ADMIN'), userController.createUser);
+router.post('/users/bulk-delete', requireAuth, requireRole('OWNER', 'ADMIN', 'SUPER_ADMIN'), userController.bulkDeleteUsers);
 router.post('/users/:id/invite', requireAuth, requireRole('OWNER', 'ADMIN', 'SUPER_ADMIN'), userController.sendUserInvite);
+router.post('/users/:id/reset-password', requireAuth, requireRole('OWNER', 'ADMIN', 'SUPER_ADMIN'), userController.resetUserPassword);
 router.get('/users/:id', requireAuth, requireRole('OWNER', 'ADMIN', 'SUPER_ADMIN'), userController.getUserById);
 router.put('/users/:id', requireAuth, requireRole('OWNER', 'ADMIN', 'SUPER_ADMIN'), userController.updateUser);
 router.patch('/users/:id', requireAuth, requireRole('OWNER', 'ADMIN', 'SUPER_ADMIN'), userController.updateUser);

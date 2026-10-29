@@ -170,6 +170,25 @@ export const renderTeamInviteEmailHtml = (params: TeamInviteEmailParams): string
   );
 };
 
+// Generate HTML notice telling a team member that an administrator reset their password
+export const renderPasswordResetByAdminEmailHtml = (params: { fullName: string; email: string; loginUrl?: string }): string => {
+  const portalUrl = params.loginUrl || 'https://admin.plexivia.com';
+  return renderEmailLayout(
+    'Your Plexivia Dashboard Password Was Reset',
+    'Security Notice',
+    `              <h1 style="font-size: 20px; font-weight: 700; color: #111827; margin: 0 0 12px 0;">Hi ${params.fullName},</h1>
+              <p style="font-size: 15px; line-height: 24px; color: #374151; margin: 0 0 20px 0;">
+                An administrator has reset the password for your Plexivia account <strong>${params.email}</strong>. Ask your administrator for the new password, then sign in and change it from your profile.
+              </p>
+              <div style="text-align: center; margin: 0 0 22px 0;">
+                <a href="${portalUrl}" style="display: inline-block; background-color: #0284c7; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 12px 28px; border-radius: 8px;">Sign In to Plexivia Portal</a>
+              </div>
+              <p style="font-size: 12px; line-height: 18px; color: #6b7280; margin: 0;">
+                If you did not expect this change, contact your administrator immediately.
+              </p>`
+  );
+};
+
 // Dispatch transactional email with automatic secondary fallback handler
 export const sendMail = async (options: SendMailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> => {
   const fromAddress = process.env.SMTP_FROM || '"Plexivia Security" <info@plexivia.online>';

@@ -14,6 +14,8 @@ export interface IAdmin extends Document {
   hourly_rate?: number;
   avatar?: string;
   is_active: boolean;
+  receive_email_notifications: boolean;
+  last_login_at?: string;
   two_factor_enabled: boolean;
   two_factor_secret?: string;
   two_factor_pending_secret?: string;
@@ -39,6 +41,8 @@ const AdminSchema = new Schema<IAdmin>(
     hourly_rate: { type: Number, default: 0 },
     avatar: { type: String, default: '' },
     is_active: { type: Boolean, default: true },
+    receive_email_notifications: { type: Boolean, default: false },
+    last_login_at: { type: String, default: '' },
     two_factor_enabled: { type: Boolean, default: true },
     two_factor_secret: { type: String, default: '' },
     two_factor_pending_secret: { type: String },
