@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { KeyRound, LogOut, Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useThemeStore, RADIUS_OPTIONS } from '@/store/useThemeStore';
 
 // Shared card and field styles taken from the TailAdmin profile layout
 const cardClass = 'rounded-2xl border border-border p-5 lg:p-6';
@@ -26,6 +27,48 @@ const SettingRow = ({ title, description, action }: { title: string; description
     <div>{action}</div>
   </div>
 );
+
+// Theme and corner-roundness controls; both are saved in this browser
+const AppearanceCard = () => {
+  const { theme, setTheme, radius, setRadius } = useThemeStore();
+  const choice = (active: boolean) =>
+    cn(
+      'flex h-10 items-center justify-center gap-2 border px-4 text-sm font-medium transition-colors cursor-pointer rounded-lg',
+      active ? 'border-sky-500 bg-sky-500 text-white' : 'border-input bg-card text-foreground hover:bg-muted'
+    );
+  return (
+    <div className={cardClass}>
+      <h4 className="mb-4 text-lg font-semibold text-foreground lg:mb-6">Appearance</h4>
+      <SettingRow
+        title="Theme"
+        description="Switch between the light and dark dashboard."
+        action={
+          <div className="flex gap-2">
+            {(['light', 'dark'] as const).map((t) => (
+              <button key={t} type="button" onClick={() => setTheme(t)} className={choice(theme === t)}>
+                {t === 'light' ? 'Light' : 'Dark'}
+              </button>
+            ))}
+          </div>
+        }
+      />
+      <SettingRow
+        title="Corner roundness"
+        description="Changes the border radius of cards, buttons, tables and inputs everywhere."
+        action={
+          <div className="flex flex-wrap gap-2">
+            {RADIUS_OPTIONS.map((o) => (
+              <button key={o.id} type="button" onClick={() => setRadius(o.id)} className={choice(radius === o.id)}>
+                <span className="size-4 border-l-2 border-t-2 border-current" style={{ borderTopLeftRadius: o.value }} />
+                {o.label}
+              </button>
+            ))}
+          </div>
+        }
+      />
+    </div>
+  );
+};
 
 // Renders the signed-in user's profile overview
 export const ProfilePage = () => {
@@ -102,6 +145,9 @@ export const ProfilePage = () => {
             </div>
           </div>
         </div>
+
+        {/* Appearance */}
+        <AppearanceCard />
 
         {/* Security */}
         <div className={cardClass}>
