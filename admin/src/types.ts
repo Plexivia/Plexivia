@@ -136,6 +136,10 @@ export interface User {
   avatar?: string;
   avatar_url?: string;
   is_active?: boolean;
+  receive_email_notifications?: boolean;
+  last_login_at?: string;
+  dId?: string;
+  _id?: string;
   status?: string;
   hourly_rate?: number;
   active_tasks_count?: number;

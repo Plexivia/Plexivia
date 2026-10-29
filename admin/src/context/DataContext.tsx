@@ -66,6 +66,10 @@ interface DataContextType {
 
   createUser: (data: Omit<User, 'id' | 'created_at' | 'active_tasks_count'>) => Promise<User>;
   inviteUser: (emailOrId: string) => Promise<void>;
+  updateUser: (id: string, updates: Partial<User>, successMessage?: string) => Promise<User>;
+  deleteUser: (id: string) => Promise<void>;
+  bulkDeleteUsers: (ids: string[]) => Promise<void>;
+  resetUserPassword: (id: string, password: string) => Promise<void>;
   createTimeLog: (data: Omit<TimeLog, 'id' | 'created_at'>) => Promise<TimeLog>;
   triggerBackup: () => Promise<CloudflareBackup>;
   sendTestEmail: (recipient: string, subject: string) => Promise<MailLog>;
@@ -402,6 +406,54 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Update a team member and merge the saved record into local state
+  const updateUser = async (id: string, updates: Partial<User>, successMessage?: string) => {
+    try {
+      const updated = await apiClient.updateUser(id, updates);
+      setUsers((prev) => prev.map((u) => (u.dId === updated.dId || u.email === updated.email ? { ...u, ...updated } : u)));
+      showToast('success', 'User Updated', successMessage || `${updated.full_name || 'User'} saved.`);
+      return updated;
+    } catch (err: any) {
+      showToast('error', 'Update Failed', err.message);
+      throw err;
+    }
+  };
+
+  // Revoke a team member's dashboard access
+  const deleteUser = async (id: string) => {
+    try {
+      const res = await apiClient.deleteUser(id);
+      showToast('info', 'Access Revoked', res?.message || 'User removed.');
+      await refreshAll();
+    } catch (err: any) {
+      showToast('error', 'Revoke Failed', err.message);
+      throw err;
+    }
+  };
+
+  // Revoke access for several team members at once
+  const bulkDeleteUsers = async (ids: string[]) => {
+    try {
+      const res = await apiClient.bulkDeleteUsers(ids);
+      showToast(res?.skipped ? 'warning' : 'info', 'Access Revoked', res?.message || `${ids.length} users removed.`);
+      await refreshAll();
+    } catch (err: any) {
+      showToast('error', 'Bulk Revoke Failed', err.message);
+      throw err;
+    }
+  };
+
+  // Set a new password for a team member
+  const resetUserPassword = async (id: string, password: string) => {
+    try {
+      const res = await apiClient.resetUserPassword(id, password);
+      showToast('success', 'Password Reset', res?.message || 'Password updated.');
+    } catch (err: any) {
+      showToast('error', 'Reset Failed', err.message);
+      throw err;
+    }
+  };
+
   // Time log actions
   const createTimeLog = async (data: Omit<TimeLog, 'id' | 'created_at'>) => {
     try {
@@ -478,6 +530,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         deleteTeam,
         createUser,
         inviteUser,
+        updateUser,
+        deleteUser,
+        bulkDeleteUsers,
+        resetUserPassword,
         createTimeLog,
         triggerBackup,
         sendTestEmail,

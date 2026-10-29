@@ -120,6 +120,10 @@ export interface ApiClient {
   getUsers(): Promise<User[]>;
   createUser(userData: Omit<User, 'id' | 'created_at' | 'active_tasks_count'>): Promise<User>;
   inviteUser(emailOrId: string): Promise<{ success: boolean; message?: string }>;
+  updateUser(id: string, updates: Partial<User>): Promise<User>;
+  deleteUser(id: string): Promise<{ success: boolean; message?: string }>;
+  bulkDeleteUsers(ids: string[]): Promise<{ success: boolean; deleted: number; skipped: number; message?: string }>;
+  resetUserPassword(id: string, password: string): Promise<{ success: boolean; emailSent?: boolean; message?: string }>;
 
   // Teams
   getTeams(): Promise<Team[]>;
@@ -362,6 +366,40 @@ export const apiClient: ApiClient = {
       method: 'POST',
     });
     this.logActivity('sent invite to', emailOrId, 'SYSTEM');
+    return res;
+  },
+
+  async updateUser(id: string, updates: Partial<User>): Promise<User> {
+    const res = await apiFetch<any>('/users/' + encodeURIComponent(id), {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+    const updated = extractItem<User>(res);
+    if (updated) return updated;
+    throw new Error('User update failed');
+  },
+
+  async deleteUser(id: string): Promise<{ success: boolean; message?: string }> {
+    const res = await apiFetch<any>('/users/' + encodeURIComponent(id), { method: 'DELETE' });
+    this.logActivity('revoked access for', id, 'SYSTEM');
+    return res;
+  },
+
+  async bulkDeleteUsers(ids: string[]): Promise<{ success: boolean; deleted: number; skipped: number; message?: string }> {
+    const res = await apiFetch<any>('/users/bulk-delete', {
+      method: 'POST',
+      body: JSON.stringify({ ids }),
+    });
+    this.logActivity('revoked access for', `${res?.deleted ?? ids.length} users`, 'SYSTEM');
+    return res;
+  },
+
+  async resetUserPassword(id: string, password: string): Promise<{ success: boolean; emailSent?: boolean; message?: string }> {
+    const res = await apiFetch<any>('/users/' + encodeURIComponent(id) + '/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ password }),
+    });
+    this.logActivity('reset password for', id, 'SYSTEM');
     return res;
   },
 

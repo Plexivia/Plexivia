@@ -1,46 +1,23 @@
 import { HeaderTitle } from '@/components/common/HeaderTitle';
-import { MemberTable } from '@/components/common/MemberTable';
-import React, { useState, useMemo } from 'react';
+import { SystemUsersTable } from '@/components/users/SystemUsersTable';
+import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
-import { RoleBadge } from '../components/common/Badge';
 import { CreateTeamMemberModal } from '../components/modals/CreateTeamMemberModal';
-import {
-  UserPlus,
-  Mail,
-  Send,
-  Search,
-  Users,
-  ShieldCheck,
-  Building,
-  CheckCircle2,
-  Briefcase,
-  User as UserIcon
-} from 'lucide-react';
+import { UserPlus, Users, CheckCircle2, UserX, BellRing } from 'lucide-react';
 
-// Render user management page with roster filters and creation modal
+// Render system user management page with status stats, roster table and creation modal
 export const UsersPage: React.FC = () => {
-  const { users, tasks, inviteUser, refreshAll } = useData();
+  const { users, refreshAll } = useData();
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
-  const [invitingEmail, setInvitingEmail] = useState<string | null>(null);
 
   const safeUsers = Array.isArray(users) ? users : [];
-  const safeTasks = Array.isArray(tasks) ? tasks : [];
-
-  // Dispatch team invitation email to the selected user
-  const handleSendInvite = async (email: string) => {
-    setInvitingEmail(email);
-    try {
-      await inviteUser(email);
-    } finally {
-      setInvitingEmail(null);
-    }
-  };
+  const activeCount = safeUsers.filter((u) => u.is_active !== false).length;
 
   return (
     <div className="space-y-6">
       <HeaderTitle
         icon={Users}
-        title="User Management"
+        title="System Users"
         onRefresh={refreshAll}
         actions={
         <button
@@ -66,43 +43,36 @@ export const UsersPage: React.FC = () => {
 
         <div className="p-4 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-500/20 rounded-2xl shadow-xs space-y-1">
           <div className="flex items-center justify-between text-emerald-700 dark:text-emerald-400 text-xs font-mono font-medium">
-            <span>Active Users</span>
+            <span>Active</span>
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
           </div>
           <div className="text-2xl font-bold font-mono text-emerald-800 dark:text-emerald-300">
-            {safeUsers.filter((u) => u.status !== 'INACTIVE').length}
+            {activeCount}
           </div>
         </div>
 
-        <div className="p-4 bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-500/20 rounded-2xl shadow-xs space-y-1">
-          <div className="flex items-center justify-between text-purple-700 dark:text-purple-400 text-xs font-mono font-medium">
-            <span>Departments</span>
-            <Building className="w-4 h-4 text-purple-500" />
+        <div className="p-4 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-500/20 rounded-2xl shadow-xs space-y-1">
+          <div className="flex items-center justify-between text-rose-700 dark:text-rose-400 text-xs font-mono font-medium">
+            <span>Inactive</span>
+            <UserX className="w-4 h-4 text-rose-500" />
           </div>
-          <div className="text-2xl font-bold font-mono text-purple-800 dark:text-purple-300">
-            {new Set(safeUsers.map((u) => u.department).filter(Boolean)).size}
+          <div className="text-2xl font-bold font-mono text-rose-800 dark:text-rose-300">
+            {safeUsers.length - activeCount}
           </div>
         </div>
 
-        <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-500/20 rounded-2xl shadow-xs space-y-1">
-          <div className="flex items-center justify-between text-amber-700 dark:text-amber-400 text-xs font-mono font-medium">
-            <span>Active Roles</span>
-            <ShieldCheck className="w-4 h-4 text-amber-500" />
+        <div className="p-4 bg-sky-50 dark:bg-sky-950/20 border border-sky-200 dark:border-sky-500/20 rounded-2xl shadow-xs space-y-1">
+          <div className="flex items-center justify-between text-sky-700 dark:text-sky-400 text-xs font-mono font-medium">
+            <span>Get Mail On</span>
+            <BellRing className="w-4 h-4 text-sky-500" />
           </div>
-          <div className="text-2xl font-bold font-mono text-amber-800 dark:text-amber-300">
-            {new Set(safeUsers.map((u) => u.role).filter(Boolean)).size}
+          <div className="text-2xl font-bold font-mono text-sky-800 dark:text-sky-300">
+            {safeUsers.filter((u) => u.receive_email_notifications).length}
           </div>
         </div>
       </div>
 
-      <MemberTable
-        members={safeUsers}
-        tasks={safeTasks}
-        invitingEmail={invitingEmail}
-        onInvite={handleSendInvite}
-        exportFilename="users"
-        emptyTitle="No users available"
-      />
+      <SystemUsersTable users={safeUsers} />
 
       <CreateTeamMemberModal
         isOpen={isAddUserOpen}
