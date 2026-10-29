@@ -5,6 +5,7 @@ import { CreateTeamMemberModal } from '../components/modals/CreateTeamMemberModa
 import {
   UserPlus,
   Mail,
+  Send,
   KanbanSquare,
   CheckCircle2,
   Lock,
@@ -48,7 +49,7 @@ const RBAC_ROWS: RbacRow[] = [
   },
 ];
 
-// Renders one permission cell with its access-level colour
+// Render one permission cell with its access-level colour
 const accessCell = (key: string) => (row: RbacRow) => {
   const [label, level] = row.cells[key];
   return <span className={`font-mono text-[11px] ${ACCESS_CLASS[level]}`}>{label}</span>;
@@ -67,16 +68,27 @@ const RBAC_COLUMNS = [
   { key: 'studio', header: 'Document Studio', render: accessCell('studio') },
 ];
 
+// Render agency engineering and operations team roster page
 export const AgencyTeamPage: React.FC = () => {
-  const { users, tasks } = useData();
+  const { users, tasks, inviteUser } = useData();
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
+  const [invitingEmail, setInvitingEmail] = useState<string | null>(null);
 
   const safeUsers = Array.isArray(users) ? users : [];
   const safeTasks = Array.isArray(tasks) ? tasks : [];
 
+  // Dispatch team invitation email to the selected member
+  const handleSendInvite = async (email: string) => {
+    setInvitingEmail(email);
+    try {
+      await inviteUser(email);
+    } finally {
+      setInvitingEmail(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight font-mono">
@@ -96,7 +108,6 @@ export const AgencyTeamPage: React.FC = () => {
         </button>
       </div>
 
-      {/* Team Roster Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {safeUsers.map(member => {
           const memberTasks = safeTasks.filter(t => t.assignee_id === member.id && t.status !== 'DONE');
@@ -104,11 +115,10 @@ export const AgencyTeamPage: React.FC = () => {
 
           return (
             <div
-              key={member.id}
+              key={member.id || member.email}
               className="p-5 rounded-2xl bg-white dark:bg-slate-900/60 hover:bg-slate-50/80 dark:hover:bg-slate-900 border border-slate-200 dark:border-slate-800/80 hover:border-cyan-500/40 transition-all duration-300 shadow-xs flex flex-col justify-between space-y-4 group"
             >
               <div className="space-y-3">
-                {/* Avatar & Role Header */}
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
                     {member.avatar || member.avatar_url ? (
@@ -136,12 +146,23 @@ export const AgencyTeamPage: React.FC = () => {
                   {member.role && <RoleBadge role={member.role} />}
                 </div>
 
-                {/* Email & Details */}
                 <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-300 pt-2 border-t border-slate-100 dark:border-slate-800/80 font-mono">
                   {member.email && (
-                    <div className="flex items-center gap-2">
-                      <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <span className="truncate text-slate-500 dark:text-slate-400">{member.email}</span>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span className="truncate text-slate-500 dark:text-slate-400">{member.email}</span>
+                      </div>
+                      <button
+                        type="button"
+                        disabled={invitingEmail === member.email}
+                        onClick={() => handleSendInvite(member.email)}
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20 transition-colors shrink-0 cursor-pointer disabled:opacity-50"
+                        title="Send invitation & temporary password email"
+                      >
+                        <Send className="w-3 h-3" />
+                        <span>{invitingEmail === member.email ? 'Sending...' : 'Invite'}</span>
+                      </button>
                     </div>
                   )}
 
@@ -154,7 +175,6 @@ export const AgencyTeamPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Workload Status */}
               <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs font-mono">
                 <div className="flex items-center gap-1.5">
                   <KanbanSquare className="w-3.5 h-3.5 text-cyan-500" />
@@ -179,7 +199,6 @@ export const AgencyTeamPage: React.FC = () => {
         )}
       </div>
 
-      {/* Role-Based Permissions Matrix */}
       <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 shadow-xs space-y-4">
         <div className="flex items-center gap-2">
           <Lock className="w-4 h-4 text-cyan-500" />
@@ -193,7 +212,6 @@ export const AgencyTeamPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Add Team Member Modal */}
       <CreateTeamMemberModal
         isOpen={isAddMemberOpen}
         onClose={() => setIsAddMemberOpen(false)}

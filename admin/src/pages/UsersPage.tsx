@@ -5,6 +5,7 @@ import { CreateTeamMemberModal } from '../components/modals/CreateTeamMemberModa
 import {
   UserPlus,
   Mail,
+  Send,
   Search,
   Users,
   ShieldCheck,
@@ -16,13 +17,24 @@ import {
 
 // Render user management page with roster filters and creation modal
 export const UsersPage: React.FC = () => {
-  const { users, tasks } = useData();
+  const { users, tasks, inviteUser } = useData();
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('ALL');
+  const [invitingEmail, setInvitingEmail] = useState<string | null>(null);
 
   const safeUsers = Array.isArray(users) ? users : [];
   const safeTasks = Array.isArray(tasks) ? tasks : [];
+
+  // Dispatch team invitation email to the selected user
+  const handleSendInvite = async (email: string) => {
+    setInvitingEmail(email);
+    try {
+      await inviteUser(email);
+    } finally {
+      setInvitingEmail(null);
+    }
+  };
 
   const filteredUsers = useMemo(() => {
     return safeUsers.filter((u) => {
@@ -161,7 +173,7 @@ export const UsersPage: React.FC = () => {
 
           return (
             <div
-              key={u.id}
+              key={u.id || u.email}
               className="p-5 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 hover:border-cyan-500/40 transition-all duration-300 shadow-xs flex flex-col justify-between space-y-4 group"
             >
               <div className="space-y-3">
@@ -194,11 +206,23 @@ export const UsersPage: React.FC = () => {
 
                 <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-300 pt-2 border-t border-slate-100 dark:border-slate-800/80 font-mono">
                   {u.email && (
-                    <div className="flex items-center gap-2">
-                      <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <span className="truncate text-slate-500 dark:text-slate-400">
-                        {u.email}
-                      </span>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span className="truncate text-slate-500 dark:text-slate-400">
+                          {u.email}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        disabled={invitingEmail === u.email}
+                        onClick={() => handleSendInvite(u.email)}
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20 transition-colors shrink-0 cursor-pointer disabled:opacity-50"
+                        title="Send invitation & temporary password email"
+                      >
+                        <Send className="w-3 h-3" />
+                        <span>{invitingEmail === u.email ? 'Sending...' : 'Invite'}</span>
+                      </button>
                     </div>
                   )}
 

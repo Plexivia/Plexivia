@@ -65,6 +65,7 @@ interface DataContextType {
   deleteTeam: (id: string) => Promise<void>;
 
   createUser: (data: Omit<User, 'id' | 'created_at' | 'active_tasks_count'>) => Promise<User>;
+  inviteUser: (emailOrId: string) => Promise<void>;
   createTimeLog: (data: Omit<TimeLog, 'id' | 'created_at'>) => Promise<TimeLog>;
   triggerBackup: () => Promise<CloudflareBackup>;
   sendTestEmail: (recipient: string, subject: string) => Promise<MailLog>;
@@ -381,11 +382,22 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const createUser = async (data: Omit<User, 'id' | 'created_at' | 'active_tasks_count'>) => {
     try {
       const created = await apiClient.createUser(data);
-      showToast('success', 'Member Added', `${created.full_name} joined the agency roster.`);
+      showToast('success', 'Member Invited', `${created.full_name} added & invitation email sent to ${created.email}.`);
       await refreshAll();
       return created;
     } catch (err: any) {
       showToast('error', 'Team Addition Failed', err.message);
+      throw err;
+    }
+  };
+
+  // Dispatch or resend invitation email to a team member
+  const inviteUser = async (emailOrId: string) => {
+    try {
+      const res = await apiClient.inviteUser(emailOrId);
+      showToast('success', 'Invitation Sent', res?.message || `Invitation email sent to ${emailOrId}.`);
+    } catch (err: any) {
+      showToast('error', 'Invite Failed', err.message);
       throw err;
     }
   };
@@ -465,6 +477,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateTeam,
         deleteTeam,
         createUser,
+        inviteUser,
         createTimeLog,
         triggerBackup,
         sendTestEmail,

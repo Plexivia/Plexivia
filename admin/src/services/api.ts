@@ -119,6 +119,7 @@ export interface ApiClient {
   // Users
   getUsers(): Promise<User[]>;
   createUser(userData: Omit<User, 'id' | 'created_at' | 'active_tasks_count'>): Promise<User>;
+  inviteUser(emailOrId: string): Promise<{ success: boolean; message?: string }>;
 
   // Teams
   getTeams(): Promise<Team[]>;
@@ -354,6 +355,14 @@ export const apiClient: ApiClient = {
       return created;
     }
     throw new Error('User creation failed');
+  },
+
+  async inviteUser(emailOrId: string): Promise<{ success: boolean; message?: string }> {
+    const res = await apiFetch<any>('/users/' + encodeURIComponent(emailOrId) + '/invite', {
+      method: 'POST',
+    });
+    this.logActivity('sent invite to', emailOrId, 'SYSTEM');
+    return res;
   },
 
   // Teams

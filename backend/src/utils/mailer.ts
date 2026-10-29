@@ -7,6 +7,15 @@ interface SendMailOptions {
   text?: string;
 }
 
+export interface TeamInviteEmailParams {
+  fullName: string;
+  email: string;
+  role: string;
+  department: string;
+  tempPassword: string;
+  loginUrl?: string;
+}
+
 // Create primary SMTP transporter from environment configuration
 const createPrimaryTransporter = () => {
   const { SMTP_HOST, SMTP_USER, SMTP_PASS } = process.env;
@@ -125,6 +134,37 @@ export const renderMfaEmailHtml = (secretKey: string, qrCodeImageUrl: string, re
                 Keep this email private. Anyone with this key can generate your sign-in codes.
               </p>`
   );
+
+// Generate HTML template for new team member invitation and credentials delivery
+export const renderTeamInviteEmailHtml = (params: TeamInviteEmailParams): string => {
+  const portalUrl = params.loginUrl || 'https://admin.plexivia.com';
+  return renderEmailLayout(
+    'You Have Been Invited to Plexivia Dashboard',
+    'Team Member Invitation',
+    `              <h1 style="font-size: 20px; font-weight: 700; color: #111827; margin: 0 0 12px 0;">Welcome to the team, ${params.fullName}!</h1>
+              <p style="font-size: 15px; line-height: 24px; color: #374151; margin: 0 0 20px 0;">
+                You have been enrolled in the <strong>Plexivia Engineering &amp; Operations Portal</strong> as <strong>${params.role}</strong> (${params.department}).
+              </p>
+              <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 18px; margin: 0 0 22px 0;">
+                <div style="font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Your Sign-In Credentials</div>
+                <div style="font-size: 14px; line-height: 22px; color: #111827; margin-bottom: 6px;">
+                  <strong>Login Email:</strong> <span style="font-family: 'SFMono-Regular', Consolas, monospace; color: #0369a1;">${params.email}</span>
+                </div>
+                <div style="font-size: 14px; line-height: 22px; color: #111827;">
+                  <strong>Temporary Password:</strong> <span style="font-family: 'SFMono-Regular', Consolas, monospace; font-weight: 700; color: #0c4a6e; background-color: #e0f2fe; padding: 2px 8px; border-radius: 4px;">${params.tempPassword}</span>
+                </div>
+              </div>
+              <div style="text-align: center; margin: 0 0 22px 0;">
+                <a href="${portalUrl}" style="display: inline-block; background-color: #0284c7; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 12px 28px; border-radius: 8px;">Sign In to Plexivia Portal</a>
+              </div>
+              <p style="font-size: 13px; line-height: 20px; color: #374151; margin: 0 0 8px 0;">
+                You can sign in using your email and temporary password (with 2FA email OTP verification), or use <strong>Login with OTP</strong> directly on the login screen.
+              </p>
+              <p style="font-size: 12px; line-height: 18px; color: #6b7280; margin: 0;">
+                Portal URL: <a href="${portalUrl}" style="color: #0284c7; text-decoration: none;">${portalUrl}</a>
+              </p>`
+  );
+};
 
 // Dispatch transactional email with automatic secondary fallback handler
 export const sendMail = async (options: SendMailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> => {
