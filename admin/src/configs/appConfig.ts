@@ -1,5 +1,5 @@
 export const APP_NAME = import.meta.env?.VITE_APP_NAME || 'Plexivia Dashboard';
-export const APP_VERSION = import.meta.env?.VITE_APP_VERSION || '1.0.6';
+export const APP_VERSION = import.meta.env?.VITE_APP_VERSION || '1.0.7';
 export const APP_TAGLINE = 'Enterprise Management System';
 
 export default {
