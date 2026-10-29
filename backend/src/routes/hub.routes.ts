@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import * as hubController from '../controllers/hubController.js';
 import * as webmailController from '../controllers/webmailController.js';
-import { requireAuth } from '../middleware/auth.js';
+import * as serverController from '../controllers/serverController.js';
+import { requireAuth, requireRole } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -28,10 +29,24 @@ router.get('/git/repos', hubController.getGitRepos);
 router.get('/mail/logs', hubController.getMailLogs);
 router.post('/mail/send-test', hubController.sendTestMail);
 
-// Webmail (support mailbox over IMAP/SMTP)
+// Webmail (inbox synced over IMAP, sending through support SMTP)
+const mailAdmin = requireRole('OWNER', 'SUPER_ADMIN', 'ADMIN');
+router.get('/webmail/folders', webmailController.getFolders);
 router.get('/webmail/messages', webmailController.listMessages);
-router.get('/webmail/messages/:uid', webmailController.getMessage);
+router.post('/webmail/messages/batch', webmailController.batchAction);
+router.get('/webmail/messages/:id', webmailController.getMessage);
+router.patch('/webmail/messages/:id/flags', webmailController.updateFlags);
+router.delete('/webmail/messages/:id', webmailController.deleteMessage);
 router.post('/webmail/send', webmailController.sendWebmail);
+router.post('/webmail/sync', webmailController.triggerSync);
+router.get('/webmail/settings', mailAdmin, webmailController.getSettings);
+router.put('/webmail/settings', mailAdmin, webmailController.updateSettings);
+router.post('/webmail/settings/test', mailAdmin, webmailController.testSettings);
+
+// Live notifications (pushed over /api/ws)
+router.get('/notifications', webmailController.listNotifications);
+router.post('/notifications/read-all', webmailController.markAllNotificationsRead);
+router.patch('/notifications/:id/read', webmailController.markNotificationRead);
 
 // Activities & Audit Trail
 router.get('/activities', hubController.getActivities);
@@ -50,6 +65,9 @@ router.patch('/support/tickets/:ticketId/status', hubController.updateSupportTic
 // Client Project Documentation
 router.get('/docs', hubController.getProjectDocs);
 router.post('/docs', hubController.saveProjectDoc);
+
+// Live server vitals for the Cpanel page (admins only)
+router.get('/server/vitals', requireRole('OWNER', 'SUPER_ADMIN', 'ADMIN'), serverController.getServerVitals);
 
 // Secure VPS Node Telemetry Ingestion
 router.get('/vps/status', hubController.getVpsNodeStatus);

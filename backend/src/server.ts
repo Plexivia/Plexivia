@@ -2,7 +2,9 @@ import { CORS_ORIGINS } from './config/env.js';
 import express from 'express';
 import cors from 'cors';
 import apiRoutes from './routes/index.js';
-import { initDatabases } from './config/database.js';
+import { initDatabases, operationsDbConnection } from './config/database.js';
+import { initRealtime } from './utils/realtime.js';
+import { startImapListener } from './utils/imapSync.js';
 
 const app = express();
 const PORT = process.env.PORT || 5095;
@@ -54,13 +56,18 @@ app.use('/api', apiRoutes);
 // Start unified gateway server
 const startServer = async () => {
   await initDatabases();
-  app.listen(PORT, () => {
+  const server = app.listen(PORT, () => {
     console.log(`===================================================`);
     console.log(`🚀 Plexivia Backend Gateway & Microservices v2.0.1`);
     console.log(`📡 HTTP Server listening on http://127.0.0.1:${PORT}`);
     console.log(`📦 Services: auth-service, hub-service, agency-service, finance-service`);
     console.log(`===================================================`);
   });
+
+  // Live notifications and real-time inbox
+  initRealtime(server);
+  if (operationsDbConnection.readyState === 1) startImapListener();
+  else operationsDbConnection.once('connected', () => startImapListener());
 };
 
 startServer();
