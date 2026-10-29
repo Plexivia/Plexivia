@@ -96,10 +96,10 @@ const DEFAULT_FOLDERS: FolderInfo[] = ['inbox', 'starred', 'sent', 'drafts', 'ju
 const PAGE_SIZE = 25;
 
 const inputClass =
-  'w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500';
+  'w-full px-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:border-cyan-500';
 
 const iconBtn =
-  'p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer disabled:opacity-40';
+  'p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition cursor-pointer disabled:opacity-40';
 
 const formatAddress = (a?: Address) => (a ? (a.name ? `${a.name} <${a.address}>` : a.address) : '');
 const displayName = (a?: Address) => a?.name || a?.address || 'Unknown';
@@ -143,7 +143,7 @@ const EmailHtmlPreview: React.FC<{ html: string }> = ({ html }) => {
   };
 
   return (
-    <div className="w-full min-w-0 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-white">
+    <div className="w-full min-w-0 overflow-hidden rounded-xl border border-border bg-white">
       <iframe
         ref={ref}
         title="Message"
@@ -438,24 +438,24 @@ export const WebmailPage: React.FC = () => {
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <Mail className="w-6 h-6 text-cyan-500" />
-            <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white font-mono tracking-tight">Webmail</h1>
+            <h1 className="text-2xl font-extrabold text-foreground font-mono tracking-tight">Webmail</h1>
             <span
               title={connected ? 'Live: new mail appears instantly' : 'Live updates reconnecting'}
               className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold font-mono ${
-                connected ? 'bg-emerald-500/10 text-emerald-500' : 'bg-slate-500/10 text-slate-500'
+                connected ? 'bg-emerald-500/10 text-emerald-500' : 'bg-slate-500/10 text-muted-foreground'
               }`}
             >
               {connected ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
               {connected ? 'LIVE' : 'OFFLINE'}
             </span>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-mono truncate">{mailbox || 'Mailbox not configured'}</p>
+          <p className="text-xs text-muted-foreground mt-1 font-mono truncate">{mailbox || 'Mailbox not configured'}</p>
         </div>
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => setSettingsOpen(true)}
             title="Mail settings"
-            className="p-2.5 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-xl border border-slate-200 dark:border-slate-800 transition cursor-pointer shadow-xs"
+            className="p-2.5 bg-card hover:bg-muted text-muted-foreground rounded-xl border border-border transition cursor-pointer shadow-xs"
           >
             <Settings className="w-4 h-4" />
           </button>
@@ -463,7 +463,7 @@ export const WebmailPage: React.FC = () => {
             onClick={syncNow}
             disabled={syncing}
             title="Sync with mail server"
-            className="flex items-center gap-1.5 px-3 py-2.5 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-800 transition cursor-pointer shadow-xs text-xs font-semibold"
+            className="flex items-center gap-1.5 px-3 py-2.5 bg-card hover:bg-muted text-muted-foreground rounded-xl border border-border transition cursor-pointer shadow-xs text-xs font-semibold"
           >
             <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin text-cyan-500' : ''}`} />
             <span className="hidden sm:inline">{syncing ? 'Syncing…' : 'Sync'}</span>
@@ -477,9 +477,9 @@ export const WebmailPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-[minmax(0,340px)_minmax(0,1fr)] xl:grid-cols-[170px_minmax(0,360px)_minmax(0,1fr)] gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-[minmax(0,340px)_minmax(0,1fr)] xl:grid-cols-[190px_minmax(0,370px)_minmax(0,1fr)] gap-0 rounded-xl border border-border bg-card overflow-hidden shadow-xs min-h-[640px]">
         {/* Folders */}
-        <nav className="flex xl:flex-col gap-1 overflow-x-auto md:col-span-2 xl:col-span-1">
+        <nav className="flex xl:flex-col gap-1 overflow-x-auto md:col-span-2 xl:col-span-1 p-3 bg-muted/20 border-b xl:border-b-0 xl:border-r border-border">
           {folders.map((f) => {
             const Icon = FOLDER_ICONS[f.id] || Inbox;
             const active = folder === f.id;
@@ -488,7 +488,7 @@ export const WebmailPage: React.FC = () => {
                 key={f.id}
                 onClick={() => changeFolder(f.id)}
                 className={`flex items-center gap-2 px-3 h-8 rounded-lg text-[13px] font-medium cursor-pointer transition shrink-0 ${
-                  active ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-slate-950 font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  active ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-slate-950 font-bold' : 'text-muted-foreground hover:bg-muted'
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -496,7 +496,7 @@ export const WebmailPage: React.FC = () => {
                 {(f.unread > 0 || (f.id === 'starred' && f.total > 0)) && (
                   <span
                     className={`ml-auto pl-2 text-[10px] font-bold ${
-                      active ? '' : f.unread > 0 ? 'text-cyan-600 dark:text-cyan-400' : 'text-slate-400'
+                      active ? '' : f.unread > 0 ? 'text-primary' : 'text-muted-foreground/70'
                     }`}
                   >
                     {f.unread > 0 ? f.unread : f.total}
@@ -505,20 +505,20 @@ export const WebmailPage: React.FC = () => {
               </button>
             );
           })}
-          <div className="hidden xl:flex items-center gap-1.5 mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 text-[10px] text-slate-500 font-mono">
+          <div className="hidden xl:flex items-center gap-1.5 mt-3 pt-3 border-t border-border text-[10px] text-muted-foreground font-mono">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" /> SSL IMAP · SMTP
           </div>
         </nav>
 
         {/* Message list */}
         <section
-          className={`rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 overflow-hidden flex-col min-w-0 ${
+          className={`border-r border-border bg-background overflow-hidden flex-col min-w-0 ${
             selectedId ? 'hidden md:flex' : 'flex'
           }`}
         >
-          <div className="p-3 border-b border-slate-200 dark:border-slate-800 space-y-2.5">
+          <div className="p-3 border-b border-border space-y-2.5">
             <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-slate-400" />
+              <Search className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-muted-foreground/70" />
               <input
                 className={`${inputClass} pl-8 pr-8 h-9 text-xs`}
                 placeholder="Search sender, subject, text…"
@@ -526,13 +526,13 @@ export const WebmailPage: React.FC = () => {
                 onChange={(e) => setSearchInput(e.target.value)}
               />
               {searchInput && (
-                <button onClick={() => setSearchInput('')} className="absolute right-2 top-2 p-0.5 text-slate-400 hover:text-slate-700 cursor-pointer" title="Clear">
+                <button onClick={() => setSearchInput('')} className="absolute right-2 top-2 p-0.5 text-muted-foreground/70 hover:text-slate-700 cursor-pointer" title="Clear">
                   <X className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
 
-            <div className="flex items-center justify-between gap-2 text-xs text-slate-500 px-0.5">
+            <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground px-0.5">
               <div className="flex items-center gap-1.5 min-w-0">
                 <input
                   type="checkbox"
@@ -580,7 +580,7 @@ export const WebmailPage: React.FC = () => {
                       setPage(1);
                     }}
                     className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider cursor-pointer transition ${
-                      unreadOnly ? 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400' : 'hover:bg-slate-100 dark:hover:bg-slate-800'
+                      unreadOnly ? 'bg-cyan-500/15 text-primary' : 'hover:bg-muted'
                     }`}
                   >
                     {unreadOnly ? 'Unread only' : currentFolder?.name || folder}
@@ -602,20 +602,20 @@ export const WebmailPage: React.FC = () => {
             </div>
           </div>
 
-          <ul className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[70vh] overflow-y-auto flex-1">
+          <ul className="divide-y divide-border/60 max-h-[600px] overflow-y-auto flex-1">
             {loading && messages.length === 0 &&
               [1, 2, 3, 4, 5].map((n) => (
                 <li key={n} className="px-4 py-3 space-y-2 animate-pulse">
-                  <div className="h-3 w-1/3 rounded bg-slate-200 dark:bg-slate-800" />
-                  <div className="h-3 w-3/4 rounded bg-slate-100 dark:bg-slate-800/70" />
+                  <div className="h-3 w-1/3 rounded bg-muted" />
+                  <div className="h-3 w-3/4 rounded bg-muted/60" />
                 </li>
               ))}
             {error && <li className="px-4 py-6 text-xs text-rose-500">{error}</li>}
             {!error && !loading && messages.length === 0 && (
               <li className="py-16 px-4 text-center space-y-2">
-                <Inbox className="w-9 h-9 mx-auto text-slate-300 dark:text-slate-700" />
-                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">No messages</p>
-                <p className="text-xs text-slate-500">{query ? 'Nothing matches your search.' : `${currentFolder?.name || 'This folder'} is empty.`}</p>
+                <Inbox className="w-9 h-9 mx-auto text-muted-foreground/30" />
+                <p className="text-sm font-semibold text-foreground">No messages</p>
+                <p className="text-xs text-muted-foreground">{query ? 'Nothing matches your search.' : `${currentFolder?.name || 'This folder'} is empty.`}</p>
               </li>
             )}
             {messages.map((m) => {
@@ -629,8 +629,8 @@ export const WebmailPage: React.FC = () => {
                     isSelected
                       ? 'bg-cyan-500/10 shadow-[inset_3px_0_0_0_rgb(6,182,212)]'
                       : m.isRead
-                        ? 'hover:bg-slate-50 dark:hover:bg-slate-800/50'
-                        : 'bg-cyan-500/[0.03] hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                        ? 'hover:bg-muted/40'
+                        : 'bg-cyan-500/[0.03] hover:bg-muted/40'
                   }`}
                 >
                   <input
@@ -647,22 +647,22 @@ export const WebmailPage: React.FC = () => {
                       toggleStar(m);
                     }}
                     title={m.isStarred ? 'Unstar' : 'Star'}
-                    className={`mt-0.5 shrink-0 cursor-pointer ${m.isStarred ? 'text-amber-500' : 'text-slate-300 dark:text-slate-600 hover:text-slate-500'}`}
+                    className={`mt-0.5 shrink-0 cursor-pointer ${m.isStarred ? 'text-amber-500' : 'text-muted-foreground/40 hover:text-muted-foreground'}`}
                   >
                     <Star className={`w-3.5 h-3.5 ${m.isStarred ? 'fill-amber-500' : ''}`} />
                   </button>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <span className={`text-xs truncate ${m.isRead ? 'text-slate-600 dark:text-slate-400' : 'font-bold text-slate-900 dark:text-white'}`}>
+                      <span className={`text-xs truncate ${m.isRead ? 'text-muted-foreground' : 'font-bold text-foreground'}`}>
                         {counterpart}
                       </span>
-                      <span className="flex items-center gap-1 text-[10px] font-mono text-slate-400 shrink-0">
+                      <span className="flex items-center gap-1 text-[10px] font-mono text-muted-foreground/70 shrink-0">
                         {m.attachments?.length > 0 && <Paperclip className="w-3 h-3" />}
                         {timeAgo(m.date)}
                       </span>
                     </div>
-                    <div className={`text-xs truncate mt-0.5 ${m.isRead ? 'text-slate-500' : 'font-semibold text-slate-800 dark:text-slate-100'}`}>{m.subject}</div>
-                    <div className="text-[11px] truncate mt-0.5 text-slate-400">{m.snippet}</div>
+                    <div className={`text-xs truncate mt-0.5 ${m.isRead ? 'text-muted-foreground' : 'font-semibold text-foreground'}`}>{m.subject}</div>
+                    <div className="text-[11px] truncate mt-0.5 text-muted-foreground/70">{m.snippet}</div>
                   </div>
                   {!m.isRead && <span className="h-2 w-2 rounded-full bg-cyan-500 shrink-0 mt-1.5" />}
                 </li>
@@ -673,16 +673,16 @@ export const WebmailPage: React.FC = () => {
 
         {/* Reader */}
         <section
-          className={`rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 min-h-[420px] min-w-0 flex-col ${
+          className={`bg-background min-h-[420px] min-w-0 flex-col ${
             selectedId ? 'flex' : 'hidden md:flex'
           }`}
         >
           {opening && !selected ? (
-            <div className="p-6 text-xs text-slate-500">Opening…</div>
+            <div className="p-6 text-xs text-muted-foreground">Opening…</div>
           ) : selected ? (
             <article className="flex flex-col h-full min-w-0">
               {/* Toolbar */}
-              <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-slate-200 dark:border-slate-800">
+              <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-border">
                 <div className="flex items-center gap-0.5">
                   <button
                     className={`${iconBtn} md:hidden`}
@@ -743,22 +743,22 @@ export const WebmailPage: React.FC = () => {
 
               {/* Header */}
               <header className="px-4 pt-4 pb-3 space-y-3 min-w-0">
-                <h2 className="text-base font-bold text-slate-900 dark:text-white break-words">{selected.subject}</h2>
+                <h2 className="text-base font-bold text-foreground break-words">{selected.subject}</h2>
                 <div className="flex items-start gap-3 min-w-0">
-                  <div className="h-9 w-9 rounded-full bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 flex items-center justify-center font-bold text-sm shrink-0">
+                  <div className="h-9 w-9 rounded-full bg-cyan-500/15 text-primary flex items-center justify-center font-bold text-sm shrink-0">
                     {displayName(selected.from).charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1 space-y-0.5">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-sm font-semibold text-slate-900 dark:text-white truncate">{displayName(selected.from)}</span>
-                      <span className="text-xs text-slate-500 font-mono truncate">&lt;{selected.from.address}&gt;</span>
-                      <button onClick={() => copy(selected.from.address)} className="p-0.5 text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer" title="Copy address">
+                      <span className="text-sm font-semibold text-foreground truncate">{displayName(selected.from)}</span>
+                      <span className="text-xs text-muted-foreground font-mono truncate">&lt;{selected.from.address}&gt;</span>
+                      <button onClick={() => copy(selected.from.address)} className="p-0.5 text-muted-foreground/70 hover:text-foreground cursor-pointer" title="Copy address">
                         <Copy className="w-3 h-3" />
                       </button>
                     </div>
-                    <div className="text-[11px] text-slate-500 truncate">To: {selected.to.map(formatAddress).join(', ') || '—'}</div>
-                    {selected.cc?.length > 0 && <div className="text-[11px] text-slate-500 truncate">Cc: {selected.cc.map(formatAddress).join(', ')}</div>}
-                    <div className="flex items-center gap-1 text-[11px] font-mono text-slate-400">
+                    <div className="text-[11px] text-muted-foreground truncate">To: {selected.to.map(formatAddress).join(', ') || '—'}</div>
+                    {selected.cc?.length > 0 && <div className="text-[11px] text-muted-foreground truncate">Cc: {selected.cc.map(formatAddress).join(', ')}</div>}
+                    <div className="flex items-center gap-1 text-[11px] font-mono text-muted-foreground/70">
                       <Clock className="w-3 h-3" /> {new Date(selected.date).toLocaleString()}
                     </div>
                   </div>
@@ -770,22 +770,22 @@ export const WebmailPage: React.FC = () => {
                 {selected.bodyHtml ? (
                   <EmailHtmlPreview html={selected.bodyHtml} />
                 ) : (
-                  <pre className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 text-sm whitespace-pre-wrap break-words font-sans text-slate-800 dark:text-slate-200">
+                  <pre className="p-4 rounded-xl bg-muted/40 border border-border text-sm whitespace-pre-wrap break-words font-sans text-foreground">
                     {selected.bodyText}
                   </pre>
                 )}
 
                 {selected.attachments?.length > 0 && (
                   <div className="space-y-2">
-                    <p className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+                    <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
                       <Paperclip className="w-3.5 h-3.5" /> Attachments ({selected.attachments.length})
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {selected.attachments.map((a, i) => (
-                        <span key={i} className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs">
+                        <span key={i} className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-muted/60 border border-border text-xs">
                           <FileText className="w-3.5 h-3.5 text-cyan-500" />
                           <span className="font-medium truncate max-w-[160px]">{a.filename}</span>
-                          <span className="text-[10px] text-slate-400">{Math.ceil((a.size || 0) / 1024)} KB</span>
+                          <span className="text-[10px] text-muted-foreground/70">{Math.ceil((a.size || 0) / 1024)} KB</span>
                         </span>
                       ))}
                     </div>
@@ -793,21 +793,21 @@ export const WebmailPage: React.FC = () => {
                 )}
 
                 {selected.thread?.length > 0 && (
-                  <div className="space-y-2 pt-3 border-t border-slate-200 dark:border-slate-800">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Conversation ({selected.thread.length + 1})</p>
+                  <div className="space-y-2 pt-3 border-t border-border">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Conversation ({selected.thread.length + 1})</p>
                     {selected.thread.map((t) => (
                       <button
                         key={t.id}
                         onClick={() => openMessage(t.id)}
-                        className="w-full text-left p-3 rounded-lg bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800 hover:border-cyan-500/40 text-xs space-y-1 cursor-pointer"
+                        className="w-full text-left p-3 rounded-lg bg-muted/30 border border-border hover:border-cyan-500/40 text-xs space-y-1 cursor-pointer"
                       >
-                        <div className="flex items-center justify-between gap-2 text-slate-500">
-                          <span className="font-semibold text-slate-800 dark:text-slate-100 truncate">
+                        <div className="flex items-center justify-between gap-2 text-muted-foreground">
+                          <span className="font-semibold text-foreground truncate">
                             {t.folder === 'sent' ? 'You' : displayName(t.from)}
                           </span>
                           <span className="font-mono text-[10px] shrink-0">{new Date(t.date).toLocaleString()}</span>
                         </div>
-                        <p className="text-slate-600 dark:text-slate-300 line-clamp-3 whitespace-pre-wrap">{t.bodyText || t.snippet}</p>
+                        <p className="text-muted-foreground line-clamp-3 whitespace-pre-wrap">{t.bodyText || t.snippet}</p>
                       </button>
                     ))}
                   </div>
@@ -816,9 +816,9 @@ export const WebmailPage: React.FC = () => {
 
               {/* Quick reply */}
               {!isTrash && (
-                <form onSubmit={handleQuickReply} className="p-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
-                  <div className="flex items-center justify-between text-[11px] text-slate-500">
-                    <span className="flex items-center gap-1.5 font-medium text-slate-700 dark:text-slate-200 truncate">
+                <form onSubmit={handleQuickReply} className="p-3 border-t border-border space-y-2">
+                  <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                    <span className="flex items-center gap-1.5 font-medium text-foreground truncate">
                       <CornerDownRight className="w-3.5 h-3.5 text-cyan-500" />
                       Reply to {folder === 'sent' ? displayName(selected.to[0]) : displayName(selected.from)}
                     </span>
@@ -835,7 +835,7 @@ export const WebmailPage: React.FC = () => {
                     }}
                   />
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-slate-400 font-mono">Ctrl + Enter to send</span>
+                    <span className="text-[10px] text-muted-foreground/70 font-mono">Ctrl + Enter to send</span>
                     <button
                       type="submit"
                       disabled={!replyText.trim() || replying}
@@ -850,11 +850,11 @@ export const WebmailPage: React.FC = () => {
             </article>
           ) : (
             <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-2">
-              <div className="h-14 w-14 rounded-2xl bg-slate-100 dark:bg-slate-800/60 flex items-center justify-center text-slate-400">
+              <div className="h-14 w-14 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground/70">
                 <Mail className="w-7 h-7" />
               </div>
-              <h3 className="text-sm font-bold text-slate-800 dark:text-white">No message selected</h3>
-              <p className="text-xs text-slate-500 max-w-xs">Pick an email to read it, see the conversation, and reply.</p>
+              <h3 className="text-sm font-bold text-foreground">No message selected</h3>
+              <p className="text-xs text-muted-foreground max-w-xs">Pick an email to read it, see the conversation, and reply.</p>
             </div>
           )}
         </section>
@@ -865,9 +865,9 @@ export const WebmailPage: React.FC = () => {
         <form onSubmit={handleSend} className="space-y-3">
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-200">To</label>
+              <label className="text-xs font-semibold text-foreground">To</label>
               {!showCc && (
-                <button type="button" onClick={() => setShowCc(true)} className="text-[11px] text-cyan-600 dark:text-cyan-400 hover:underline cursor-pointer">
+                <button type="button" onClick={() => setShowCc(true)} className="text-[11px] text-primary hover:underline cursor-pointer">
                   + Cc
                 </button>
               )}
@@ -876,20 +876,20 @@ export const WebmailPage: React.FC = () => {
           </div>
           {showCc && (
             <div>
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1 block">Cc</label>
+              <label className="text-xs font-semibold text-foreground mb-1 block">Cc</label>
               <input className={inputClass} placeholder="cc@example.com" value={draft.cc} onChange={(e) => setDraft({ ...draft, cc: e.target.value })} />
             </div>
           )}
           <div>
-            <label className="text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1 block">Subject</label>
+            <label className="text-xs font-semibold text-foreground mb-1 block">Subject</label>
             <input className={inputClass} placeholder="Subject" value={draft.subject} onChange={(e) => setDraft({ ...draft, subject: e.target.value })} />
           </div>
           <div>
-            <label className="text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1 block">Message</label>
+            <label className="text-xs font-semibold text-foreground mb-1 block">Message</label>
             <textarea className={`${inputClass} min-h-[240px] font-sans`} placeholder="Write your message…" required value={draft.text} onChange={(e) => setDraft({ ...draft, text: e.target.value })} />
           </div>
           <div className="flex items-center justify-end gap-2 pt-1">
-            <button type="button" onClick={() => setComposeOpen(false)} className="px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white cursor-pointer">
+            <button type="button" onClick={() => setComposeOpen(false)} className="px-4 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground cursor-pointer">
               Cancel
             </button>
             <button type="submit" disabled={sending} className="flex items-center gap-1.5 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-60 text-white rounded-lg text-xs font-bold cursor-pointer">
@@ -974,7 +974,7 @@ const MailSettingsModal: React.FC<{ isOpen: boolean; onClose: () => void; onSave
     }
   };
 
-  const label = 'text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1 block';
+  const label = 'text-xs font-semibold text-foreground mb-1 block';
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Mail settings" subtitle="Inbox account and forwarding" maxWidth="lg">
@@ -983,16 +983,16 @@ const MailSettingsModal: React.FC<{ isOpen: boolean; onClose: () => void; onSave
       ) : (
         <form onSubmit={save} className="space-y-4">
           {settings && (
-            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 text-[11px] font-mono space-y-1 text-slate-600 dark:text-slate-300">
+            <div className="p-3 rounded-xl bg-muted/40 border border-border text-[11px] font-mono space-y-1 text-muted-foreground">
               <div>
                 Inbox: <strong>{settings.active?.user || 'not configured'}</strong>
-                {settings.active && <span className="text-slate-400"> · from {settings.active.source === 'database' ? 'dashboard settings' : '.env'}</span>}
+                {settings.active && <span className="text-muted-foreground/70"> · from {settings.active.source === 'database' ? 'dashboard settings' : '.env'}</span>}
               </div>
-              <div>Sending: <strong>{settings.smtpSender || 'SMTP not configured'}</strong> <span className="text-slate-400">· from .env</span></div>
+              <div>Sending: <strong>{settings.smtpSender || 'SMTP not configured'}</strong> <span className="text-muted-foreground/70">· from .env</span></div>
             </div>
           )}
 
-          <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-200 cursor-pointer">
+          <label className="flex items-center gap-2 text-xs font-semibold text-foreground cursor-pointer">
             <input type="checkbox" className="accent-cyan-600" checked={form.isEnabled} onChange={(e) => setForm({ ...form, isEnabled: e.target.checked })} />
             Use a custom inbox account (overrides .env)
           </label>
@@ -1011,7 +1011,7 @@ const MailSettingsModal: React.FC<{ isOpen: boolean; onClose: () => void; onSave
               <input className={inputClass} type="email" value={form.user} onChange={(e) => setForm({ ...form, user: e.target.value })} placeholder="admin@example.com" />
             </div>
             <div className="flex items-end pb-2">
-              <label className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300 cursor-pointer">
+              <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
                 <input type="checkbox" className="accent-cyan-600" checked={form.secure} onChange={(e) => setForm({ ...form, secure: e.target.checked })} /> SSL/TLS
               </label>
             </div>
@@ -1034,11 +1034,11 @@ const MailSettingsModal: React.FC<{ isOpen: boolean; onClose: () => void; onSave
           </div>
 
           <div className="flex items-center justify-between gap-2 pt-1">
-            <button type="button" onClick={test} disabled={testing} className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer disabled:opacity-60">
+            <button type="button" onClick={test} disabled={testing} className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-xs font-semibold text-muted-foreground hover:bg-muted cursor-pointer disabled:opacity-60">
               <RefreshCw className={`w-3.5 h-3.5 ${testing ? 'animate-spin' : ''}`} /> Test connection
             </button>
             <div className="flex items-center gap-2">
-              <button type="button" onClick={onClose} className="px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white cursor-pointer">
+              <button type="button" onClick={onClose} className="px-4 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground cursor-pointer">
                 Cancel
               </button>
               <button type="submit" disabled={saving} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-60 text-white rounded-lg text-xs font-bold cursor-pointer">

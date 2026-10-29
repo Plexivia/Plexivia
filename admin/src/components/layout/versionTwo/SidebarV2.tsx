@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ChevronDown, ChevronUp, FileText, LogOut, MoreHorizontal } from 'lucide-react';
+import { ChevronDown, ChevronUp, FileText, LogOut, MoreHorizontal, UserRound } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { MenuGroup, MenuItem } from '@/types/index';
 import brandLogoImg from '@/assets/brand-dark.png';
@@ -256,17 +256,28 @@ export const SidebarV2 = ({
       {/* User profile menu pinned to the bottom of the sidebar */}
       <div ref={userMenuRef} className="relative shrink-0 border-t border-v2-border py-3">
         {isUserMenuOpen && (
-          <div className="absolute bottom-full start-0 mb-2 flex w-full min-w-[220px] flex-col rounded-xl border border-v2-border bg-v2-shell p-2 shadow-2xl">
-            <div className="px-2 pb-2">
+          <div className="absolute bottom-full start-0 z-50 mb-2 flex w-full min-w-[220px] flex-col rounded-xl border border-white/15 bg-[#262626] p-2 shadow-[0_-12px_32px_rgba(0,0,0,0.6)] ring-1 ring-black/40">
+            <div className="rounded-lg bg-white/5 px-2.5 py-2">
               <span className="block truncate text-sm font-medium text-white">{displayName}</span>
               <span className="block truncate text-xs text-v2-muted">{user?.email}</span>
-              <span className="block text-xs capitalize text-v2-muted">{roleLabel}</span>
+              <span className="block text-xs capitalize text-v2-primary">{roleLabel}</span>
             </div>
-            <div className="border-t border-v2-border pt-2">
+            <div className="mt-2 flex flex-col gap-0.5 border-t border-white/10 pt-2">
+              <Link
+                to="/profile"
+                onClick={() => {
+                  setIsUserMenuOpen(false);
+                  onNavigate();
+                }}
+                className="flex w-full items-center gap-3 rounded-lg px-2 py-1.5 text-sm font-medium text-white transition-colors hover:bg-white/10 hover:text-v2-primary"
+              >
+                <UserRound className="size-4" />
+                Profile
+              </Link>
               <button
                 type="button"
                 onClick={onLogout}
-                className="flex w-full items-center gap-3 rounded-lg px-2 py-1.5 text-sm font-medium text-white transition-colors hover:bg-white/5 hover:text-rose-400 cursor-pointer"
+                className="flex w-full items-center gap-3 rounded-lg px-2 py-1.5 text-sm font-medium text-white transition-colors hover:bg-white/10 hover:text-rose-400 cursor-pointer"
               >
                 <LogOut className="size-4" />
                 Sign out
@@ -280,7 +291,8 @@ export const SidebarV2 = ({
           onClick={() => setIsUserMenuOpen((prev) => !prev)}
           title={showFull ? undefined : displayName}
           className={cn(
-            'flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-white transition-colors hover:bg-white/5 cursor-pointer'
+            'flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-white transition-colors hover:bg-white/5 cursor-pointer',
+            isUserMenuOpen && 'bg-white/10'
           )}
         >
           <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-v2-primary/15 text-xs font-bold text-v2-primary">

@@ -19,6 +19,7 @@ import { TasksPage } from '@/pages/TasksPage';
 import { ClientsDirectoryPage } from '@/pages/ClientsDirectoryPage';
 import { AgencyTeamPage } from '@/pages/AgencyTeamPage';
 import { CpanelPage } from '@/pages/CpanelPage';
+import { ProfilePage } from '@/pages/ProfilePage';
 import { DocumentStudioPage } from '@/features/document-studio/pages/DocumentStudioPage';
 
 import { BalanceOverview as BalanceOverviewPage } from '@/pages/accounts/balanceOverview';
@@ -115,6 +116,14 @@ export const AppRoutes = () => {
       <Route
         path="/"
         element={<Navigate to="/overview" replace />}
+      />
+      <Route
+        path="/profile"
+        element={
+          <AppShell>
+            <ProfilePage />
+          </AppShell>
+        }
       />
       <Route
         path="/overview"

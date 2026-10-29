@@ -18,6 +18,7 @@ export default defineConfig({
       '/api': {
         target: process.env.VITE_PROXY_TARGET || 'https://api.plexivia.com',
         changeOrigin: true,
+        ws: true,
       },
       '/ws': {
         target: (process.env.VITE_PROXY_TARGET || 'https://api.plexivia.com').replace(/^http/, 'ws'),
