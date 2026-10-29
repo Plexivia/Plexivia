@@ -3,6 +3,7 @@ import { Bell, Menu, Moon, Search, Sparkles, Sun, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useThemeStore } from '@/store/useThemeStore';
 import { useAppStore } from '@/store/useAppStore';
+import { useNotificationStore } from '@/store/useNotificationStore';
 
 interface HeaderV2Props {
   isMobileOpen: boolean;
@@ -33,6 +34,7 @@ const cleanAppCache = async () => {
 export const HeaderV2 = ({ isMobileOpen, onToggleSidebar, onOpenNotifications }: HeaderV2Props) => {
   const { theme, toggleTheme } = useThemeStore();
   const { setSearchModalOpen } = useAppStore();
+  const unreadCount = useNotificationStore((s) => s.unreadCount);
   const [isCleaning, setIsCleaning] = useState(false);
   const isDark = theme === 'dark';
 
@@ -102,11 +104,15 @@ export const HeaderV2 = ({ isMobileOpen, onToggleSidebar, onOpenNotifications }:
           <button
             type="button"
             onClick={onOpenNotifications}
-            aria-label="Notifications"
+            aria-label={unreadCount ? `Notifications (${unreadCount} unread)` : 'Notifications'}
             className="relative flex size-8 shrink-0 items-center justify-center rounded-full bg-v2-primary text-black transition-opacity hover:opacity-90 cursor-pointer"
           >
             <Bell className="size-4" />
-            <span className="absolute top-0 end-0 flex size-2 rounded-full bg-orange-400 ring-2 ring-v2-shell" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -end-1 flex min-w-4 h-4 px-1 items-center justify-center rounded-full bg-orange-500 text-[9px] font-bold text-white ring-2 ring-v2-shell">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
           </button>
         </div>
       </div>

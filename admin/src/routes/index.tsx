@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { connectRealtime, disconnectRealtime, setRealtimeNavigate } from '@/store/useNotificationStore';
 import { ToastContainer } from '@/components/common/ToastContainer';
 import { GlobalSearchModal } from '@/components/common/GlobalSearchModal';
 import { GlobalErrorBoundary } from '@/components/common/GlobalErrorBoundary';
@@ -61,6 +62,15 @@ export const PublicAuthRoute = ({ children }: { children: React.ReactNode }) => 
 export const AppShell = ({ children }: { children: React.ReactNode }) => {
   const { user, logout } = useAuthStore();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const navigate = useNavigate();
+
+  // Live notifications for the signed-in session
+  useEffect(() => {
+    if (!user) return;
+    setRealtimeNavigate(navigate);
+    connectRealtime();
+    return () => disconnectRealtime();
+  }, [user]);
 
   return (
     <ProtectedRoute>

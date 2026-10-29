@@ -14,11 +14,11 @@ import { apiClient } from '@/lib/api-client';
 import { useData } from '../context/DataContext';
 
 interface InboxItem {
-  uid: number;
+  id: string;
   subject: string;
-  from: string;
+  from: { name: string; address: string };
   date: string;
-  seen: boolean;
+  isRead: boolean;
 }
 
 interface TicketItem {
@@ -62,7 +62,7 @@ export const OverviewPage: React.FC = () => {
   const safeTasks = Array.isArray(tasks) ? tasks : [];
   const safeClients = Array.isArray(clients) ? clients : [];
   const openTickets = tickets.filter((t) => ['OPEN', 'IN_PROGRESS', 'WAITING_CLIENT'].includes(t.status));
-  const unreadMail = inbox.filter((m) => !m.seen);
+  const unreadMail = inbox.filter((m) => !m.isRead);
 
   const stats = [
     { label: 'Unread Mail', value: unreadMail.length, icon: Mail, to: '/webmail', tone: 'text-cyan-500' },
@@ -122,15 +122,15 @@ export const OverviewPage: React.FC = () => {
             {mailError && <li className="px-4 py-6 text-xs text-rose-500">{mailError}</li>}
             {!mailError && inbox.length === 0 && <li className="px-4 py-6 text-xs text-slate-500">No messages.</li>}
             {inbox.slice(0, 6).map((m) => (
-              <li key={m.uid}>
-                <Link to={`/webmail?uid=${m.uid}`} className="block px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+              <li key={m.id}>
+                <Link to={`/webmail?id=${m.id}`} className="block px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/50">
                   <div className="flex items-center justify-between gap-3">
-                    <span className={`text-xs truncate ${m.seen ? 'text-slate-500 dark:text-slate-400' : 'font-bold text-slate-900 dark:text-white'}`}>
-                      {m.from}
+                    <span className={`text-xs truncate ${m.isRead ? 'text-slate-500 dark:text-slate-400' : 'font-bold text-slate-900 dark:text-white'}`}>
+                      {m.from?.name || m.from?.address}
                     </span>
                     <span className="text-[10px] font-mono text-slate-400 shrink-0">{new Date(m.date).toLocaleDateString()}</span>
                   </div>
-                  <div className={`text-xs truncate mt-0.5 ${m.seen ? 'text-slate-500' : 'text-slate-700 dark:text-slate-200'}`}>{m.subject}</div>
+                  <div className={`text-xs truncate mt-0.5 ${m.isRead ? 'text-slate-500' : 'text-slate-700 dark:text-slate-200'}`}>{m.subject}</div>
                 </Link>
               </li>
             ))}
