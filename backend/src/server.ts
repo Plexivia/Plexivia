@@ -37,7 +37,7 @@ app.get('/api/health', (_req, res) => {
   res.json({
     status: 'ok',
     service: 'backend-gateway',
-    version: '2.0.0',
+    version: '2.0.1',
     timestamp: new Date().toISOString(),
     services: [
       { id: 'auth-service', name: 'Auth Service (IAM & Vault)', port: 5001, base: '/api/v1/auth' },
@@ -56,7 +56,7 @@ const startServer = async () => {
   await initDatabases();
   app.listen(PORT, () => {
     console.log(`===================================================`);
-    console.log(`🚀 Plexivia Backend Gateway & Microservices v2.0.0`);
+    console.log(`🚀 Plexivia Backend Gateway & Microservices v2.0.1`);
     console.log(`📡 HTTP Server listening on http://127.0.0.1:${PORT}`);
     console.log(`📦 Services: auth-service, hub-service, agency-service, finance-service`);
     console.log(`===================================================`);
