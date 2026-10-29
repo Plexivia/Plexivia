@@ -50,7 +50,7 @@ export function DashboardLayout({
             )}
             style={{ scrollbarGutter: 'stable' }}
           >
-            <div className="w-full max-w-[1536px] mx-auto p-4 md:p-6 space-y-6">
+            <div className="w-full max-w-[1400px] mx-auto p-4 md:p-6 space-y-6">
               {children}
             </div>
           </main>

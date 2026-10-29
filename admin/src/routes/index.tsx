@@ -5,6 +5,7 @@ import { ToastContainer } from '@/components/common/ToastContainer';
 import { GlobalSearchModal } from '@/components/common/GlobalSearchModal';
 import { GlobalErrorBoundary } from '@/components/common/GlobalErrorBoundary';
 import { NotificationDrawer } from '@/components/layout/NotificationDrawer';
+import { AutoPageBar } from '@/components/layout/AutoPageBar';
 import { LoginPage } from '@/components/auth/LoginPage';
 import { NAVIGATION_MENU_GROUPS } from '@/constants/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -93,6 +94,7 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
             </>
           }
         >
+          <AutoPageBar />
           {children}
         </LayoutV2>
       </GlobalErrorBoundary>

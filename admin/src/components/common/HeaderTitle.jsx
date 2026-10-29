@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { usePageBarStore } from '@/store/usePageBarStore';
 
 /**
  * Universal page bar for Plexivia ERP.
@@ -21,6 +22,7 @@ import { cn } from '@/lib/utils';
  * @param {React.ReactNode} [props.children] - Action slot fallback
  * @param {boolean} [props.showBack=true] - Show the back button
  * @param {boolean} [props.showRefresh=true] - Show the refresh button
+ * @param {boolean} [props.auto=false] - Internal: marks the automatic bar so it does not hide itself
  * @param {Function} [props.onRefresh] - Custom refresh handler (defaults to reloading the route)
  * @param {string} [props.className] - Additional container class names
  * @param {string} [props.titleClassName] - Additional title class names
@@ -37,6 +39,7 @@ export function HeaderTitle({
   showBack = true,
   showRefresh = true,
   onRefresh,
+  auto = false,
   className = '',
   titleClassName = '',
   subtitleClassName = '',
@@ -49,6 +52,9 @@ export function HeaderTitle({
     setSlot(document.getElementById('v2-page-bar'));
   }, []);
 
+  // A page that renders its own bar tells the automatic one to step aside
+  useEffect(() => (auto ? undefined : usePageBarStore.getState().register()), [auto]);
+
   // Goes to the previous page, or the overview when there is no history
   const handleBack = () => {
     if (window.history.length > 1) navigate(-1);
@@ -56,9 +62,15 @@ export function HeaderTitle({
   };
 
   // Uses the page's own refresh when given, otherwise re-renders the current route
-  const handleRefresh = () => {
-    if (onRefresh) onRefresh();
-    else navigate(0);
+  const [refreshing, setRefreshing] = useState(false);
+  const handleRefresh = async () => {
+    if (!onRefresh) return navigate(0);
+    setRefreshing(true);
+    try {
+      await onRefresh();
+    } finally {
+      setTimeout(() => setRefreshing(false), 400);
+    }
   };
 
   const renderIcon = (iconClass) => {
@@ -116,7 +128,7 @@ export function HeaderTitle({
               title="Refresh"
               className="flex size-8 items-center justify-center rounded-lg bg-sky-500 text-white transition-colors hover:bg-sky-400 cursor-pointer"
             >
-              <LucideIcons.RotateCw className="size-4" />
+              <LucideIcons.RotateCw className={cn('size-4', refreshing && 'animate-spin')} />
             </button>
           )}
           {actionElements}
