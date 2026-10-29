@@ -5,6 +5,10 @@ interface SendMailOptions {
   subject: string;
   html: string;
   text?: string;
+  cc?: string;
+  replyTo?: string;
+  inReplyTo?: string;
+  references?: string;
 }
 
 export interface TeamInviteEmailParams {
@@ -178,6 +182,10 @@ export const sendMail = async (options: SendMailOptions): Promise<{ success: boo
       subject: options.subject,
       html: options.html,
       text: options.text || options.subject,
+      cc: options.cc,
+      replyTo: options.replyTo,
+      inReplyTo: options.inReplyTo,
+      references: options.references,
     });
     console.log(`✅ [MAILER] Email sent successfully to ${options.to} (ID: ${info.messageId})`);
     return { success: true, messageId: info.messageId };
@@ -195,6 +203,10 @@ export const sendMail = async (options: SendMailOptions): Promise<{ success: boo
         subject: options.subject,
         html: options.html,
         text: options.text || options.subject,
+        cc: options.cc,
+        replyTo: options.replyTo,
+        inReplyTo: options.inReplyTo,
+        references: options.references,
       });
       console.log(`✅ [MAILER-FALLBACK] Email sent successfully to ${options.to} (ID: ${info.messageId})`);
       return { success: true, messageId: info.messageId };
