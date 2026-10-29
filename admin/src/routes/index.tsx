@@ -18,6 +18,7 @@ import { ProjectsPage } from '@/pages/ProjectsPage';
 import { TasksPage } from '@/pages/TasksPage';
 import { ClientsDirectoryPage } from '@/pages/ClientsDirectoryPage';
 import { AgencyTeamPage } from '@/pages/AgencyTeamPage';
+import { CpanelPage } from '@/pages/CpanelPage';
 import { DocumentStudioPage } from '@/features/document-studio/pages/DocumentStudioPage';
 
 import { BalanceOverview as BalanceOverviewPage } from '@/pages/accounts/balanceOverview';
@@ -144,6 +145,14 @@ export const AppRoutes = () => {
         element={
           <AppShell>
             <UsersPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/cpanel"
+        element={
+          <AppShell>
+            <CpanelPage />
           </AppShell>
         }
       />

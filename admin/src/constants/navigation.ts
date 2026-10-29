@@ -21,6 +21,7 @@ import {
   PlusCircle,
   Tag,
   TrendingUp,
+  Server,
 } from 'lucide-react';
 import type { MenuGroup } from '@/types';
 
@@ -259,6 +260,12 @@ export const NAVIGATION_MENU_GROUPS: MenuGroup[] = [
         title: 'Users',
         url: '/users',
         icon: UserCheck,
+      },
+      {
+        title: 'Cpanel',
+        url: '/cpanel',
+        icon: Server,
+        roles: ['owner', 'admin', 'super_admin'],
       },
     ],
   },
