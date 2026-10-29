@@ -21,6 +21,8 @@ export interface MenuItem {
   badge?: string | number;
   badgeVariant?: 'default' | 'secondary' | 'destructive' | 'outline';
   items?: MenuItem[];
+  roles?: string[];
+  excludeRoles?: string[];
 }
 
 export interface MenuGroup {
