@@ -68,6 +68,7 @@ router.post('/docs', hubController.saveProjectDoc);
 
 // Live server vitals for the Cpanel page (admins only)
 router.get('/server/vitals', requireRole('OWNER', 'SUPER_ADMIN', 'ADMIN'), serverController.getServerVitals);
+router.get('/server/containers', requireRole('OWNER', 'SUPER_ADMIN', 'ADMIN'), serverController.getDockerContainers);
 
 // Secure VPS Node Telemetry Ingestion
 router.get('/vps/status', hubController.getVpsNodeStatus);

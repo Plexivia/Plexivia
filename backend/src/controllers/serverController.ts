@@ -149,3 +149,85 @@ export const getServerVitals = async (_req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: error.message || 'Failed to read server vitals' });
   }
 };
+
+// Parses docker's "a=1,b=2" label string into an object
+const parseLabels = (raw = '') =>
+  Object.fromEntries(
+    raw
+      .split(',')
+      .map((pair) => pair.split('='))
+      .filter(([key]) => key)
+      .map(([key, ...value]) => [key.trim(), value.join('=').trim()])
+  );
+
+// Which client a container belongs to: explicit label, compose project, then name prefix
+const clientOf = (name: string, labels: Record<string, string>) =>
+  labels['plexivia.client'] ||
+  labels['com.docker.compose.project'] ||
+  name.split(/[_-]/)[0] ||
+  'unassigned';
+
+// Runs a docker command whose output is one JSON object per line
+const dockerJsonLines = async (args: string[]) => {
+  const { stdout } = await execFileAsync('docker', [...args, '--format', '{{json .}}'], { timeout: 15000, maxBuffer: 10 * 1024 * 1024 });
+  return stdout
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => JSON.parse(line));
+};
+
+// Every Docker container on the VPS with live CPU/RAM, grouped by client
+export const getDockerContainers = async (_req: Request, res: Response) => {
+  try {
+    const [containers, stats] = await Promise.all([
+      dockerJsonLines(['ps', '-a']),
+      dockerJsonLines(['stats', '--no-stream']).catch(() => []),
+    ]);
+    const statsById = new Map(stats.map((s: any) => [String(s.ID).slice(0, 12), s]));
+
+    const groups = new Map<string, any[]>();
+    for (const c of containers) {
+      const labels = parseLabels(c.Labels);
+      const s: any = statsById.get(String(c.ID).slice(0, 12));
+      const client = clientOf(c.Names, labels);
+      const entry = {
+        id: String(c.ID).slice(0, 12),
+        name: c.Names,
+        image: c.Image,
+        state: c.State,
+        status: c.Status,
+        ports: c.Ports,
+        createdAt: c.CreatedAt,
+        cpuPercent: s ? parseFloat(s.CPUPerc) || 0 : null,
+        memUsage: s?.MemUsage || null,
+        memPercent: s ? parseFloat(s.MemPerc) || 0 : null,
+      };
+      groups.set(client, [...(groups.get(client) || []), entry]);
+    }
+
+    const clients = [...groups.entries()]
+      .map(([client, items]) => ({
+        client,
+        total: items.length,
+        running: items.filter((i) => i.state === 'running').length,
+        containers: items.sort((a, b) => a.name.localeCompare(b.name)),
+      }))
+      .sort((a, b) => a.client.localeCompare(b.client));
+
+    return res.json({
+      success: true,
+      data: {
+        total: containers.length,
+        running: containers.filter((c: any) => c.State === 'running').length,
+        clients,
+        sampledAt: new Date().toISOString(),
+      },
+    });
+  } catch (error: any) {
+    const missing = error?.code === 'ENOENT';
+    return res.status(missing ? 503 : 500).json({
+      success: false,
+      message: missing ? 'Docker is not installed on this server.' : error.message || 'Failed to read Docker containers',
+    });
+  }
+};

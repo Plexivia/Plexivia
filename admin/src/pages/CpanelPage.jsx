@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Activity,
+  Box,
+  ChevronDown,
   Cpu,
   ExternalLink,
   GitCommitHorizontal,
@@ -98,11 +100,73 @@ const NetworkChart = ({ points }) => {
   );
 };
 
+// Container state badge colour
+const stateTone = (state) =>
+  state === 'running'
+    ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+    : state === 'restarting' || state === 'paused'
+      ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+      : 'bg-rose-500/15 text-rose-600 dark:text-rose-400';
+
+// One client's containers, collapsible
+const ClientContainers = ({ group }) => {
+  const [open, setOpen] = useState(true);
+  return (
+    <div className="overflow-hidden rounded-lg border">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between gap-3 bg-muted/60 px-3 py-2 text-left cursor-pointer"
+      >
+        <span className="truncate text-sm font-semibold text-foreground">{group.client}</span>
+        <span className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
+          {group.running}/{group.total} running
+          <ChevronDown className={cn('size-4 transition-transform', open && 'rotate-180')} />
+        </span>
+      </button>
+      {open && (
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[640px] text-sm">
+            <thead>
+              <tr className="text-left text-xs text-muted-foreground">
+                <th className="px-3 py-2 font-medium">Container</th>
+                <th className="px-3 py-2 font-medium">State</th>
+                <th className="px-3 py-2 font-medium">CPU</th>
+                <th className="px-3 py-2 font-medium">RAM</th>
+                <th className="px-3 py-2 font-medium">Ports</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {group.containers.map((c) => (
+                <tr key={c.id}>
+                  <td className="px-3 py-2">
+                    <p className="font-medium text-foreground">{c.name}</p>
+                    <p className="truncate font-mono text-[11px] text-muted-foreground">{c.image}</p>
+                  </td>
+                  <td className="px-3 py-2">
+                    <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium capitalize', stateTone(c.state))}>{c.state}</span>
+                    <p className="mt-1 text-[11px] text-muted-foreground">{c.status}</p>
+                  </td>
+                  <td className="px-3 py-2 tabular-nums text-foreground">{c.cpuPercent === null ? '—' : `${c.cpuPercent.toFixed(1)}%`}</td>
+                  <td className="px-3 py-2 tabular-nums text-foreground">{c.memUsage || '—'}</td>
+                  <td className="max-w-[220px] truncate px-3 py-2 font-mono text-[11px] text-muted-foreground" title={c.ports}>{c.ports || '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Server Watch: live VPS vitals, deployments, control panel links and activity
 export const CpanelPage = () => {
   const [vitals, setVitals] = useState(null);
   const [error, setError] = useState('');
   const [network, setNetwork] = useState([]);
+  const [docker, setDocker] = useState(null);
+  const [dockerError, setDockerError] = useState('');
   const timerRef = useRef(null);
 
   const load = useCallback(async () => {
@@ -116,6 +180,13 @@ export const CpanelPage = () => {
       }
     } catch (err) {
       setError(err?.response?.data?.message || err?.message || 'Could not reach the server.');
+    }
+    try {
+      const { data } = await apiClient.get('/api/v1/hub/server/containers');
+      setDocker(data?.data);
+      setDockerError('');
+    } catch (err) {
+      setDockerError(err?.response?.data?.message || err?.message || 'Could not read Docker containers.');
     }
   }, []);
 
@@ -194,6 +265,25 @@ export const CpanelPage = () => {
           Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-[132px] rounded-xl" />)
         )}
       </div>
+
+      {/* Docker containers by client */}
+      <Card
+        title="Docker containers"
+        icon={Box}
+        aside={docker && <span className="text-xs text-muted-foreground">{docker.running}/{docker.total} running · {docker.clients.length} clients</span>}
+      >
+        {dockerError ? (
+          <p className="text-sm text-rose-600 dark:text-rose-400">{dockerError}</p>
+        ) : !docker ? (
+          <Skeleton className="h-32 rounded-lg" />
+        ) : docker.clients.length === 0 ? (
+          <p className="py-4 text-center text-sm text-muted-foreground">No containers on this server.</p>
+        ) : (
+          <div className="space-y-3">
+            {docker.clients.map((group) => <ClientContainers key={group.client} group={group} />)}
+          </div>
+        )}
+      </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Deployments */}
