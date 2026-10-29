@@ -14,7 +14,7 @@ app.use(express.json());
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', service: 'agency-service', version: '2.0.0', timestamp: new Date().toISOString() });
+  res.json({ status: 'ok', service: 'agency-service', version: '2.0.2', timestamp: new Date().toISOString() });
 });
 
 // Register routes

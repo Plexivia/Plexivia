@@ -36,7 +36,7 @@ export const getHubOverview = async (_req: Request, res: Response) => {
       status: 'success',
       data: {
         service: 'hub-service',
-        version: '2.0.0',
+        version: '2.0.2',
         counts: {
           clients: totalClients,
           supportTickets: totalTickets,

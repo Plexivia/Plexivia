@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# 🚀 Plexivia Microservices Automated VPS Deployment Script (v2.0.0)
+# 🚀 Plexivia Microservices Automated VPS Deployment Script (v2.0.2)
 # ==============================================================================
 set -euo pipefail
 
 echo "==============================================================="
-echo "🔄 Starting Plexivia Production Deployment (v2.0.0)"
+echo "🔄 Starting Plexivia Production Deployment (v2.0.2)"
 echo "📅 $(date)"
 echo "==============================================================="
 
@@ -73,5 +73,5 @@ sleep 2
 curl -s http://127.0.0.1:5095/api/health || echo "⚠️ Check backend logs: journalctl -u plexivia-backend -n 50"
 
 echo "==============================================================="
-echo "✅ Deployment Completed Successfully! (v2.0.0)"
+echo "✅ Deployment Completed Successfully! (v2.0.2)"
 echo "==============================================================="
