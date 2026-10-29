@@ -1,3 +1,4 @@
+import { HeaderTitle } from '@/components/common/HeaderTitle';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -74,27 +75,11 @@ export const OverviewPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <LayoutDashboard className="w-6 h-6 text-cyan-500" />
-            <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white font-mono tracking-tight">Overview</h1>
-          </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-mono">
-            Mail, support and delivery at a glance.
-          </p>
-        </div>
-        <button
-          onClick={() => {
-            refreshAll();
-            loadExtras();
-          }}
-          title="Refresh"
-          className="p-2.5 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl border border-slate-200 dark:border-slate-800 transition cursor-pointer shadow-xs"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-cyan-500' : ''}`} />
-        </button>
-      </div>
+      <HeaderTitle
+        icon={LayoutDashboard}
+        title="Overview"
+        onRefresh={() => { refreshAll(); loadExtras(); }}
+      />
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {stats.map((s) => (

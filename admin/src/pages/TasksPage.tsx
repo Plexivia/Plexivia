@@ -1,3 +1,4 @@
+import { HeaderTitle } from '@/components/common/HeaderTitle';
 import React, { useState, useMemo } from 'react';
 import { useData } from '../context/DataContext';
 import { KanbanBoard } from '../components/kanban/KanbanBoard';
@@ -51,37 +52,20 @@ export const TasksPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Top Header & Fast Actions */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <CheckSquare className="w-6 h-6 text-cyan-500" />
-            <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white font-mono tracking-tight">
-              Task Hub & Sprint Board
-            </h1>
-          </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-mono">
-            Interactive Kanban board, issue tracker, workload allocation, and sprint delivery.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={() => refreshAll()}
-            title="Refresh Tasks"
-            className="p-2.5 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl border border-slate-200 dark:border-slate-800 transition cursor-pointer shadow-xs"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-cyan-500' : ''}`} />
-          </button>
-
+      <HeaderTitle
+        icon={CheckSquare}
+        title="Task Hub & Sprint Board"
+        onRefresh={refreshAll}
+        actions={
           <button
             onClick={() => handleOpenCreate('TODO')}
-            className="flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold font-mono shadow-md shadow-cyan-500/20 transition cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-bold font-mono shadow-md shadow-cyan-500/20 transition cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>New Task</span>
           </button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Quick Stats Counters Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">

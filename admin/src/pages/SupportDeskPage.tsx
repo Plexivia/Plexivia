@@ -1,3 +1,5 @@
+import { HeaderTitle } from '@/components/common/HeaderTitle';
+import { UnifiedDataTable, DataTableColumnHeader } from '@/components/ui/unified-table';
 import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { LifeBuoy, Plus, RefreshCw, X } from 'lucide-react';
@@ -46,7 +48,6 @@ export const SupportDeskPage: React.FC = () => {
   const { clients } = useData();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(false);
-  const [filter, setFilter] = useState('ACTIVE');
   const [creating, setCreating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ client_id: '', subject: '', description: '', category: 'DEPLOYMENT', priority: 'MEDIUM' });
@@ -68,19 +69,6 @@ export const SupportDeskPage: React.FC = () => {
   useEffect(() => {
     loadTickets();
   }, []);
-
-  const visible = useMemo(() => {
-    if (filter === 'ALL') return tickets;
-    if (filter === 'ACTIVE') return tickets.filter((t) => ['OPEN', 'IN_PROGRESS', 'WAITING_CLIENT'].includes(t.status));
-    return tickets.filter((t) => t.status === filter);
-  }, [tickets, filter]);
-
-  const countFor = (f: string) =>
-    f === 'ALL'
-      ? tickets.length
-      : f === 'ACTIVE'
-      ? tickets.filter((t) => ['OPEN', 'IN_PROGRESS', 'WAITING_CLIENT'].includes(t.status)).length
-      : tickets.filter((t) => t.status === f).length;
 
   const changeStatus = async (ticket: Ticket, status: string) => {
     try {
@@ -112,48 +100,79 @@ export const SupportDeskPage: React.FC = () => {
     }
   };
 
+  const columns = [
+    {
+      accessorKey: 'ticket_number',
+      header: ({ column }: any) => <DataTableColumnHeader column={column} title="Ticket" />,
+      cell: ({ getValue }: any) => <span className="font-mono text-xs font-bold text-primary">{getValue()}</span>,
+    },
+    {
+      id: 'subject',
+      accessorFn: (t: Ticket) => `${t.subject} ${t.client_name} ${t.description || ''}`,
+      header: ({ column }: any) => <DataTableColumnHeader column={column} title="Subject" />,
+      cell: ({ row }: any) => (
+        <div className="min-w-0 max-w-[360px]">
+          <div className="truncate font-semibold text-foreground">{row.original.subject}</div>
+          {row.original.description && <div className="truncate text-xs text-muted-foreground">{row.original.description}</div>}
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'client_name',
+      header: ({ column }: any) => <DataTableColumnHeader column={column} title="Client" />,
+      cell: ({ getValue }: any) => <span className="text-muted-foreground">{getValue() || '—'}</span>,
+    },
+    {
+      accessorKey: 'category',
+      header: ({ column }: any) => <DataTableColumnHeader column={column} title="Category" />,
+      filterFn: 'arrIncludesSome' as const,
+      cell: ({ getValue }: any) => <span className="font-mono text-[11px] text-muted-foreground">{getValue()}</span>,
+    },
+    {
+      accessorKey: 'priority',
+      header: ({ column }: any) => <DataTableColumnHeader column={column} title="Priority" />,
+      filterFn: 'arrIncludesSome' as const,
+      cell: ({ getValue }: any) => <span className={`font-mono text-[11px] font-bold ${PRIORITY_TONE[getValue()] || ''}`}>{getValue()}</span>,
+    },
+    {
+      accessorKey: 'status',
+      header: ({ column }: any) => <DataTableColumnHeader column={column} title="Status" />,
+      filterFn: 'arrIncludesSome' as const,
+      cell: ({ row }: any) => (
+        <select
+          value={row.original.status}
+          onChange={(e) => changeStatus(row.original, e.target.value)}
+          onClick={(e) => e.stopPropagation()}
+          className={`h-7 cursor-pointer rounded-md border-0 px-2 font-mono text-[11px] font-bold ${STATUS_TONE[row.original.status] || ''}`}
+        >
+          {STATUSES.map((s) => (
+            <option key={s} value={s}>{label(s)}</option>
+          ))}
+        </select>
+      ),
+    },
+    {
+      accessorKey: 'created_at',
+      header: ({ column }: any) => <DataTableColumnHeader column={column} title="Created" />,
+      cell: ({ getValue }: any) => <span className="font-mono text-xs text-muted-foreground">{new Date(getValue()).toLocaleDateString()}</span>,
+    },
+  ];
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <LifeBuoy className="w-6 h-6 text-cyan-500" />
-            <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white font-mono tracking-tight">Support Desk</h1>
-          </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-mono">Client tickets, priorities and resolution status.</p>
-        </div>
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={loadTickets}
-            title="Refresh"
-            className="p-2.5 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-xl border border-slate-200 dark:border-slate-800 transition cursor-pointer shadow-xs"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-cyan-500' : ''}`} />
-          </button>
+      <HeaderTitle
+        icon={LifeBuoy}
+        title="Support Desk"
+        onRefresh={loadTickets}
+        actions={
           <button
             onClick={() => setCreating(true)}
-            className="flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold font-mono shadow-md shadow-cyan-500/20 transition cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-bold font-mono shadow-md shadow-cyan-500/20 transition cursor-pointer"
           >
             <Plus className="w-4 h-4" /> New Ticket
           </button>
-        </div>
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        {['ACTIVE', 'ALL', ...STATUSES].map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`px-3 h-7 rounded-full text-[11px] font-mono font-bold cursor-pointer border transition ${
-              filter === f
-                ? 'bg-cyan-500/15 border-cyan-500/50 text-cyan-600 dark:text-cyan-300'
-                : 'border-slate-200 dark:border-slate-700 text-slate-500 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            {label(f)} ({countFor(f)})
-          </button>
-        ))}
-      </div>
+        }
+      />
 
       {creating && (
         <form onSubmit={handleCreate} className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-4 space-y-3">
@@ -192,39 +211,19 @@ export const SupportDeskPage: React.FC = () => {
         </form>
       )}
 
-      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 overflow-hidden">
-        {visible.length === 0 ? (
-          <p className="px-4 py-10 text-center text-xs text-slate-500">{loading ? 'Loading…' : 'No tickets here.'}</p>
-        ) : (
-          <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-            {visible.map((t) => (
-              <li key={t.dId} className="px-4 py-3 flex flex-wrap items-center gap-3">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-mono text-slate-400">{t.ticket_number}</span>
-                    <span className={`text-[10px] font-mono font-bold ${PRIORITY_TONE[t.priority] || ''}`}>{t.priority}</span>
-                    <span className="text-[10px] font-mono text-slate-400">{t.category}</span>
-                  </div>
-                  <div className="text-sm font-semibold text-slate-900 dark:text-white truncate">{t.subject}</div>
-                  <div className="text-xs text-slate-500 truncate">
-                    {t.client_name} · {new Date(t.created_at).toLocaleDateString()}
-                    {t.description ? ` · ${t.description}` : ''}
-                  </div>
-                </div>
-                <select
-                  value={t.status}
-                  onChange={(e) => changeStatus(t, e.target.value)}
-                  className={`text-[11px] font-mono font-bold px-2 h-7 rounded-md border-0 cursor-pointer ${STATUS_TONE[t.status] || ''}`}
-                >
-                  {STATUSES.map((s) => (
-                    <option key={s} value={s}>{label(s)}</option>
-                  ))}
-                </select>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      <UnifiedDataTable
+        columns={columns}
+        data={tickets}
+        isLoading={loading && tickets.length === 0}
+        searchPlaceholder="Search tickets by number, subject, or client..."
+        facetedFilters={[
+          { columnId: 'status', title: 'Status', options: STATUSES.map((v) => ({ label: label(v), value: v })) },
+          { columnId: 'priority', title: 'Priority', options: PRIORITIES.map((v) => ({ label: v, value: v })) },
+          { columnId: 'category', title: 'Category', options: CATEGORIES.map((v) => ({ label: v, value: v })) },
+        ]}
+        exportFilename="support-tickets"
+        emptyTitle="No tickets here"
+      />
     </div>
   );
 };

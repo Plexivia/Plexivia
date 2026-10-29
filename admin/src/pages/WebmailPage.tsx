@@ -33,6 +33,7 @@ import {
 import { apiClient } from '@/lib/api-client';
 import { getGenericErrorMessage } from '@/lib/error-handler';
 import { Modal } from '@/components/common/Modal';
+import { HeaderTitle } from '@/components/common/HeaderTitle';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { subscribeRealtime, useNotificationStore } from '@/store/useNotificationStore';
 
@@ -434,48 +435,47 @@ export const WebmailPage: React.FC = () => {
   return (
     <div className="space-y-6 min-w-0">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <Mail className="w-6 h-6 text-cyan-500" />
-            <h1 className="text-2xl font-extrabold text-foreground font-mono tracking-tight">Webmail</h1>
+      <HeaderTitle
+        icon={Mail}
+        title="Webmail"
+        badge={mailbox || 'Mailbox not configured'}
+        onRefresh={() => refreshAll()}
+        actions={
+          <>
             <span
               title={connected ? 'Live: new mail appears instantly' : 'Live updates reconnecting'}
-              className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold font-mono ${
-                connected ? 'bg-emerald-500/10 text-emerald-500' : 'bg-slate-500/10 text-muted-foreground'
+              className={`flex h-8 items-center gap-1 rounded-lg px-2.5 text-[10px] font-bold font-mono ${
+                connected ? 'bg-emerald-500 text-white' : 'bg-slate-600 text-white'
               }`}
             >
-              {connected ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
+              {connected ? <Wifi className="size-3" /> : <WifiOff className="size-3" />}
               {connected ? 'LIVE' : 'OFFLINE'}
             </span>
-          </div>
-          <p className="text-xs text-muted-foreground mt-1 font-mono truncate">{mailbox || 'Mailbox not configured'}</p>
-        </div>
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={() => setSettingsOpen(true)}
-            title="Mail settings"
-            className="p-2.5 bg-card hover:bg-muted text-muted-foreground rounded-xl border border-border transition cursor-pointer shadow-xs"
-          >
-            <Settings className="w-4 h-4" />
-          </button>
-          <button
-            onClick={syncNow}
-            disabled={syncing}
-            title="Sync with mail server"
-            className="flex items-center gap-1.5 px-3 py-2.5 bg-card hover:bg-muted text-muted-foreground rounded-xl border border-border transition cursor-pointer shadow-xs text-xs font-semibold"
-          >
-            <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin text-cyan-500' : ''}`} />
-            <span className="hidden sm:inline">{syncing ? 'Syncing…' : 'Sync'}</span>
-          </button>
-          <button
-            onClick={() => openCompose()}
-            className="flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold font-mono shadow-md shadow-cyan-500/20 transition cursor-pointer"
-          >
-            <PenSquare className="w-4 h-4" /> Compose
-          </button>
-        </div>
-      </div>
+            <button
+              onClick={() => setSettingsOpen(true)}
+              title="Mail settings"
+              className="flex size-8 items-center justify-center rounded-lg bg-slate-600 text-white transition-colors hover:bg-slate-500 cursor-pointer"
+            >
+              <Settings className="size-4" />
+            </button>
+            <button
+              onClick={syncNow}
+              disabled={syncing}
+              title="Sync with mail server"
+              className="flex h-8 items-center gap-1.5 rounded-lg bg-sky-500 px-3 text-xs font-bold text-white transition-colors hover:bg-sky-400 cursor-pointer disabled:opacity-60"
+            >
+              <RefreshCw className={`size-3.5 ${syncing ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">{syncing ? 'Syncing…' : 'Sync'}</span>
+            </button>
+            <button
+              onClick={() => openCompose()}
+              className="flex h-8 items-center gap-1.5 rounded-lg bg-cyan-600 px-3 text-xs font-bold text-white transition-colors hover:bg-cyan-500 cursor-pointer"
+            >
+              <PenSquare className="size-3.5" /> Compose
+            </button>
+          </>
+        }
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-[minmax(0,340px)_minmax(0,1fr)] xl:grid-cols-[190px_minmax(0,370px)_minmax(0,1fr)] gap-0 rounded-xl border border-border bg-card overflow-hidden shadow-xs min-h-[640px]">
         {/* Folders */}
@@ -488,7 +488,7 @@ export const WebmailPage: React.FC = () => {
                 key={f.id}
                 onClick={() => changeFolder(f.id)}
                 className={`flex items-center gap-2 px-3 h-8 rounded-lg text-[13px] font-medium cursor-pointer transition shrink-0 ${
-                  active ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-slate-950 font-bold' : 'text-muted-foreground hover:bg-muted'
+                  active ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-muted-foreground hover:bg-muted'
                 }`}
               >
                 <Icon className="w-4 h-4" />

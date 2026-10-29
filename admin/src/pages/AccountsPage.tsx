@@ -1,3 +1,5 @@
+import { HeaderTitle } from '@/components/common/HeaderTitle';
+import { UnifiedDataTable, DataTableColumnHeader } from '@/components/ui/unified-table';
 import React, { useState, useMemo } from 'react';
 import { useData } from '../context/DataContext';
 import {
@@ -19,9 +21,7 @@ import {
 
 // Render accounts and financial ledger page with BDT retainer and payroll metrics
 export const AccountsPage: React.FC = () => {
-  const { clients, users } = useData();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const { clients, users, refreshAll } = useData();
 
   const safeClients = Array.isArray(clients) ? clients : [];
   const safeUsers = Array.isArray(users) ? users : [];
@@ -36,31 +36,61 @@ export const AccountsPage: React.FC = () => {
 
   const netMonthlyCashflow = totalMonthlyRetainers - totalMonthlyPayroll;
 
-  const filteredClients = useMemo(() => {
-    return safeClients.filter(c => {
-      const matchSearch =
-        (c.business_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (c.client_key || '').toLowerCase().includes(searchQuery.toLowerCase());
-      const matchStatus = statusFilter === 'ALL' || c.status === statusFilter;
-      return matchSearch && matchStatus;
-    });
-  }, [safeClients, searchQuery, statusFilter]);
+  const columns = [
+    {
+      id: 'business',
+      accessorFn: (c: any) => `${c.business_name || ''} ${c.client_key || ''}`,
+      header: ({ column }: any) => <DataTableColumnHeader column={column} title="Client / Business" />,
+      cell: ({ row }: any) => <span className="font-bold text-foreground">{row.original.business_name}</span>,
+    },
+    {
+      accessorKey: 'client_key',
+      header: ({ column }: any) => <DataTableColumnHeader column={column} title="Slug" />,
+      cell: ({ getValue }: any) => <span className="font-mono text-xs text-primary">@{getValue()}</span>,
+    },
+    {
+      accessorKey: 'client_type',
+      header: ({ column }: any) => <DataTableColumnHeader column={column} title="Architecture" />,
+      filterFn: 'arrIncludesSome' as const,
+      cell: ({ getValue }: any) => <span className="text-muted-foreground">{getValue() === 'MULTI_TENANT_ECOMMERCE' ? 'Multi-Tenant' : 'Single-Tenant'}</span>,
+    },
+    {
+      accessorKey: 'monthly_retainer',
+      header: ({ column }: any) => <DataTableColumnHeader column={column} title="Monthly Retainer (BDT)" />,
+      cell: ({ getValue }: any) => (
+        <span className="font-mono text-xs font-bold tabular-nums text-emerald-600 dark:text-emerald-400">৳{Number(getValue() || 0).toLocaleString('en-BD')} / mo</span>
+      ),
+    },
+    {
+      id: 'annual',
+      accessorFn: (c: any) => (c.monthly_retainer || 0) * 12,
+      header: ({ column }: any) => <DataTableColumnHeader column={column} title="Annualized Value (BDT)" />,
+      cell: ({ getValue }: any) => <span className="font-mono text-xs tabular-nums text-foreground">৳{Number(getValue()).toLocaleString('en-BD')} / yr</span>,
+    },
+    {
+      id: 'status',
+      accessorFn: (c: any) => c.status || 'ACTIVE',
+      header: ({ column }: any) => <DataTableColumnHeader column={column} title="Contract Status" />,
+      filterFn: 'arrIncludesSome' as const,
+      cell: ({ getValue }: any) => (
+        <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold ${
+          getValue() === 'ACTIVE'
+            ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+            : 'border-slate-500/30 bg-slate-500/10 text-muted-foreground'
+        }`}>
+          {getValue()}
+        </span>
+      ),
+    },
+  ];
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <Wallet className="w-6 h-6 text-cyan-500" />
-            <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight font-mono">
-              Accounts & Financial Ledger
-            </h1>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Agency cashflow, monthly retainer revenue, payroll disbursement forecasts, and billing logs (BDT).
-          </p>
-        </div>
-      </div>
+      <HeaderTitle
+        icon={Wallet}
+        title="Accounts & Financial Ledger"
+        onRefresh={refreshAll}
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-4 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 shadow-xs space-y-2">
@@ -130,97 +160,38 @@ export const AccountsPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="p-4 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-3 flex-1">
-          <div className="relative flex-1 max-w-md">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search billing ledger by business name or slug..."
-              className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono"
-            />
-          </div>
-
-          <select
-            value={statusFilter}
-            onChange={e => setStatusFilter(e.target.value)}
-            className="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:border-cyan-500 font-mono"
-          >
-            <option value="ALL">All Account Statuses</option>
-            <option value="ACTIVE">Active Contracts</option>
-            <option value="INACTIVE">Inactive Contracts</option>
-          </select>
-        </div>
+      <div className="flex items-center gap-2">
+        <Receipt className="size-4 text-primary" />
+        <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-foreground">
+          Client Monthly Billing & Retainer Ledger (BDT)
+        </h3>
       </div>
 
-      <div className="bg-white dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-xs overflow-hidden">
-        <div className="p-4 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Receipt className="w-4 h-4 text-cyan-500" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white font-mono">
-              Client Monthly Billing & Retainer Ledger (BDT)
-            </h3>
-          </div>
-          <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
-            Showing {filteredClients.length} accounts
-          </span>
-        </div>
-
-        <div className="overflow-x-auto scrollbar-theme">
-          <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
-            <thead className="bg-slate-50 dark:bg-slate-950/60 text-slate-500 dark:text-slate-400 font-mono uppercase text-[10px] border-b border-slate-200 dark:border-slate-800">
-              <tr>
-                <th className="p-3">Client / Business</th>
-                <th className="p-3">Slug</th>
-                <th className="p-3">Architecture</th>
-                <th className="p-3">Monthly Retainer (BDT)</th>
-                <th className="p-3">Annualized Value (BDT)</th>
-                <th className="p-3">Contract Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-mono text-[11px]">
-              {filteredClients.map(client => (
-                <tr key={client.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-850/40 transition">
-                  <td className="p-3 font-bold text-slate-900 dark:text-white">
-                    {client.business_name}
-                  </td>
-                  <td className="p-3 text-cyan-600 dark:text-cyan-400 font-mono">
-                    @{client.client_key}
-                  </td>
-                  <td className="p-3 text-slate-500 dark:text-slate-400">
-                    {client.client_type === 'MULTI_TENANT_ECOMMERCE' ? 'Multi-Tenant' : 'Single-Tenant'}
-                  </td>
-                  <td className="p-3 font-bold text-emerald-600 dark:text-emerald-400 font-mono">
-                    ৳{(client.monthly_retainer || 0).toLocaleString('en-BD')} / mo
-                  </td>
-                  <td className="p-3 text-slate-700 dark:text-slate-300 font-mono">
-                    ৳{((client.monthly_retainer || 0) * 12).toLocaleString('en-BD')} / yr
-                  </td>
-                  <td className="p-3">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                      client.status === 'ACTIVE'
-                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
-                        : 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/30'
-                    }`}>
-                      {client.status || 'ACTIVE'}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-
-              {filteredClients.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="p-8 text-center text-slate-500 font-mono text-xs">
-                    No client accounts matching current search/filter.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <UnifiedDataTable
+        columns={columns}
+        data={safeClients}
+        searchPlaceholder="Search billing ledger by business name or slug..."
+        facetedFilters={[
+          {
+            columnId: 'client_type',
+            title: 'Architecture',
+            options: [
+              { label: 'Multi-Tenant', value: 'MULTI_TENANT_ECOMMERCE' },
+              { label: 'Single-Tenant', value: 'SINGLE_TENANT' },
+            ],
+          },
+          {
+            columnId: 'status',
+            title: 'Contract Status',
+            options: [
+              { label: 'Active', value: 'ACTIVE' },
+              { label: 'Inactive', value: 'INACTIVE' },
+            ],
+          },
+        ]}
+        exportFilename="billing-ledger"
+        emptyTitle="No client accounts found"
+      />
     </div>
   );
 };
