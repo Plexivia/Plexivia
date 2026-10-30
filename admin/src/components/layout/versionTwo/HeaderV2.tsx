@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Bell, Menu, Moon, Search, Sparkles, Sun, X } from 'lucide-react';
+import { Bell, Menu, Search, Sparkles, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useThemeStore } from '@/store/useThemeStore';
 import { useAppStore } from '@/store/useAppStore';
 import { useNotificationStore } from '@/store/useNotificationStore';
 
@@ -32,11 +31,9 @@ const cleanAppCache = async () => {
 
 // Renders the TailAdmin-style always-dark top navbar for layout version two
 export const HeaderV2 = ({ isMobileOpen, onToggleSidebar, onOpenNotifications }: HeaderV2Props) => {
-  const { theme, toggleTheme } = useThemeStore();
   const { setSearchModalOpen } = useAppStore();
   const unreadCount = useNotificationStore((s) => s.unreadCount);
   const [isCleaning, setIsCleaning] = useState(false);
-  const isDark = theme === 'dark';
 
   // Runs the cache clean once and shows a busy state until the page reloads
   const handleCleanCache = () => {
@@ -90,15 +87,6 @@ export const HeaderV2 = ({ isMobileOpen, onToggleSidebar, onOpenNotifications }:
           >
             <Sparkles className={cn('size-3.5', isCleaning && 'animate-spin')} />
             <span className="hidden sm:inline">{isCleaning ? 'Cleaning...' : 'Clean Cache'}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={toggleTheme}
-            aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
-            className={iconButtonClass}
-          >
-            {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
           </button>
 
           <button

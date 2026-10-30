@@ -75,7 +75,7 @@ export const LayoutV2 = ({ menuGroups, user, onLogout, onOpenNotifications, moda
         />
         {/* Full-width page bar; HeaderTitle portals its content here */}
         <div id="v2-page-bar" className="empty:hidden" />
-        <main className="mx-auto w-full max-w-[1400px] space-y-6 p-4 md:p-6">
+        <main className="dashboard-main mx-auto w-full max-w-[1400px] space-y-6 p-4 md:p-6">
           {children}
         </main>
       </div>

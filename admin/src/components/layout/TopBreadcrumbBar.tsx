@@ -5,12 +5,9 @@ import {
   ChevronRight,
   Home,
   Search,
-  Sun,
-  Moon,
   Bell,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useThemeStore } from '@/store/useThemeStore';
 import { useAppStore } from '@/store/useAppStore';
 
 interface BreadcrumbItem {
@@ -31,7 +28,6 @@ export function TopBreadcrumbBar({
 }: TopBreadcrumbBarProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { theme, toggleTheme } = useThemeStore();
   const { setSearchModalOpen } = useAppStore();
 
   // Automatically derive breadcrumbs from current path if not explicitly provided
@@ -127,22 +123,6 @@ export function TopBreadcrumbBar({
             ⌘K
           </kbd>
         </button>
-
-        {/* Theme Toggle Button */}
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          onClick={toggleTheme}
-          className="text-muted-foreground hover:text-foreground"
-          title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-        >
-          {theme === 'dark' ? (
-            <Sun className="w-4 h-4 text-amber-400 transition-transform duration-300 rotate-0" />
-          ) : (
-            <Moon className="w-4 h-4 text-cyan-600 transition-transform duration-300 rotate-0" />
-          )}
-        </Button>
 
         {/* Notifications Icon Button */}
         <Button

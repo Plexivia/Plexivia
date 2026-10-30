@@ -16,7 +16,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
   const [clientId, setClientId] = useState(safeClients[0]?.id || '');
   const [projectName, setProjectName] = useState('');
   const [projectCode, setProjectCode] = useState('');
-  const [projectType, setProjectType] = useState<ProjectType>('ECOMMERCE_MULTITENANT');
+  const [projectType, setProjectType] = useState<ProjectType>('WHITELABEL_ECOMMERCE');
   const [gitRepoUrl, setGitRepoUrl] = useState('');
   const [productionUrl, setProductionUrl] = useState('');
   const [leadId, setLeadId] = useState(safeUsers[0]?.id || '');
@@ -95,7 +95,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
             >
               {safeClients.map(c => (
                 <option key={c.id} value={c.id}>
-                  {c.business_name} ({c.client_type})
+                  {c.business_name}{c.client_name ? ` (${c.client_name})` : ''}
                 </option>
               ))}
             </select>
@@ -104,18 +104,18 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
           {/* Project Type */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-              Architecture Type *
+              Project Type *
             </label>
             <select
               value={projectType}
               onChange={e => setProjectType(e.target.value as ProjectType)}
               className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 font-mono shadow-2xs"
             >
-              <option value="ECOMMERCE_MULTITENANT">Multi-Tenant eCommerce</option>
-              <option value="CUSTOM_WEB">Custom Web App / CMS</option>
-              <option value="SRE_INFRA">SRE & Infrastructure Ops</option>
-              <option value="MOBILE_APP">Mobile App (React Native)</option>
-              <option value="SYSTEM_MIGRATION">System Cloud Migration</option>
+              <option value="WHITELABEL_ECOMMERCE">Whitelabel Ecommerce</option>
+              <option value="WEB_APP">Web App</option>
+              <option value="META_MARKETING">Meta Marketing</option>
+              <option value="SEO">SEO</option>
+              <option value="ERP">ERP</option>
             </select>
           </div>
 

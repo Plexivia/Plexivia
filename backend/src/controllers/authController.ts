@@ -434,6 +434,32 @@ export const getMe = async (req: AuthedRequest, res: Response) => {
   }
 };
 
+const SELF_UPDATABLE_FIELDS = ['full_name', 'phone', 'designation', 'address', 'country', 'city', 'postal_code', 'avatar'];
+
+// Let the signed-in user edit their own profile details (role, email and status stay admin-managed)
+export const updateMe = async (req: AuthedRequest, res: Response) => {
+  try {
+    const body = req.body || {};
+    const updates: Record<string, any> = {};
+    for (const key of SELF_UPDATABLE_FIELDS) {
+      if (typeof body[key] === 'string') updates[key] = body[key].trim();
+    }
+    if (typeof body.name === 'string' && updates.full_name === undefined) updates.full_name = body.name.trim();
+    if (updates.full_name !== undefined && !updates.full_name) {
+      return res.status(400).json({ success: false, message: 'Name cannot be empty' });
+    }
+    updates.updated_at = new Date().toISOString();
+
+    const admin = await getAdminModel().findByIdAndUpdate(req.auth?.sub, { $set: updates }, { new: true, runValidators: true });
+    if (!admin) {
+      return res.status(404).json({ success: false, message: 'Profile not found' });
+    }
+    return res.json({ success: true, message: 'Profile updated successfully', data: { user: admin } });
+  } catch {
+    return res.status(500).json({ success: false, message: 'Failed to update profile' });
+  }
+};
+
 // Retrieve secret credentials vault for a specific client with access protection
 export const getClientVault = async (req: Request, res: Response) => {
   try {

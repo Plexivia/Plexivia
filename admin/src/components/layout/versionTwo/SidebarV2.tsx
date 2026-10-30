@@ -206,7 +206,7 @@ export const SidebarV2 = ({
       onMouseEnter={() => !isExpanded && onHoverChange(true)}
       onMouseLeave={() => onHoverChange(false)}
       className={cn(
-        'fixed top-0 start-0 z-50 flex h-dvh flex-col overflow-hidden border-e border-v2-border bg-v2-shell px-3 text-white transition-[width,translate] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]',
+        'dashboard-sidebar fixed top-0 start-0 z-50 flex h-dvh flex-col overflow-hidden border-e border-v2-border bg-v2-shell px-3 text-white transition-[width,translate] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]',
         showFull ? 'w-[250px]' : 'w-[72px]',
         isMobileOpen ? 'translate-x-0' : '-translate-x-full rtl:translate-x-full',
         'lg:translate-x-0 rtl:lg:translate-x-0'

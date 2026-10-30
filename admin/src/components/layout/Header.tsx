@@ -1,13 +1,10 @@
 ﻿import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { useTheme } from '../../context/ThemeContext';
 import { useData } from '../../context/DataContext';
 import { RoleBadge } from '../common/Badge';
 import {
   Menu,
   Search,
-  Sun,
-  Moon,
   Bell,
   LogOut,
   Play,
@@ -32,7 +29,6 @@ export const Header: React.FC<HeaderProps> = ({
   unreadNotificationsCount = 2,
 }) => {
   const { user, logout, openLoginModal } = useAuth();
-  const { theme, toggleTheme } = useTheme();
   const { activeTimer, pauseTimer, resumeTimer, stopTimer } = useData();
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
@@ -117,19 +113,6 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
         )}
-
-        {/* Dark / Light Mode Toggle */}
-        <button
-          onClick={toggleTheme}
-          title={`Switch theme`}
-          className="p-2 text-slate-400 hover:text-white rounded-xl bg-slate-900/80 hover:bg-slate-900 border border-slate-800 transition-colors cursor-pointer"
-        >
-          {theme === 'dark' ? (
-            <Sun className="w-4 h-4 text-amber-400" />
-          ) : (
-            <Moon className="w-4 h-4 text-cyan-400" />
-          )}
-        </button>
 
         {/* Notifications Button */}
         <button

@@ -45,7 +45,7 @@ export function DashboardLayout({
           {/* Dynamic Content View Container (Stable scrollbar-gutter prevents width jitter between pages) */}
           <main
             className={cn(
-              'flex-1 min-h-0 overflow-y-auto w-full scrollbar-theme',
+              'dashboard-main flex-1 min-h-0 overflow-y-auto w-full scrollbar-theme',
               mainClassName
             )}
             style={{ scrollbarGutter: 'stable' }}

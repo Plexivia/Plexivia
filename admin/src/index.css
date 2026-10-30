@@ -59,25 +59,93 @@
 
 }
 
+/*
+ * No-gray palette: every gray-family Tailwind scale (slate, gray, zinc, neutral, stone) is
+ * rebuilt from the three --ui-* variables below, so no utility can render a neutral gray.
+ * Change --ui-bg / --ui-text / --ui-accent in :root and the whole dashboard follows.
+ */
+@theme {
+  --color-slate-50: color-mix(in srgb, var(--ui-accent) 4%, var(--ui-bg));
+  --color-slate-100: color-mix(in srgb, var(--ui-accent) 8%, var(--ui-bg));
+  --color-slate-200: color-mix(in srgb, var(--ui-accent) 25%, var(--ui-bg));
+  --color-slate-300: color-mix(in srgb, var(--ui-accent) 40%, var(--ui-bg));
+  --color-slate-400: color-mix(in srgb, var(--ui-accent) 80%, var(--ui-text));
+  --color-slate-500: color-mix(in srgb, var(--ui-accent) 65%, var(--ui-text));
+  --color-slate-600: color-mix(in srgb, var(--ui-accent) 50%, var(--ui-text));
+  --color-slate-700: color-mix(in srgb, var(--ui-accent) 30%, var(--ui-text));
+  --color-slate-800: color-mix(in srgb, var(--ui-accent) 18%, var(--ui-text));
+  --color-slate-900: color-mix(in srgb, var(--ui-accent) 8%, var(--ui-text));
+  --color-slate-950: color-mix(in srgb, var(--ui-accent) 0%, var(--ui-text));
+  --color-gray-50: var(--color-slate-50);
+  --color-gray-100: var(--color-slate-100);
+  --color-gray-200: var(--color-slate-200);
+  --color-gray-300: var(--color-slate-300);
+  --color-gray-400: var(--color-slate-400);
+  --color-gray-500: var(--color-slate-500);
+  --color-gray-600: var(--color-slate-600);
+  --color-gray-700: var(--color-slate-700);
+  --color-gray-800: var(--color-slate-800);
+  --color-gray-900: var(--color-slate-900);
+  --color-gray-950: var(--color-slate-950);
+  --color-zinc-50: var(--color-slate-50);
+  --color-zinc-100: var(--color-slate-100);
+  --color-zinc-200: var(--color-slate-200);
+  --color-zinc-300: var(--color-slate-300);
+  --color-zinc-400: var(--color-slate-400);
+  --color-zinc-500: var(--color-slate-500);
+  --color-zinc-600: var(--color-slate-600);
+  --color-zinc-700: var(--color-slate-700);
+  --color-zinc-800: var(--color-slate-800);
+  --color-zinc-900: var(--color-slate-900);
+  --color-zinc-950: var(--color-slate-950);
+  --color-neutral-50: var(--color-slate-50);
+  --color-neutral-100: var(--color-slate-100);
+  --color-neutral-200: var(--color-slate-200);
+  --color-neutral-300: var(--color-slate-300);
+  --color-neutral-400: var(--color-slate-400);
+  --color-neutral-500: var(--color-slate-500);
+  --color-neutral-600: var(--color-slate-600);
+  --color-neutral-700: var(--color-slate-700);
+  --color-neutral-800: var(--color-slate-800);
+  --color-neutral-900: var(--color-slate-900);
+  --color-neutral-950: var(--color-slate-950);
+  --color-stone-50: var(--color-slate-50);
+  --color-stone-100: var(--color-slate-100);
+  --color-stone-200: var(--color-slate-200);
+  --color-stone-300: var(--color-slate-300);
+  --color-stone-400: var(--color-slate-400);
+  --color-stone-500: var(--color-slate-500);
+  --color-stone-600: var(--color-slate-600);
+  --color-stone-700: var(--color-slate-700);
+  --color-stone-800: var(--color-slate-800);
+  --color-stone-900: var(--color-slate-900);
+  --color-stone-950: var(--color-slate-950);
+}
+
 :root {
-  --background: #f8fafc;
-  --foreground: #000000;
-  --card: #ffffff;
-  --card-foreground: #000000;
-  --popover: #ffffff;
-  --popover-foreground: #000000;
-  --primary: #0891b2;
+  /* Single source of truth: edit these three to restyle the whole dashboard */
+  --ui-bg: #ffffff;
+  --ui-text: #000000;
+  --ui-accent: #0891b2;
+
+  --background: var(--ui-bg);
+  --foreground: var(--ui-text);
+  --card: var(--ui-bg);
+  --card-foreground: var(--ui-text);
+  --popover: var(--ui-bg);
+  --popover-foreground: var(--ui-text);
+  --primary: var(--ui-accent);
   --primary-foreground: #ffffff;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #000000;
-  --muted: #f1f5f9;
-  --muted-foreground: #000000;
-  --accent: #f0fdfa;
-  --accent-foreground: #0e7490;
+  --secondary: color-mix(in srgb, var(--ui-accent) 6%, var(--ui-bg));
+  --secondary-foreground: var(--ui-text);
+  --muted: color-mix(in srgb, var(--ui-accent) 6%, var(--ui-bg));
+  --muted-foreground: var(--ui-text);
+  --accent: color-mix(in srgb, var(--ui-accent) 10%, var(--ui-bg));
+  --accent-foreground: color-mix(in srgb, var(--ui-accent) 80%, var(--ui-text));
   --destructive: #ef4444;
-  --border: #94a3b8;
-  --input: #94a3b8;
-  --ring: #0891b2;
+  --border: color-mix(in srgb, var(--ui-accent) 40%, var(--ui-bg));
+  --input: color-mix(in srgb, var(--ui-accent) 40%, var(--ui-bg));
+  --ring: var(--ui-accent);
   --chart-1: #0891b2;
   --chart-2: #10b981;
   --chart-3: #f59e0b;
@@ -85,18 +153,20 @@
   --chart-5: #ec4899;
   --radius: 0.5rem;
   --sidebar: #0c1618;
-  --sidebar-foreground: #f8fafc;
+  --sidebar-foreground: #ffffff;
   --sidebar-primary: #58c1c3;
   --sidebar-primary-foreground: #0c1618;
   --sidebar-accent: rgba(88, 193, 195, 0.15);
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-border: rgba(88, 193, 195, 0.25);
   --sidebar-ring: #58c1c3;
   --v2-shell: #0a0a0a;
   --v2-surface: #1f1f1f;
   --v2-border: #1f1f1f;
   --v2-muted: #a3a3a3;
   --v2-primary: #58c1c3;
+  /* Base text size of the dashboard main container; edit here to change it everywhere. */
+  --body-font-size: 14px;
   /* Universal Cancel / Close (X) button hover. Edit here to restyle every such button in the app. */
   --close-hover-bg: #dc2626;
   --close-hover-fg: #ffffff;
@@ -104,35 +174,6 @@
   --cancel-hover-fg: #ffffff;
   --font-sans: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Hind Siliguri', sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-}
-
-.dark {
-  --background: #080f11;
-  --foreground: #f8fafc;
-  --card: #0c1618;
-  --card-foreground: #f8fafc;
-  --popover: #0c1618;
-  --popover-foreground: #f8fafc;
-  --primary: #58c1c3;
-  --primary-foreground: #0c1618;
-  --secondary: #112024;
-  --secondary-foreground: #f8fafc;
-  --muted: #112024;
-  --muted-foreground: #94a3b8;
-  --accent: #112024;
-  --accent-foreground: #58c1c3;
-  --destructive: #ef4444;
-  --border: rgba(255, 255, 255, 0.1);
-  --input: rgba(255, 255, 255, 0.12);
-  --ring: #58c1c3;
-  --sidebar: #060c0d;
-  --sidebar-foreground: #f8fafc;
-  --sidebar-primary: #58c1c3;
-  --sidebar-primary-foreground: #0c1618;
-  --sidebar-accent: rgba(88, 193, 195, 0.12);
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: rgba(255, 255, 255, 0.08);
-  --sidebar-ring: #58c1c3;
 }
 
 @layer base {
@@ -161,6 +202,13 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  /* Tailwind's text-xs / text-sm resolve to the body size inside the dashboard main container and sidebar */
+  .dashboard-main,
+  .dashboard-sidebar {
+    font-size: var(--body-font-size);
+    --text-xs: var(--body-font-size);
+    --text-sm: var(--body-font-size);
   }
   a, button, [role="button"], select, input[type="button"], input[type="submit"] {
     cursor: pointer !important;

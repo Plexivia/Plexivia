@@ -23,6 +23,7 @@ router.post('/reset-password', authController.resetPassword);
 
 // Everything below requires a valid access token
 router.get('/me', requireAuth, authController.getMe);
+router.patch('/me', requireAuth, authController.updateMe);
 
 // High-Security Client Vault (Owner / Admin Only)
 router.get('/vault/clients/:clientId', requireAuth, requireRole('OWNER', 'ADMIN', 'SUPER_ADMIN'), authController.getClientVault);

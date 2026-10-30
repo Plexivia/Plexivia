@@ -50,7 +50,8 @@ export function ThemeProvider({
   }, [enableSystem]);
 
   const mode = theme.mode || 'light';
-  const isDark = mode === 'dark' || (mode === 'system' && systemIsDark);
+  // Dark mode is disabled for the dashboard
+  const isDark = false;
 
   // Apply CSS variables to :root
   useEffect(() => {
@@ -68,23 +69,17 @@ export function ThemeProvider({
     const docTheme = theme.documentTheme || {};
 
     // Core Colors
-    if (colors.primary) root.style.setProperty('--primary', colors.primary);
+    // Surfaces, text and borders come from the --ui-* variables in index.css (light only, no gray);
+    // the preset only drives the accent that tints them
+    if (colors.primary) {
+      root.style.setProperty('--primary', colors.primary);
+      root.style.setProperty('--ui-accent', colors.primary);
+    }
     if (colors.primaryForeground) root.style.setProperty('--primary-foreground', colors.primaryForeground);
-    if (colors.secondary) root.style.setProperty('--secondary', colors.secondary);
-    if (colors.secondaryForeground) root.style.setProperty('--secondary-foreground', colors.secondaryForeground);
-    if (colors.accent) root.style.setProperty('--accent', colors.accent);
-    if (colors.accentForeground) root.style.setProperty('--accent-foreground', colors.accentForeground);
-    if (colors.background) root.style.setProperty('--background', colors.background);
-    if (colors.foreground) root.style.setProperty('--foreground', colors.foreground);
-    if (colors.card) root.style.setProperty('--card', colors.card);
-    if (colors.cardForeground) root.style.setProperty('--card-foreground', colors.cardForeground);
     if (colors.sidebar) root.style.setProperty('--sidebar', colors.sidebar);
     if (colors.sidebarForeground) root.style.setProperty('--sidebar-foreground', colors.sidebarForeground);
     if (colors.sidebarBorder) root.style.setProperty('--sidebar-border', colors.sidebarBorder);
     if (colors.sidebarActive) root.style.setProperty('--sidebar-active', colors.sidebarActive);
-    if (colors.border) root.style.setProperty('--border', colors.border);
-    if (colors.muted) root.style.setProperty('--muted', colors.muted);
-    if (colors.mutedForeground) root.style.setProperty('--muted-foreground', colors.mutedForeground);
     if (colors.ring) root.style.setProperty('--ring', colors.ring);
 
     // Radii & Fonts

@@ -1,5 +1,5 @@
 export type ClientType = 'SINGLE_TENANT' | 'MULTI_TENANT_ECOMMERCE';
-export type ProjectType = 'ECOMMERCE_MULTITENANT' | 'CUSTOM_WEB' | 'SRE_INFRA' | 'MOBILE_APP' | 'SYSTEM_MIGRATION';
+export type ProjectType = 'WHITELABEL_ECOMMERCE' | 'WEB_APP' | 'META_MARKETING' | 'SEO' | 'ERP';
 export type ProjectStatus = 'PLANNING' | 'ACTIVE' | 'MAINTENANCE' | 'ARCHIVED' | 'DEPLOYING' | 'COMPLETED' | 'PAUSED';
 export type TaskStatus = 'BACKLOG' | 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE';
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
@@ -45,8 +45,11 @@ export interface ApiResponse<T = any> {
 
 export interface Client {
   id: string;
+  dId?: string;
+  _id?: string;
   client_key?: string;
   business_name?: string;
+  client_name?: string;
   primary_domain?: string;
   client_type?: ClientType;
   database_shared?: boolean;
@@ -130,6 +133,9 @@ export interface User {
   email?: string;
   phone?: string;
   address?: string;
+  country?: string;
+  city?: string;
+  postalCode?: string;
   role?: UserRole | string;
   department?: string;
   designation?: string;

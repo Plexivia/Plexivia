@@ -23,6 +23,7 @@ export const getClients = async (req: Request, res: Response) => {
       filter.$or = [
         { name: new RegExp(q, 'i') },
         { business_name: new RegExp(q, 'i') },
+        { client_name: new RegExp(q, 'i') },
         { client_key: new RegExp(q, 'i') },
         { primary_domain: new RegExp(q, 'i') },
         { email: new RegExp(q, 'i') },
@@ -105,6 +106,7 @@ export const createClient = async (req: Request, res: Response) => {
       email: email.trim().toLowerCase(),
       phone: phoneList,
       business_name: name.trim(),
+      client_name: body.client_name ? String(body.client_name).trim() : '',
       client_key: body.client_key ? String(body.client_key).trim().toLowerCase() : undefined,
       primary_domain: body.primary_domain ? String(body.primary_domain).trim() : '',
       contact_email: email.trim().toLowerCase(),

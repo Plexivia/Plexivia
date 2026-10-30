@@ -3,6 +3,7 @@ import { KeyRound, LogOut, Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useThemeStore, RADIUS_OPTIONS } from '@/store/useThemeStore';
+import { EditProfileModal, type ProfileSection } from '@/components/modals/EditProfileModal';
 
 // Shared card and field styles taken from the TailAdmin profile layout
 const cardClass = 'rounded-2xl border border-border p-5 lg:p-6';
@@ -30,7 +31,7 @@ const SettingRow = ({ title, description, action }: { title: string; description
 
 // Theme and corner-roundness controls; both are saved in this browser
 const AppearanceCard = () => {
-  const { theme, setTheme, radius, setRadius } = useThemeStore();
+  const { radius, setRadius } = useThemeStore();
   const choice = (active: boolean) =>
     cn(
       'flex h-10 items-center justify-center gap-2 border px-4 text-sm font-medium transition-colors cursor-pointer rounded-lg',
@@ -39,19 +40,6 @@ const AppearanceCard = () => {
   return (
     <div className={cardClass}>
       <h4 className="mb-4 text-lg font-semibold text-foreground lg:mb-6">Appearance</h4>
-      <SettingRow
-        title="Theme"
-        description="Switch between the light and dark dashboard."
-        action={
-          <div className="flex gap-2">
-            {(['light', 'dark'] as const).map((t) => (
-              <button key={t} type="button" onClick={() => setTheme(t)} className={choice(theme === t)}>
-                {t === 'light' ? 'Light' : 'Dark'}
-              </button>
-            ))}
-          </div>
-        }
-      />
       <SettingRow
         title="Corner roundness"
         description="Changes the border radius of cards, buttons, tables and inputs everywhere."
@@ -74,6 +62,7 @@ const AppearanceCard = () => {
 export const ProfilePage = () => {
   const { user, logout } = useAuthStore();
   const [twoFactor, setTwoFactor] = useState(false);
+  const [editSection, setEditSection] = useState<ProfileSection | null>(null);
   const u = (user || {}) as Record<string, any>;
 
   const displayName = u.fullName || u.name || 'User';
@@ -117,7 +106,7 @@ export const ProfilePage = () => {
               </div>
             </div>
             <div>
-              <button type="button" className={cn(outlineButtonClass, 'w-full lg:w-auto')}>
+              <button type="button" onClick={() => setEditSection('profile')} className={cn(outlineButtonClass, 'w-full lg:w-auto')}>
                 <Pencil className="size-4" />
                 Edit
               </button>
@@ -138,7 +127,7 @@ export const ProfilePage = () => {
               </div>
             </div>
             <div>
-              <button type="button" className={cn(outlineButtonClass, 'w-full lg:w-auto')}>
+              <button type="button" onClick={() => setEditSection('address')} className={cn(outlineButtonClass, 'w-full lg:w-auto')}>
                 <Pencil className="size-4" />
                 Edit
               </button>
@@ -194,6 +183,8 @@ export const ProfilePage = () => {
           />
         </div>
       </div>
+
+      <EditProfileModal section={editSection} onClose={() => setEditSection(null)} />
     </div>
   );
 };

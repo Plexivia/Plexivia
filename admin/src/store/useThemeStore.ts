@@ -27,19 +27,15 @@ const getInitialRadius = (): RadiusId => {
   return option.id;
 };
 
-// Resolve initial light or dark theme from localStorage and apply class to document
+// The dashboard is light only: drop any "dark" class left over from a previously saved theme
 const getInitialTheme = (): Theme => {
   if (typeof window !== 'undefined') {
-    const saved = localStorage.getItem('plexivia_theme') as Theme | null;
-    if (saved === 'dark' || saved === 'light') {
-      if (saved === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-      return saved;
-    }
     document.documentElement.classList.remove('dark');
+    try {
+      localStorage.setItem('plexivia_theme', 'light');
+    } catch {
+      void 0;
+    }
   }
   return 'light';
 };
@@ -71,23 +67,14 @@ export const useThemeStore = create<ThemeStore>((set, get) => ({
     set({ radius });
   },
 
-  // Persist and apply light or dark theme
-  setTheme: (theme: Theme) => {
-    if (typeof window !== 'undefined') {
-      if (theme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-      localStorage.setItem('plexivia_theme', theme);
-    }
-    set({ theme, isDark: theme === 'dark' });
+  // Dark mode is disabled; any requested theme resolves to light
+  setTheme: () => {
+    if (typeof window !== 'undefined') document.documentElement.classList.remove('dark');
+    set({ theme: 'light', isDark: false });
   },
 
-  // Toggle between light and dark theme
   toggleTheme: () => {
-    const nextTheme: Theme = get().theme === 'dark' ? 'light' : 'dark';
-    get().setTheme(nextTheme);
+    get().setTheme('light');
   },
 }));
 

@@ -13,6 +13,7 @@ export interface IClient extends Document {
   email: string;
   phone: string[];
   business_name?: string;
+  client_name?: string;
   client_key?: string;
   primary_domain?: string;
   contact_email?: string;
@@ -48,6 +49,7 @@ const ClientSchema = new Schema<IClient>(
       },
     },
     business_name: { type: String, trim: true, default: '' },
+    client_name: { type: String, trim: true, default: '' },
     client_key: { type: String, trim: true, lowercase: true, unique: true, sparse: true },
     primary_domain: { type: String, trim: true, default: '' },
     contact_email: { type: String, trim: true, lowercase: true, default: '' },

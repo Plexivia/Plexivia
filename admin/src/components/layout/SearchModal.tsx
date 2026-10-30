@@ -176,7 +176,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, onNav
                         {c.business_name}
                       </div>
                       <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
-                        {c.primary_domain} • {c.client_type}
+                        {[c.client_name, c.primary_domain].filter(Boolean).join(' • ')}
                       </div>
                     </div>
                     <ArrowRight className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover:text-purple-600 dark:group-hover:text-purple-400 group-hover:translate-x-1 transition-all" />

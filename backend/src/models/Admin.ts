@@ -11,6 +11,10 @@ export interface IAdmin extends Document {
   phone?: string;
   department?: string;
   designation?: string;
+  address?: string;
+  country?: string;
+  city?: string;
+  postal_code?: string;
   hourly_rate?: number;
   avatar?: string;
   is_active: boolean;
@@ -38,6 +42,10 @@ const AdminSchema = new Schema<IAdmin>(
     phone: { type: String, default: '' },
     department: { type: String, default: '' },
     designation: { type: String, default: '' },
+    address: { type: String, default: '' },
+    country: { type: String, default: '' },
+    city: { type: String, default: '' },
+    postal_code: { type: String, default: '' },
     hourly_rate: { type: Number, default: 0 },
     avatar: { type: String, default: '' },
     is_active: { type: Boolean, default: true },

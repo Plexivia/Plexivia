@@ -70,6 +70,9 @@ const extractArray = <T>(res: any): T[] => {
 };
 
 // Extract single item from various API response envelope formats
+// The API identifies clients by dId; expose it as id so the UI can address records uniformly
+const withClientId = (c: Client): Client => ({ ...c, id: c.id || c.dId || c._id || '' });
+
 const extractItem = <T>(res: any): T | null => {
   if (!res) return null;
   if (typeof res === 'object') {
@@ -208,7 +211,7 @@ export const apiClient: ApiClient = {
   async getClients(): Promise<Client[]> {
     try {
       const res = await apiFetch<any>('/clients');
-      return extractArray<Client>(res);
+      return extractArray<Client>(res).map(withClientId);
     } catch {
       return [];
     }
@@ -222,7 +225,7 @@ export const apiClient: ApiClient = {
     const created = extractItem<Client>(res);
     if (created) {
       this.logActivity('created new client', created.business_name || 'Client', 'CLIENT');
-      return created;
+      return withClientId(created);
     }
     throw new Error('Failed to create client');
   },
@@ -235,7 +238,7 @@ export const apiClient: ApiClient = {
     const updated = extractItem<Client>(res);
     if (updated) {
       this.logActivity('updated client details', updated.business_name || 'Client', 'CLIENT');
-      return updated;
+      return withClientId(updated);
     }
     throw new Error('Client not found');
   },

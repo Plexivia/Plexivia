@@ -270,6 +270,7 @@ export function UnifiedDataTable({
                         className={cn(
                           densityHeaderPadding,
                           'whitespace-nowrap align-middle font-semibold text-muted-foreground',
+                          header.column.id === 'actions' && 'text-center',
                           isPinned && 'bg-card shadow-xs'
                         )}
                       >
@@ -337,7 +338,13 @@ export function UnifiedDataTable({
                                 isPinned && 'bg-card shadow-xs'
                               )}
                             >
-                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                              {cell.column.id === 'actions' ? (
+                                <div className="flex justify-center">
+                                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                </div>
+                              ) : (
+                                flexRender(cell.column.columnDef.cell, cell.getContext())
+                              )}
                             </td>
                           );
                         })}

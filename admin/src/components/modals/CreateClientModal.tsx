@@ -1,17 +1,21 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal } from '../common/Modal';
 import { useData } from '../../context/DataContext';
-import { ClientStatus } from '../../types';
-import { Building2, Globe, Mail, Phone, MessageCircle } from 'lucide-react';
+import { Client, ClientStatus } from '../../types';
+import { Building2, Globe, Mail, Phone, MessageCircle, User } from 'lucide-react';
 
 interface CreateClientModalProps {
   isOpen: boolean;
   onClose: () => void;
+  client?: Client | null;
+  readOnly?: boolean;
 }
 
-// Render modal for onboarding a new enterprise client
-export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, onClose }) => {
-  const { createClient } = useData();
+// Render modal for onboarding a new enterprise client, or editing an existing one
+export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, onClose, client = null, readOnly = false }) => {
+  const { createClient, updateClient } = useData();
+  const isEdit = !!client;
+  const [clientName, setClientName] = useState('');
   const [businessName, setBusinessName] = useState('');
   const [clientKey, setClientKey] = useState('');
   const [primaryDomain, setPrimaryDomain] = useState('');
@@ -20,10 +24,22 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
   const [contactWhatsapp, setContactWhatsapp] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Fill the form from the client being edited, or reset it for a new client
+  useEffect(() => {
+    if (!isOpen) return;
+    setClientName(client?.client_name || '');
+    setBusinessName(client?.business_name || '');
+    setClientKey(client?.client_key || '');
+    setPrimaryDomain(client?.primary_domain || '');
+    setContactEmail(client?.contact_email || '');
+    setContactPhone(client?.contact_phone || '');
+    setContactWhatsapp(client?.contact_whatsapp || '');
+  }, [isOpen, client]);
+
   // Auto-generate client slug from business name
   const handleNameChange = (name: string) => {
     setBusinessName(name);
-    if (!clientKey) {
+    if (!clientKey && !isEdit) {
       const slug = name
         .toLowerCase()
         .replace(/[^a-z0-9]/g, '')
@@ -37,21 +53,27 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
   // Validate and submit new client onboarding payload
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!businessName.trim() || !clientKey.trim() || !contactEmail.trim() || !contactPhone.trim()) return;
+    if (readOnly || !clientName.trim() || !businessName.trim() || !clientKey.trim() || !contactEmail.trim() || !contactPhone.trim()) return;
 
     setLoading(true);
     try {
-      await createClient({
+      const payload = {
+        client_name: clientName.trim(),
         business_name: businessName.trim(),
         client_key: clientKey.trim().toLowerCase(),
         primary_domain: primaryDomain.trim(),
-        status: 'ACTIVE' as ClientStatus,
         contact_email: contactEmail.trim(),
         contact_phone: contactPhone.trim(),
         contact_whatsapp: contactWhatsapp.trim(),
-      });
+      };
+      if (client) {
+        await updateClient(client.id, payload);
+      } else {
+        await createClient({ ...payload, status: 'ACTIVE' as ClientStatus });
+      }
 
       onClose();
+      setClientName('');
       setBusinessName('');
       setClientKey('');
       setPrimaryDomain('');
@@ -69,12 +91,30 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Onboard New Enterprise Client"
-      subtitle="Register a new client with business, domain, and contact details"
+      title={readOnly ? 'Client Details' : isEdit ? 'Edit Client' : 'Onboard New Enterprise Client'}
+      subtitle={readOnly ? 'Business, domain, and contact details' : isEdit ? 'Update business, domain, and contact details' : 'Register a new client with business, domain, and contact details'}
       maxWidth="2xl"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
+        <fieldset disabled={readOnly} className="min-w-0">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+              Client Name *
+            </label>
+            <div className="relative">
+              <User className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                required
+                value={clientName}
+                onChange={e => setClientName(e.target.value)}
+                placeholder="e.g. Rahim Uddin"
+                className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-lg text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-cyan-500 shadow-2xs"
+              />
+            </div>
+          </div>
+
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               Business Name *
@@ -172,6 +212,7 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
             </div>
           </div>
         </div>
+        </fieldset>
 
         <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
           <button
@@ -179,16 +220,18 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
             onClick={onClose}
             className="btn-cancel px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors cursor-pointer"
           >
-            Cancel
+            {readOnly ? 'Close' : 'Cancel'}
           </button>
+          {!readOnly && (
           <button
             type="submit"
             disabled={loading}
             className="flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-cyan-600 hover:bg-cyan-500 rounded-lg shadow-md shadow-cyan-500/20 transition-all disabled:opacity-50 cursor-pointer"
           >
             <Building2 className="w-4 h-4" />
-            {loading ? 'Registering Client...' : 'Enroll & Initialize Client'}
+            {loading ? (isEdit ? 'Saving...' : 'Registering Client...') : isEdit ? 'Save Changes' : 'Enroll & Initialize Client'}
           </button>
+          )}
         </div>
       </form>
     </Modal>

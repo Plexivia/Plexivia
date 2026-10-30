@@ -74,7 +74,7 @@ const ProjectSchema = new Schema<IProject>(
     client_id: { type: String, index: true },
     client_name: { type: String, default: '' },
     project_type_dId: { type: String, index: true },
-    project_type: { type: String, default: 'ECOMMERCE_MULTITENANT' },
+    project_type: { type: String, default: 'WHITELABEL_ECOMMERCE' },
     name: { type: String, required: true },
     project_name: { type: String, default: '' },
     project_code: { type: String, default: '' },

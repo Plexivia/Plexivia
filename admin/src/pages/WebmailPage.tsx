@@ -132,7 +132,7 @@ const EmailHtmlPreview: React.FC<{ html: string }> = ({ html }) => {
     if (!doc) return;
     const style = doc.createElement('style');
     style.textContent =
-      'html,body{margin:0;padding:16px;box-sizing:border-box;font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#1e293b;background:#fff;word-break:break-word}img{max-width:100%!important;height:auto!important}table{max-width:100%!important}a{color:#0891b2}';
+      'html,body{margin:0;padding:16px;box-sizing:border-box;font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#000;background:#fff;word-break:break-word}img{max-width:100%!important;height:auto!important}table{max-width:100%!important}a{color:#0891b2}';
     doc.head?.appendChild(style);
     doc.querySelectorAll('a').forEach((a) => {
       a.setAttribute('target', '_blank');

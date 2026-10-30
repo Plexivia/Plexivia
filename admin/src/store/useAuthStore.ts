@@ -29,6 +29,9 @@ const mapApiUser = (apiUser: any, email?: string): User => ({
   username: apiUser.username || '',
   phone: apiUser.phone || '',
   address: apiUser.address || '',
+  country: apiUser.country || '',
+  city: apiUser.city || '',
+  postalCode: apiUser.postalCode || apiUser.postal_code || '',
   role: apiUser.role || 'Admin',
   department: apiUser.department || '',
   designation: apiUser.designation || '',
@@ -194,7 +197,14 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     try {
       const current = get().user;
       if (!current) return;
-      const updated = { ...current, ...profileData };
+      const { postalCode, name, ...rest } = profileData;
+      const { data } = await apiClient.patch('/api/v1/auth/me', {
+        ...rest,
+        ...(name !== undefined ? { full_name: name } : {}),
+        ...(postalCode !== undefined ? { postal_code: postalCode } : {}),
+      });
+      const saved = mapApiUser(data?.data?.user || {}, current.email);
+      const updated = { ...current, ...saved, id: current.id, did: current.did || saved.did };
       localStorage.setItem('user', JSON.stringify(updated));
       set({ user: updated, isLoading: false });
     } finally {

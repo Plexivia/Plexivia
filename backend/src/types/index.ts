@@ -151,7 +151,7 @@ export interface Employee {
   updated_at?: string;
 }
 
-export type ProjectType = 'ECOMMERCE_MULTITENANT' | 'CUSTOM_WEB' | 'SRE_INFRA' | 'MOBILE_APP' | 'SYSTEM_MIGRATION' | 'INTERNAL_TOOL';
+export type ProjectType = 'WHITELABEL_ECOMMERCE' | 'WEB_APP' | 'META_MARKETING' | 'SEO' | 'ERP';
 export type ProjectStatus = 'PLANNING' | 'ACTIVE' | 'MAINTENANCE' | 'ARCHIVED' | 'DEPLOYING' | 'COMPLETED' | 'PAUSED';
 
 export interface Project {
@@ -412,6 +412,7 @@ export interface Client {
   client_key?: string;
   clientKey?: string;
   business_name: string;
+  client_name?: string;
   businessName?: string;
   brandName?: string;
   primary_domain?: string;

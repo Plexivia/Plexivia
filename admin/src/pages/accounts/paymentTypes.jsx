@@ -805,7 +805,7 @@ export const PaymentTypesPage = () => {
                     id="isDefaultMethodCheck"
                     checked={typeForm.isDefault}
                     onChange={(e) => setTypeForm((prev) => ({ ...prev, isDefault: e.target.checked }))}
-                    className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                    className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
                   />
                   <label htmlFor="isDefaultMethodCheck" className="text-xs font-medium text-foreground cursor-pointer select-none">
                     Set as Default Method

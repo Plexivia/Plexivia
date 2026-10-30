@@ -36,7 +36,7 @@ export const App: React.FC = () => {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AppRoutes />
-        <Toaster position="top-right" richColors closeButton theme="dark" />
+        <Toaster position="top-right" richColors closeButton theme="light" />
       </BrowserRouter>
     </QueryClientProvider>
   );

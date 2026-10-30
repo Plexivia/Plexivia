@@ -85,7 +85,7 @@ export const createProject = async (req: Request, res: Response) => {
       client_id: clientDId,
       client_name: data.client_name || data.clientName || '',
       project_type_dId: projectTypeDId,
-      project_type: data.project_type || data.projectType || 'ECOMMERCE_MULTITENANT',
+      project_type: data.project_type || data.projectType || 'WHITELABEL_ECOMMERCE',
       name: projectName.trim(),
       project_name: projectName.trim(),
       project_code: (data.project_code || data.projectCode || 'PRJ').trim().toUpperCase(),

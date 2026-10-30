@@ -387,8 +387,8 @@ export const LoginPage = ({
 
   if (isAuthLoading && user) {
     return (
-      <div className="dark min-h-screen w-screen bg-[#09090b] flex flex-col items-center justify-center gap-3 text-zinc-400">
-        <div className="h-9 w-9 border-2 border-zinc-700 border-t-white rounded-full animate-spin" />
+      <div className="min-h-screen w-screen bg-white flex flex-col items-center justify-center gap-3 text-black">
+        <div className="h-9 w-9 border-2 border-sky-200 border-t-sky-600 rounded-full animate-spin" />
         <span className="text-xs font-medium tracking-wide">
           Authenticating secure session...
         </span>
@@ -397,10 +397,10 @@ export const LoginPage = ({
   }
 
   return (
-    <div className="dark min-h-screen w-screen bg-[#09090b] text-zinc-100 flex items-center justify-center p-4 relative overflow-hidden font-sans select-none">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] h-[420px] bg-sky-500/5 rounded-full blur-[140px] pointer-events-none opacity-30" />
-      <div className="absolute top-1/4 left-1/3 w-[220px] h-[220px] bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none opacity-20" />
-      <div className="absolute inset-0 bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none opacity-30" />
+    <div className="min-h-screen w-screen bg-white text-black flex items-center justify-center p-4 relative overflow-hidden font-sans select-none">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] h-[420px] bg-sky-500/10 rounded-full blur-[140px] pointer-events-none opacity-40" />
+      <div className="absolute top-1/4 left-1/3 w-[220px] h-[220px] bg-sky-400/10 rounded-full blur-[100px] pointer-events-none opacity-30" />
+      <div className="absolute inset-0 bg-[radial-gradient(#bae6fd_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none opacity-30" />
 
       <motion.div
         initial={{ opacity: 0, y: 12 }}
@@ -408,7 +408,7 @@ export const LoginPage = ({
         transition={{ duration: 0.35, ease: 'easeOut' }}
         className="w-full max-w-[420px] relative z-10 my-auto"
       >
-        <div className="h-[60vh] bg-[#121214]/95 shadow-2xl backdrop-blur-2xl rounded-2xl p-6 sm:p-7 flex flex-col justify-between overflow-y-auto scrollbar-primary border-none border-0">
+        <div className="h-[60vh] bg-white border border-sky-300 shadow-xl rounded-2xl p-6 sm:p-7 flex flex-col justify-between overflow-y-auto scrollbar-primary">
           <div className="h-14 shrink-0 flex items-center justify-center">
             <img
               src={logoSrc}
@@ -429,11 +429,11 @@ export const LoginPage = ({
                   className="flex flex-col justify-between h-full gap-4"
                 >
                   <div className="space-y-1.5 text-left my-auto">
-                    <label className="block text-xs font-semibold text-zinc-300">
+                    <label className="block text-xs font-semibold text-black">
                       Email Address
                     </label>
                     <div className="relative">
-                      <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-600 pointer-events-none">
+                      <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-sky-700 pointer-events-none">
                         <Mail className="h-4 w-4" />
                       </span>
                       <input
@@ -443,7 +443,7 @@ export const LoginPage = ({
                         autoComplete="username email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full pl-10 pr-3.5 h-10 text-xs bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-zinc-500 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all font-medium"
+                        className="w-full pl-10 pr-3.5 h-10 text-xs bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-sky-700 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all font-medium"
                         placeholder="name@example.com"
                         autoFocus
                         required
@@ -455,9 +455,9 @@ export const LoginPage = ({
                     <button
                       type="button"
                       onClick={handleForgotCredentials}
-                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 hover:text-white border border-zinc-700 hover:border-zinc-600 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99]"
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-white hover:bg-sky-50 text-black border border-sky-500 hover:border-sky-700 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99]"
                     >
-                      <KeyRound className="h-4 w-4 mr-1.5 text-zinc-400" />
+                      <KeyRound className="h-4 w-4 mr-1.5 text-black" />
                       <span>Forgot your credentials?</span>
                     </button>
 
@@ -475,9 +475,9 @@ export const LoginPage = ({
                     </button>
 
                     <div className="flex items-center gap-2 my-0.5">
-                      <div className="flex-1 h-px bg-zinc-800" />
-                      <span className="text-[11px] text-zinc-500 font-medium">or</span>
-                      <div className="flex-1 h-px bg-zinc-800" />
+                      <div className="flex-1 h-px bg-sky-300" />
+                      <span className="text-[11px] text-black font-medium">or</span>
+                      <div className="flex-1 h-px bg-sky-300" />
                     </div>
 
                     <button
@@ -488,7 +488,7 @@ export const LoginPage = ({
                         setOtpLoginTimer(0);
                         setViewMode('otp_login');
                       }}
-                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-900 hover:bg-zinc-800 text-sky-400 hover:text-sky-300 border border-zinc-700 hover:border-sky-700/50 rounded-xl transition-all cursor-pointer active:scale-[0.99]"
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-white hover:bg-sky-50 text-sky-700 hover:text-sky-900 border border-sky-500 hover:border-sky-700 rounded-xl transition-all cursor-pointer active:scale-[0.99]"
                     >
                       <KeyRound className="h-4 w-4 mr-1.5" />
                       <span>Login with OTP</span>
@@ -508,17 +508,17 @@ export const LoginPage = ({
                   className="flex flex-col justify-between h-full gap-4"
                 >
                   <div className="space-y-3.5 text-left my-auto">
-                    <div className="flex items-center justify-between p-2.5 bg-zinc-900/90 border border-zinc-800 rounded-xl">
+                    <div className="flex items-center justify-between p-2.5 bg-sky-50 border border-sky-300 rounded-xl">
                       <div className="flex items-center gap-2 overflow-hidden">
-                        <div className="w-7 h-7 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 shrink-0">
+                        <div className="w-7 h-7 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-700 shrink-0">
                           <Mail className="w-3.5 h-3.5" />
                         </div>
-                        <span className="text-xs font-medium text-zinc-200 truncate">{email}</span>
+                        <span className="text-xs font-medium text-black truncate">{email}</span>
                       </div>
                       <button
                         type="button"
                         onClick={() => setViewMode('email')}
-                        className="text-[11px] text-sky-400 hover:text-sky-300 transition-colors font-medium shrink-0 flex items-center gap-1 cursor-pointer"
+                        className="text-[11px] text-sky-700 hover:text-sky-900 transition-colors font-medium shrink-0 flex items-center gap-1 cursor-pointer"
                       >
                         <ChevronLeft className="w-3.5 h-3.5" />
                         <span>Change</span>
@@ -526,11 +526,11 @@ export const LoginPage = ({
                     </div>
 
                     <div className="space-y-1.5 text-left">
-                      <label className="block text-xs font-semibold text-zinc-300">
+                      <label className="block text-xs font-semibold text-black">
                         Password
                       </label>
                       <div className="relative">
-                        <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-600 pointer-events-none">
+                        <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-sky-700 pointer-events-none">
                           <Lock className="h-4 w-4" />
                         </span>
                         <input
@@ -540,7 +540,7 @@ export const LoginPage = ({
                           autoComplete="current-password"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
-                          className="w-full pl-10 pr-10 h-10 text-xs bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-zinc-500 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all font-medium"
+                          className="w-full pl-10 pr-10 h-10 text-xs bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-sky-700 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all font-medium"
                           placeholder="••••••••"
                           autoFocus
                           required
@@ -548,7 +548,7 @@ export const LoginPage = ({
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-zinc-600 hover:text-zinc-900 transition cursor-pointer"
+                          className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-sky-700 hover:text-zinc-900 transition cursor-pointer"
                           title={showPassword ? 'Hide password' : 'Show password'}
                         >
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -564,9 +564,9 @@ export const LoginPage = ({
                         setResetEmail(email);
                         setViewMode('forgot_request');
                       }}
-                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 hover:text-white border border-zinc-700 hover:border-zinc-600 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99]"
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-white hover:bg-sky-50 text-black border border-sky-500 hover:border-sky-700 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99]"
                     >
-                      <KeyRound className="h-4 w-4 mr-1.5 text-zinc-400" />
+                      <KeyRound className="h-4 w-4 mr-1.5 text-black" />
                       <span>Forgot Password?</span>
                     </button>
 
@@ -606,14 +606,14 @@ export const LoginPage = ({
                   autoComplete="off"
                 >
                   <div className="space-y-2.5 my-auto">
-                    <div className="grid grid-cols-2 gap-1.5 p-1 bg-[#09090b] border border-zinc-800 rounded-xl">
+                    <div className="grid grid-cols-2 gap-1.5 p-1 bg-sky-50 border border-sky-300 rounded-xl">
                       <button
                         type="button"
                         onClick={() => handleSelectMethod('email')}
                         className={`h-8 flex items-center justify-center gap-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                           twoFactorMethod === 'email'
                             ? 'bg-sky-500 text-white shadow-xs'
-                            : 'text-zinc-400 hover:text-zinc-200'
+                            : 'text-black hover:text-sky-700'
                         }`}
                       >
                         <Mail className="size-3.5" />
@@ -626,7 +626,7 @@ export const LoginPage = ({
                         className={`h-8 flex items-center justify-center gap-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                           twoFactorMethod === 'authenticator'
                             ? 'bg-sky-500 text-white shadow-xs'
-                            : 'text-zinc-400 hover:text-zinc-200'
+                            : 'text-black hover:text-sky-700'
                         }`}
                       >
                         <Smartphone className="size-3.5" />
@@ -636,23 +636,23 @@ export const LoginPage = ({
 
                     {twoFactorMethod === 'email' && (
                       <div className="space-y-2">
-                        <div className="text-left bg-[#09090b] border border-sky-900/40 rounded-xl p-2.5 text-xs text-zinc-300 font-medium shadow-inner flex flex-col gap-1">
+                        <div className="text-left bg-sky-50 border border-sky-300 rounded-xl p-2.5 text-xs text-black font-medium shadow-inner flex flex-col gap-1">
                           <div className="flex items-center justify-between">
-                            <span className="text-zinc-400 text-[11px]">Code sent to:</span>
-                            <div className="flex items-center gap-1 font-mono text-[11px] text-sky-400 font-bold bg-sky-950/60 px-2 py-0.5 rounded-md border border-sky-800/40">
+                            <span className="text-black text-[11px]">Code sent to:</span>
+                            <div className="flex items-center gap-1 font-mono text-[11px] text-sky-700 font-bold bg-sky-100 px-2 py-0.5 rounded-md border border-sky-300">
                               <Clock className="w-3 h-3" />
                               <span>{formatTimer(otpTimer)}</span>
                             </div>
                           </div>
-                          <span className="font-bold text-sky-200 truncate text-xs">{twoFactorEmail || email}</span>
+                          <span className="font-bold text-sky-900 truncate text-xs">{twoFactorEmail || email}</span>
                         </div>
 
                         <div className="space-y-1 text-left">
-                          <label className="block text-xs font-semibold text-zinc-300">
+                          <label className="block text-xs font-semibold text-black">
                             6-Digit Email Code
                           </label>
                           <div className="relative">
-                            <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-600 pointer-events-none">
+                            <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-sky-700 pointer-events-none">
                               <KeyRound className="h-4 w-4" />
                             </span>
                             <input
@@ -660,7 +660,7 @@ export const LoginPage = ({
                               maxLength={6}
                               value={twoFactorCode}
                               onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ''))}
-                              className="w-full pl-10 pr-3.5 h-10 text-sm font-mono tracking-widest bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-zinc-500 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all text-center font-bold"
+                              className="w-full pl-10 pr-3.5 h-10 text-sm font-mono tracking-widest bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-sky-700 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all text-center font-bold"
                               placeholder="123456"
                               autoFocus
                               required
@@ -672,16 +672,16 @@ export const LoginPage = ({
 
                     {twoFactorMethod === 'authenticator' && (
                       <div className="space-y-2">
-                        <div className="text-left bg-[#09090b] border border-sky-900/40 rounded-xl p-2.5 text-xs text-sky-400 font-medium shadow-inner">
+                        <div className="text-left bg-sky-50 border border-sky-300 rounded-xl p-2.5 text-xs text-sky-700 font-medium shadow-inner">
                           Enter the current 6-digit code generated in your Authenticator or TOTP app.
                         </div>
 
                         <div className="space-y-1 text-left">
-                          <label className="block text-xs font-semibold text-zinc-300">
+                          <label className="block text-xs font-semibold text-black">
                             Authenticator Code
                           </label>
                           <div className="relative">
-                            <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-600 pointer-events-none">
+                            <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-sky-700 pointer-events-none">
                               <Smartphone className="h-4 w-4" />
                             </span>
                             <input
@@ -689,7 +689,7 @@ export const LoginPage = ({
                               maxLength={6}
                               value={twoFactorCode}
                               onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ''))}
-                              className="w-full pl-10 pr-3.5 h-10 text-sm font-mono tracking-widest bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-zinc-500 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all text-center font-bold"
+                              className="w-full pl-10 pr-3.5 h-10 text-sm font-mono tracking-widest bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-sky-700 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all text-center font-bold"
                               placeholder="123456"
                               autoFocus
                               required
@@ -706,12 +706,12 @@ export const LoginPage = ({
                         type="button"
                         disabled={isSendingOtp || otpTimer > 0}
                         onClick={handleResendOtp}
-                        className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 hover:text-white border border-zinc-700 hover:border-zinc-600 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99] disabled:opacity-40"
+                        className="w-full h-10 flex items-center justify-center font-bold text-xs bg-white hover:bg-sky-50 text-black border border-sky-500 hover:border-sky-700 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99] disabled:opacity-40"
                       >
                         {isSendingOtp ? (
-                          <Loader2 className="h-4 w-4 mr-1.5 animate-spin text-zinc-300" />
+                          <Loader2 className="h-4 w-4 mr-1.5 animate-spin text-black" />
                         ) : (
-                          <RefreshCw className="h-4 w-4 mr-1.5 text-zinc-400" />
+                          <RefreshCw className="h-4 w-4 mr-1.5 text-black" />
                         )}
                         <span>
                           {isSendingOtp
@@ -726,12 +726,12 @@ export const LoginPage = ({
                         type="button"
                         disabled={isSendingQr}
                         onClick={handleGetQrCodeEmail}
-                        className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 hover:text-white border border-zinc-700 hover:border-zinc-600 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99] disabled:opacity-50"
+                        className="w-full h-10 flex items-center justify-center font-bold text-xs bg-white hover:bg-sky-50 text-black border border-sky-500 hover:border-sky-700 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99] disabled:opacity-50"
                       >
                         {isSendingQr ? (
-                          <Loader2 className="h-4 w-4 mr-1.5 animate-spin text-zinc-300" />
+                          <Loader2 className="h-4 w-4 mr-1.5 animate-spin text-black" />
                         ) : (
-                          <QrCode className="h-4 w-4 mr-1.5 text-zinc-400" />
+                          <QrCode className="h-4 w-4 mr-1.5 text-black" />
                         )}
                         <span>{isSendingQr ? 'Sending QR Code…' : 'Send QR Code'}</span>
                       </button>
@@ -776,16 +776,16 @@ export const LoginPage = ({
                   autoComplete="off"
                 >
                   <div className="space-y-3 text-left my-auto">
-                    <div className="text-left bg-[#09090b] border border-sky-900/40 rounded-xl p-3 text-xs text-sky-400 font-medium leading-relaxed shadow-inner">
+                    <div className="text-left bg-sky-50 border border-sky-300 rounded-xl p-3 text-xs text-sky-700 font-medium leading-relaxed shadow-inner">
                       Enter your registered account email address. We will send a secure 6-digit verification code to reset your password.
                     </div>
 
                     <div className="space-y-1.5 text-left">
-                      <label className="block text-xs font-semibold text-zinc-300">
+                      <label className="block text-xs font-semibold text-black">
                         Account Email Address
                       </label>
                       <div className="relative">
-                        <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-600 pointer-events-none">
+                        <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-sky-700 pointer-events-none">
                           <Mail className="h-4 w-4" />
                         </span>
                         <input
@@ -794,7 +794,7 @@ export const LoginPage = ({
                           autoComplete="off"
                           value={resetEmail}
                           onChange={(e) => setResetEmail(e.target.value)}
-                          className="w-full pl-10 pr-3.5 h-10 text-xs bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-zinc-500 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all font-medium"
+                          className="w-full pl-10 pr-3.5 h-10 text-xs bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-sky-700 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all font-medium"
                           placeholder="name@example.com"
                           required
                         />
@@ -806,9 +806,9 @@ export const LoginPage = ({
                     <button
                       type="button"
                       onClick={handleForgotCredentials}
-                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 hover:text-white border border-zinc-700 hover:border-zinc-600 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99]"
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-white hover:bg-sky-50 text-black border border-sky-500 hover:border-sky-700 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99]"
                     >
-                      <KeyRound className="h-4 w-4 mr-1.5 text-zinc-400" />
+                      <KeyRound className="h-4 w-4 mr-1.5 text-black" />
                       <span>Contact Administrator</span>
                     </button>
 
@@ -848,17 +848,17 @@ export const LoginPage = ({
                   autoComplete="off"
                 >
                   <div className="space-y-2.5 text-left my-auto">
-                    <div className="text-left bg-[#09090b] border border-sky-900/40 rounded-xl p-2.5 text-xs text-sky-400 font-medium shadow-inner">
+                    <div className="text-left bg-sky-50 border border-sky-300 rounded-xl p-2.5 text-xs text-sky-700 font-medium shadow-inner">
                       <span>Code sent to: </span>
-                      <span className="font-bold text-sky-200 block truncate">{resetEmail}</span>
+                      <span className="font-bold text-sky-900 block truncate">{resetEmail}</span>
                     </div>
 
                     <div className="space-y-1 text-left">
-                      <label className="block text-xs font-semibold text-zinc-300">
+                      <label className="block text-xs font-semibold text-black">
                         6-Digit Code
                       </label>
                       <div className="relative">
-                        <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-600 pointer-events-none">
+                        <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-sky-700 pointer-events-none">
                           <KeyRound className="h-4 w-4" />
                         </span>
                         <input
@@ -866,7 +866,7 @@ export const LoginPage = ({
                           maxLength={6}
                           value={resetOtp}
                           onChange={(e) => setResetOtp(e.target.value.replace(/\D/g, ''))}
-                          className="w-full pl-10 pr-3.5 h-10 text-sm font-mono tracking-widest bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-zinc-500 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all text-center font-bold"
+                          className="w-full pl-10 pr-3.5 h-10 text-sm font-mono tracking-widest bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-sky-700 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all text-center font-bold"
                           placeholder="123456"
                           required
                         />
@@ -874,25 +874,25 @@ export const LoginPage = ({
                     </div>
 
                     <div className="space-y-1 text-left">
-                      <label className="block text-xs font-semibold text-zinc-300">
+                      <label className="block text-xs font-semibold text-black">
                         New Password
                       </label>
                       <div className="relative">
-                        <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-600 pointer-events-none">
+                        <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-sky-700 pointer-events-none">
                           <Lock className="h-4 w-4" />
                         </span>
                         <input
                           type={showNewPassword ? 'text' : 'password'}
                           value={newPassword}
                           onChange={(e) => setNewPassword(e.target.value)}
-                          className="w-full pl-10 pr-10 h-10 text-xs bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-zinc-500 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all font-medium"
+                          className="w-full pl-10 pr-10 h-10 text-xs bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-sky-700 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all font-medium"
                           placeholder="Min 6 characters"
                           required
                         />
                         <button
                           type="button"
                           onClick={() => setShowNewPassword(!showNewPassword)}
-                          className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-zinc-600 hover:text-zinc-900 transition cursor-pointer"
+                          className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-sky-700 hover:text-zinc-900 transition cursor-pointer"
                         >
                           {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
@@ -900,18 +900,18 @@ export const LoginPage = ({
                     </div>
 
                     <div className="space-y-1 text-left">
-                      <label className="block text-xs font-semibold text-zinc-300">
+                      <label className="block text-xs font-semibold text-black">
                         Confirm Password
                       </label>
                       <div className="relative">
-                        <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-600 pointer-events-none">
+                        <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-sky-700 pointer-events-none">
                           <Lock className="h-4 w-4" />
                         </span>
                         <input
                           type={showNewPassword ? 'text' : 'password'}
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
-                          className="w-full pl-10 pr-3.5 h-10 text-xs bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-zinc-500 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all font-medium"
+                          className="w-full pl-10 pr-3.5 h-10 text-xs bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-sky-700 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all font-medium"
                           placeholder="Repeat new password"
                           required
                         />
@@ -924,9 +924,9 @@ export const LoginPage = ({
                       type="button"
                       disabled={resetTimer > 0 || isResetSubmitting}
                       onClick={handleRequestResetOtp}
-                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 hover:text-white border border-zinc-700 hover:border-zinc-600 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99] disabled:opacity-40"
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-white hover:bg-sky-50 text-black border border-sky-500 hover:border-sky-700 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99] disabled:opacity-40"
                     >
-                      <RefreshCw className="h-4 w-4 mr-1.5 text-zinc-400" />
+                      <RefreshCw className="h-4 w-4 mr-1.5 text-black" />
                       <span>{resetTimer > 0 ? `Resend Code in ${resetTimer}s` : 'Resend Code'}</span>
                     </button>
 
@@ -963,14 +963,14 @@ export const LoginPage = ({
                   className="flex flex-col justify-between h-full py-2"
                 >
                   <div className="my-auto space-y-3 text-center">
-                    <div className="size-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto shadow-inner">
+                    <div className="size-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 flex items-center justify-center mx-auto shadow-inner">
                       <CheckCircle2 className="size-8" />
                     </div>
                     <div className="space-y-1">
-                      <h3 className="text-sm font-bold text-white">
+                      <h3 className="text-sm font-bold text-black">
                         Password Reset Successful
                       </h3>
-                      <p className="text-xs text-zinc-400 leading-relaxed">
+                      <p className="text-xs text-black leading-relaxed">
                         Your password has been securely updated. You can now log in using your new credentials.
                       </p>
                     </div>
@@ -1000,16 +1000,16 @@ export const LoginPage = ({
                   autoComplete="off"
                 >
                   <div className="space-y-3 text-left my-auto">
-                    <div className="text-left bg-[#09090b] border border-sky-900/40 rounded-xl p-3 text-xs text-sky-400 font-medium leading-relaxed shadow-inner">
+                    <div className="text-left bg-sky-50 border border-sky-300 rounded-xl p-3 text-xs text-sky-700 font-medium leading-relaxed shadow-inner">
                       Enter your registered email address. We will send a 6-digit OTP to sign you in without a password.
                     </div>
 
                     <div className="space-y-1.5 text-left">
-                      <label className="block text-xs font-semibold text-zinc-300">
+                      <label className="block text-xs font-semibold text-black">
                         Email Address
                       </label>
                       <div className="relative">
-                        <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-600 pointer-events-none">
+                        <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-sky-700 pointer-events-none">
                           <Mail className="h-4 w-4" />
                         </span>
                         <input
@@ -1018,7 +1018,7 @@ export const LoginPage = ({
                           autoComplete="off"
                           value={otpLoginEmail}
                           onChange={(e) => setOtpLoginEmail(e.target.value)}
-                          className="w-full pl-10 pr-3.5 h-10 text-xs bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-zinc-500 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all font-medium"
+                          className="w-full pl-10 pr-3.5 h-10 text-xs bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-sky-700 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all font-medium"
                           placeholder="name@example.com"
                           autoFocus
                           required
@@ -1064,23 +1064,23 @@ export const LoginPage = ({
                   autoComplete="off"
                 >
                   <div className="space-y-2.5 my-auto">
-                    <div className="text-left bg-[#09090b] border border-sky-900/40 rounded-xl p-2.5 text-xs text-zinc-300 font-medium shadow-inner flex flex-col gap-1">
+                    <div className="text-left bg-sky-50 border border-sky-300 rounded-xl p-2.5 text-xs text-black font-medium shadow-inner flex flex-col gap-1">
                       <div className="flex items-center justify-between">
-                        <span className="text-zinc-400 text-[11px]">Code sent to:</span>
-                        <div className="flex items-center gap-1 font-mono text-[11px] text-sky-400 font-bold bg-sky-950/60 px-2 py-0.5 rounded-md border border-sky-800/40">
+                        <span className="text-black text-[11px]">Code sent to:</span>
+                        <div className="flex items-center gap-1 font-mono text-[11px] text-sky-700 font-bold bg-sky-100 px-2 py-0.5 rounded-md border border-sky-300">
                           <Clock className="w-3 h-3" />
                           <span>{formatTimer(otpLoginTimer)}</span>
                         </div>
                       </div>
-                      <span className="font-bold text-sky-200 truncate text-xs">{otpLoginEmail}</span>
+                      <span className="font-bold text-sky-900 truncate text-xs">{otpLoginEmail}</span>
                     </div>
 
                     <div className="space-y-1 text-left">
-                      <label className="block text-xs font-semibold text-zinc-300">
+                      <label className="block text-xs font-semibold text-black">
                         6-Digit OTP Code
                       </label>
                       <div className="relative">
-                        <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-600 pointer-events-none">
+                        <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-sky-700 pointer-events-none">
                           <KeyRound className="h-4 w-4" />
                         </span>
                         <input
@@ -1088,7 +1088,7 @@ export const LoginPage = ({
                           maxLength={6}
                           value={otpLoginCode}
                           onChange={(e) => setOtpLoginCode(e.target.value.replace(/\D/g, ''))}
-                          className="w-full pl-10 pr-3.5 h-10 text-sm font-mono tracking-widest bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-zinc-500 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all text-center font-bold"
+                          className="w-full pl-10 pr-3.5 h-10 text-sm font-mono tracking-widest bg-white border border-zinc-300 rounded-xl text-zinc-900 placeholder:text-sky-700 focus:outline-hidden focus:bg-white focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 transition-all text-center font-bold"
                           placeholder="123456"
                           autoFocus
                           required
@@ -1102,12 +1102,12 @@ export const LoginPage = ({
                       type="button"
                       disabled={isOtpLoginSending || otpLoginTimer > 0}
                       onClick={handleResendLoginOtp}
-                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 hover:text-white border border-zinc-700 hover:border-zinc-600 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99] disabled:opacity-40"
+                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-white hover:bg-sky-50 text-black border border-sky-500 hover:border-sky-700 rounded-xl transition-all cursor-pointer shadow-xs active:scale-[0.99] disabled:opacity-40"
                     >
                       {isOtpLoginSending ? (
-                        <Loader2 className="h-4 w-4 mr-1.5 animate-spin text-zinc-300" />
+                        <Loader2 className="h-4 w-4 mr-1.5 animate-spin text-black" />
                       ) : (
-                        <RefreshCw className="h-4 w-4 mr-1.5 text-zinc-400" />
+                        <RefreshCw className="h-4 w-4 mr-1.5 text-black" />
                       )}
                       <span>
                         {isOtpLoginSending
@@ -1149,7 +1149,7 @@ export const LoginPage = ({
           </div>
         </div>
 
-        <p className="text-[11px] text-zinc-400 text-center mt-4">
+        <p className="text-[11px] text-black text-center mt-4">
           © 2026 Plexivia. All rights reserved.
         </p>
       </motion.div>
@@ -1159,10 +1159,10 @@ export const LoginPage = ({
           href="https://plexivia.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700/80 shadow-2xl backdrop-blur-md transition-all group"
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white hover:bg-sky-50 border border-sky-400 shadow-lg transition-all group"
           title="Developed by Plexivia"
         >
-          <span className="text-[11px] font-semibold tracking-wider text-zinc-400 group-hover:text-zinc-200 whitespace-nowrap">
+          <span className="text-[11px] font-semibold tracking-wider text-black group-hover:text-sky-700 whitespace-nowrap">
             Powered by
           </span>
           <img
