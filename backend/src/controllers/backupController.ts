@@ -36,8 +36,8 @@ const toResponse = async (s: Partial<BackupSettingsFields>) => {
     access_key_id: s.access_key_id || '',
     has_secret_access_key: Boolean(s.secret_access_key),
     secret_access_key_masked: mask(decryptText(s.secret_access_key || '')),
-    has_api_token: Boolean(s.api_token) || Boolean(process.env.CLOUDFLARE_API_TOKEN),
-    api_token_masked: mask(decryptText(s.api_token || '') || process.env.CLOUDFLARE_API_TOKEN || ''),
+    has_api_token: Boolean(s.api_token),
+    api_token_masked: mask(decryptText(s.api_token || '')),
     bucket_name: s.bucket_name || '',
     backup_enabled: s.backup_enabled ?? true,
     backup_cron: s.backup_cron || DEFAULT_BACKUP_CRON,
@@ -80,7 +80,7 @@ export const updateSettings = async (req: AuthedRequest, res: Response) => {
     }
 
     const update: Record<string, any> = {
-      is_enabled: Boolean(body.is_enabled),
+      is_enabled: body.is_enabled !== false,
       account_id: String(body.account_id || '').trim(),
       access_key_id: String(body.access_key_id || '').trim(),
       bucket_name: String(body.bucket_name || '').trim(),
@@ -114,11 +114,11 @@ export const testConnection = async (req: AuthedRequest, res: Response) => {
     const stored = await loadSettings();
     const body = req.body || {};
     const cfg = {
-      accountId: String(body.account_id || stored.account_id || process.env.R2_ACCOUNT_ID || '').trim(),
-      accessKeyId: String(body.access_key_id || stored.access_key_id || process.env.R2_ACCESS_KEY_ID || '').trim(),
+      accountId: String(body.account_id || stored.account_id || '').trim(),
+      accessKeyId: String(body.access_key_id || stored.access_key_id || '').trim(),
       secretAccessKey:
-        String(body.secret_access_key || '').trim() || decryptText(stored.secret_access_key || '') || process.env.R2_SECRET_ACCESS_KEY || '',
-      bucketName: String(body.bucket_name || stored.bucket_name || process.env.R2_BUCKET_NAME || '').trim(),
+        String(body.secret_access_key || '').trim() || decryptText(stored.secret_access_key || ''),
+      bucketName: String(body.bucket_name || stored.bucket_name || '').trim(),
     };
     if (!isR2Configured(cfg)) {
       return res.status(400).json({ success: false, message: 'Account ID, access key, secret and bucket are required.' });
@@ -141,8 +141,8 @@ export const createBucket = async (req: AuthedRequest, res: Response) => {
   try {
     const stored = await loadSettings();
     const name = String(req.body?.bucket_name || '').trim().toLowerCase();
-    const accountId = String(req.body?.account_id || stored.account_id || process.env.R2_ACCOUNT_ID || '').trim();
-    const apiToken = String(req.body?.api_token || '').trim() || decryptText(stored.api_token || '') || process.env.CLOUDFLARE_API_TOKEN || '';
+    const accountId = String(req.body?.account_id || stored.account_id || '').trim();
+    const apiToken = String(req.body?.api_token || '').trim() || decryptText(stored.api_token || '');
 
     if (!BUCKET_NAME_PATTERN.test(name)) {
       return res.status(400).json({ success: false, message: 'Bucket names use 3-63 lowercase letters, numbers and dashes.' });
@@ -154,7 +154,15 @@ export const createBucket = async (req: AuthedRequest, res: Response) => {
     const result = await createR2Bucket(accountId, apiToken, name, String(req.body?.location_hint || 'apac'));
     await getBackupSettingsModel().updateOne(
       { key: 'default' },
-      { $set: { bucket_name: name, account_id: accountId, updated_at: new Date().toISOString(), updated_by: req.auth?.email || '' } },
+      {
+        $set: {
+          bucket_name: name,
+          account_id: accountId,
+          ...(req.body?.api_token ? { api_token: encryptText(String(req.body.api_token).trim()) } : {}),
+          updated_at: new Date().toISOString(),
+          updated_by: req.auth?.email || '',
+        },
+      },
       { upsert: true }
     );
     return res.status(201).json({ success: true, message: `Bucket '${name}' created.`, data: result });

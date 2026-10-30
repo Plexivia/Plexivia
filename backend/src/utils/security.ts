@@ -70,28 +70,33 @@ export const verifyTotp = (secret: string, code: string): boolean => {
 // Generate a 6-digit numeric OTP using a CSPRNG
 export const generateNumericOtp = (): string => crypto.randomInt(100000, 1000000).toString();
 
-// Key for secrets stored in the database (falls back to a key derived from JWT_SECRET)
-const getSecretKey = (): Buffer =>
-  crypto.createHash('sha256').update(process.env.SETTINGS_ENCRYPTION_KEY || process.env.JWT_SECRET || '').digest();
+// Keys for secrets stored in the database: SETTINGS_ENCRYPTION_KEY first, then the legacy JWT_SECRET-derived key
+const getSecretKeys = (): Buffer[] => {
+  const secrets = [process.env.SETTINGS_ENCRYPTION_KEY, process.env.JWT_SECRET].filter(Boolean) as string[];
+  return Array.from(new Set(secrets.length ? secrets : [''])).map((k) => crypto.createHash('sha256').update(k).digest());
+};
 
 // Encrypt a secret with AES-256-GCM (iv:tag:ciphertext, base64)
 export const encryptText = (plain: string): string => {
   if (!plain) return '';
   const iv = crypto.randomBytes(12);
-  const cipher = crypto.createCipheriv('aes-256-gcm', getSecretKey(), iv);
+  const cipher = crypto.createCipheriv('aes-256-gcm', getSecretKeys()[0], iv);
   const encrypted = Buffer.concat([cipher.update(plain, 'utf8'), cipher.final()]);
   return [iv, cipher.getAuthTag(), encrypted].map((b) => b.toString('base64')).join(':');
 };
 
-// Decrypt a value produced by encryptText; returns '' when it cannot be read
+// Decrypt a value produced by encryptText with any known key; returns '' when it cannot be read
 export const decryptText = (stored: string): string => {
-  if (!stored) return '';
-  try {
-    const [iv, tag, data] = stored.split(':').map((p) => Buffer.from(p, 'base64'));
-    const decipher = crypto.createDecipheriv('aes-256-gcm', getSecretKey(), iv);
-    decipher.setAuthTag(tag);
-    return Buffer.concat([decipher.update(data), decipher.final()]).toString('utf8');
-  } catch {
-    return '';
+  const [iv, tag, data] = (stored || '').split(':').map((p) => Buffer.from(p, 'base64'));
+  if (!iv || !tag || !data) return '';
+  for (const key of getSecretKeys()) {
+    try {
+      const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+      decipher.setAuthTag(tag);
+      return Buffer.concat([decipher.update(data), decipher.final()]).toString('utf8');
+    } catch {
+      // Try the next key
+    }
   }
+  return '';
 };

@@ -24,7 +24,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const EJSON = mongoose.mongo.BSON.EJSON;
 
 export interface R2Config {
-  source: 'settings' | 'env';
+  source: 'settings';
   accountId: string;
   accessKeyId: string;
   secretAccessKey: string;
@@ -48,40 +48,23 @@ export interface BackupEntry {
 
 let isRunning = false;
 
-// Resolve the active R2 config: dashboard settings first, then R2_* environment variables
+// Resolve the R2 config from the encrypted dashboard settings (the only source for credentials)
 export const getR2Config = async (): Promise<R2Config> => {
   const doc = await getBackupSettingsModel().findOne({ key: 'default' }).lean();
-  const apiToken = decryptText(doc?.api_token || '') || process.env.CLOUDFLARE_API_TOKEN || '';
-  const useDb = Boolean(doc?.is_enabled && doc.account_id && doc.access_key_id && doc.secret_access_key && doc.bucket_name);
-
-  if (useDb && doc) {
-    return {
-      source: 'settings',
-      accountId: doc.account_id,
-      accessKeyId: doc.access_key_id,
-      secretAccessKey: decryptText(doc.secret_access_key),
-      apiToken,
-      bucketName: doc.bucket_name,
-      backupEnabled: doc.backup_enabled ?? true,
-      backupCron: doc.backup_cron || DEFAULT_BACKUP_CRON,
-      backupTimezone: doc.backup_timezone || DEFAULT_BACKUP_TIMEZONE,
-      keepDailyDays: Number(doc.keep_daily_days) || 7,
-      keepWeeklyWeeks: Number(doc.keep_weekly_weeks ?? 5),
-    };
-  }
+  const enabled = Boolean(doc?.is_enabled);
 
   return {
-    source: 'env',
-    accountId: process.env.R2_ACCOUNT_ID || doc?.account_id || '',
-    accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
-    apiToken,
-    bucketName: process.env.R2_BUCKET_NAME || '',
-    backupEnabled: process.env.R2_BACKUP_ENABLED !== 'false',
-    backupCron: process.env.R2_BACKUP_CRON || DEFAULT_BACKUP_CRON,
-    backupTimezone: process.env.R2_BACKUP_TIMEZONE || DEFAULT_BACKUP_TIMEZONE,
-    keepDailyDays: Number(process.env.R2_KEEP_DAILY_DAYS) || 7,
-    keepWeeklyWeeks: Number(process.env.R2_KEEP_WEEKLY_WEEKS ?? 5),
+    source: 'settings',
+    accountId: enabled ? doc?.account_id || '' : '',
+    accessKeyId: enabled ? doc?.access_key_id || '' : '',
+    secretAccessKey: enabled ? decryptText(doc?.secret_access_key || '') : '',
+    apiToken: decryptText(doc?.api_token || ''),
+    bucketName: enabled ? doc?.bucket_name || '' : '',
+    backupEnabled: doc?.backup_enabled ?? true,
+    backupCron: doc?.backup_cron || DEFAULT_BACKUP_CRON,
+    backupTimezone: doc?.backup_timezone || DEFAULT_BACKUP_TIMEZONE,
+    keepDailyDays: Number(doc?.keep_daily_days) || 7,
+    keepWeeklyWeeks: Number(doc?.keep_weekly_weeks ?? 5),
   };
 };
 
@@ -291,7 +274,7 @@ export const executeR2Backup = async (triggeredBy = 'SCHEDULER') => {
   try {
     const cfg = await getR2Config();
     if (!isR2Configured(cfg)) {
-      throw new Error('R2 storage is not configured. Add credentials on the Backups page or in R2_* environment variables.');
+      throw new Error('R2 storage is not configured. Add credentials on the R2 Backups page.');
     }
     await recordBackupStatus('running', `Started by ${triggeredBy}`);
 

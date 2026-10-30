@@ -48,7 +48,6 @@ interface BackupSettings {
   last_backup_message: string;
   last_backup_size: string;
   next_backup_at: string | null;
-  active_source: 'settings' | 'env';
   active_bucket: string;
   configured: boolean;
 }
@@ -93,7 +92,7 @@ export const BackupsPage: React.FC = () => {
       const [s, l] = await Promise.all([apiClient.get(`${BASE}/settings`), apiClient.get(`${BASE}/list`)]);
       const data: BackupSettings = s.data.data;
       setSettings(data);
-      setForm({ ...data, secret_access_key: '', api_token: '' });
+      setForm({ ...data, is_enabled: true, secret_access_key: '', api_token: '' });
       setBackups(l.data.data?.backups || []);
     } catch (err) {
       showToast('error', 'Backups', getApiErrorMessage(err, 'Failed to load backup settings.'));
@@ -272,7 +271,7 @@ export const BackupsPage: React.FC = () => {
           </div>
           <div className="text-sm font-bold font-mono text-foreground truncate">{settings?.active_bucket || '—'}</div>
           <div className="text-[11px] font-mono text-muted-foreground">
-            Source: {settings?.active_source === 'settings' ? 'dashboard' : 'environment'}
+            {settings?.configured ? 'Credentials saved (encrypted)' : 'Credentials not set'}
           </div>
         </div>
 
@@ -306,10 +305,10 @@ export const BackupsPage: React.FC = () => {
               <KeyRound className="w-4 h-4 text-cyan-500" />
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white font-mono">R2 Credentials & Schedule</h3>
             </div>
-            <label className="flex items-center gap-2 text-xs font-semibold text-foreground cursor-pointer">
-              <Switch checked={!!form.is_enabled} onCheckedChange={(v: boolean) => set('is_enabled', v)} />
-              Use these settings
-            </label>
+            <span className="flex items-center gap-1.5 font-mono text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              Stored encrypted in database
+            </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
