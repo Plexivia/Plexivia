@@ -55,6 +55,7 @@ export interface Client {
   monthly_retainer?: number;
   contact_email?: string;
   contact_phone?: string;
+  contact_whatsapp?: string;
   projects_count?: number;
   created_at?: string;
 }
