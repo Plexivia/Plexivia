@@ -24,9 +24,9 @@ export const buttonVariants = cva(
         delete:
           'bg-destructive hover:bg-destructive/90 text-white shadow-xs',
         cancel:
-          'bg-red-500/10 text-red-600 border border-red-500/30 hover:bg-red-500/20 hover:border-red-500/50 shadow-xs cursor-pointer',
+          'btn-cancel bg-red-500/10 text-red-600 border border-red-500/30 shadow-xs cursor-pointer',
         close:
-          'bg-red-500/10 text-red-600 border border-red-500/30 hover:bg-red-500/20 hover:border-red-500/50 shadow-xs cursor-pointer',
+          'btn-close bg-red-500/10 text-red-600 border border-red-500/30 shadow-xs cursor-pointer',
         previous:
           'bg-muted text-foreground hover:bg-muted/80 border border-border shadow-xs cursor-pointer font-semibold',
         back:

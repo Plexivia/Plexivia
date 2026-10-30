@@ -586,7 +586,7 @@ export const LoginPage = ({
                     <button
                       type="button"
                       onClick={() => setViewMode('email')}
-                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-red-600 hover:bg-red-500 text-white border border-red-500 rounded-xl transition-all cursor-pointer shadow-md shadow-red-600/25 active:scale-[0.99]"
+                      className="btn-cancel w-full h-10 flex items-center justify-center font-bold text-xs bg-red-600 hover:bg-red-500 text-white border border-red-500 rounded-xl transition-all cursor-pointer shadow-md shadow-red-600/25 active:scale-[0.99]"
                     >
                       <X className="h-4 w-4 mr-1.5" />
                       <span>Cancel</span>
@@ -756,7 +756,7 @@ export const LoginPage = ({
                         setViewMode('password');
                         setTwoFactorCode('');
                       }}
-                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-red-600 hover:bg-red-500 text-white border border-red-500 rounded-xl transition-all cursor-pointer shadow-md shadow-red-600/25 active:scale-[0.99]"
+                      className="btn-cancel w-full h-10 flex items-center justify-center font-bold text-xs bg-red-600 hover:bg-red-500 text-white border border-red-500 rounded-xl transition-all cursor-pointer shadow-md shadow-red-600/25 active:scale-[0.99]"
                     >
                       <X className="h-4 w-4 mr-1.5" />
                       <span>Cancel</span>
@@ -828,7 +828,7 @@ export const LoginPage = ({
                     <button
                       type="button"
                       onClick={() => setViewMode('password')}
-                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-red-600 hover:bg-red-500 text-white border border-red-500 rounded-xl transition-all cursor-pointer shadow-md shadow-red-600/25 active:scale-[0.99]"
+                      className="btn-cancel w-full h-10 flex items-center justify-center font-bold text-xs bg-red-600 hover:bg-red-500 text-white border border-red-500 rounded-xl transition-all cursor-pointer shadow-md shadow-red-600/25 active:scale-[0.99]"
                     >
                       <X className="h-4 w-4 mr-1.5" />
                       <span>Cancel</span>
@@ -946,7 +946,7 @@ export const LoginPage = ({
                     <button
                       type="button"
                       onClick={() => setViewMode('password')}
-                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-red-600 hover:bg-red-500 text-white border border-red-500 rounded-xl transition-all cursor-pointer shadow-md shadow-red-600/25 active:scale-[0.99]"
+                      className="btn-cancel w-full h-10 flex items-center justify-center font-bold text-xs bg-red-600 hover:bg-red-500 text-white border border-red-500 rounded-xl transition-all cursor-pointer shadow-md shadow-red-600/25 active:scale-[0.99]"
                     >
                       <X className="h-4 w-4 mr-1.5" />
                       <span>Cancel</span>
@@ -1044,7 +1044,7 @@ export const LoginPage = ({
                     <button
                       type="button"
                       onClick={() => setViewMode('email')}
-                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-red-600 hover:bg-red-500 text-white border border-red-500 rounded-xl transition-all cursor-pointer shadow-md shadow-red-600/25 active:scale-[0.99]"
+                      className="btn-cancel w-full h-10 flex items-center justify-center font-bold text-xs bg-red-600 hover:bg-red-500 text-white border border-red-500 rounded-xl transition-all cursor-pointer shadow-md shadow-red-600/25 active:scale-[0.99]"
                     >
                       <X className="h-4 w-4 mr-1.5" />
                       <span>Cancel</span>
@@ -1137,7 +1137,7 @@ export const LoginPage = ({
                         setViewMode('otp_login');
                         setOtpLoginCode('');
                       }}
-                      className="w-full h-10 flex items-center justify-center font-bold text-xs bg-red-600 hover:bg-red-500 text-white border border-red-500 rounded-xl transition-all cursor-pointer shadow-md shadow-red-600/25 active:scale-[0.99]"
+                      className="btn-cancel w-full h-10 flex items-center justify-center font-bold text-xs bg-red-600 hover:bg-red-500 text-white border border-red-500 rounded-xl transition-all cursor-pointer shadow-md shadow-red-600/25 active:scale-[0.99]"
                     >
                       <X className="h-4 w-4 mr-1.5" />
                       <span>Cancel</span>

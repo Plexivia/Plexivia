@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Modal } from '../common/Modal';
 import { useData } from '../../context/DataContext';
-import { ClientType, ClientStatus } from '../../types';
-import { Building2, Globe, Mail, Phone, Database } from 'lucide-react';
+import { ClientStatus } from '../../types';
+import { Building2, Globe, Mail, Phone, MessageCircle } from 'lucide-react';
 
 interface CreateClientModalProps {
   isOpen: boolean;
@@ -15,14 +15,12 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
   const [businessName, setBusinessName] = useState('');
   const [clientKey, setClientKey] = useState('');
   const [primaryDomain, setPrimaryDomain] = useState('');
-  const [clientType, setClientType] = useState<ClientType>('MULTI_TENANT_ECOMMERCE');
-  const [databaseShared, setDatabaseShared] = useState<boolean>(true);
   const [contactEmail, setContactEmail] = useState('');
   const [contactPhone, setContactPhone] = useState('');
-  const [monthlyRetainer, setMonthlyRetainer] = useState<number | string>('');
+  const [contactWhatsapp, setContactWhatsapp] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Auto-generate client slug and domain from business name
+  // Auto-generate client slug from business name
   const handleNameChange = (name: string) => {
     setBusinessName(name);
     if (!clientKey) {
@@ -32,7 +30,6 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
         .slice(0, 16);
       if (slug) {
         setClientKey(slug);
-        if (!primaryDomain) setPrimaryDomain(slug + '.com');
       }
     }
   };
@@ -40,20 +37,18 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
   // Validate and submit new client onboarding payload
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!businessName.trim() || !clientKey.trim() || !contactEmail.trim()) return;
+    if (!businessName.trim() || !clientKey.trim() || !contactEmail.trim() || !contactPhone.trim()) return;
 
     setLoading(true);
     try {
       await createClient({
         business_name: businessName.trim(),
         client_key: clientKey.trim().toLowerCase(),
-        primary_domain: primaryDomain.trim() || (clientKey.toLowerCase() + '.com'),
-        client_type: clientType,
-        database_shared: clientType === 'MULTI_TENANT_ECOMMERCE' ? databaseShared : false,
+        primary_domain: primaryDomain.trim(),
         status: 'ACTIVE' as ClientStatus,
         contact_email: contactEmail.trim(),
         contact_phone: contactPhone.trim(),
-        monthly_retainer: Number(monthlyRetainer) || 0,
+        contact_whatsapp: contactWhatsapp.trim(),
       });
 
       onClose();
@@ -62,6 +57,7 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
       setPrimaryDomain('');
       setContactEmail('');
       setContactPhone('');
+      setContactWhatsapp('');
     } catch (err) {
       console.error(err);
     } finally {
@@ -74,7 +70,7 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
       isOpen={isOpen}
       onClose={onClose}
       title="Onboard New Enterprise Client"
-      subtitle="Register a new client entity, domain mapping, and tenant architecture profile"
+      subtitle="Register a new client with business, domain, and contact details"
       maxWidth="2xl"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -112,13 +108,12 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-              Primary Ingress Domain *
+              Primary Domain Name (Optional)
             </label>
             <div className="relative">
               <Globe className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                required
                 value={primaryDomain}
                 onChange={e => setPrimaryDomain(e.target.value)}
                 placeholder="e.g. acme.com"
@@ -126,49 +121,6 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
               />
             </div>
           </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-              Tenant Architecture Type *
-            </label>
-            <select
-              value={clientType}
-              onChange={e => setClientType(e.target.value as ClientType)}
-              className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-lg text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 font-mono shadow-2xs"
-            >
-              <option value="MULTI_TENANT_ECOMMERCE">Multi-Tenant eCommerce</option>
-              <option value="SINGLE_TENANT">Dedicated Single-Tenant</option>
-            </select>
-          </div>
-
-          {clientType === 'MULTI_TENANT_ECOMMERCE' && (
-            <div className="md:col-span-2 p-3.5 rounded-lg bg-cyan-50/70 dark:bg-cyan-950/20 border border-cyan-200 dark:border-cyan-500/20 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Database className="w-5 h-5 text-cyan-600 dark:text-cyan-400 shrink-0" />
-                <div>
-                  <span className="text-xs font-bold text-slate-900 dark:text-white block">
-                    Shared PostgreSQL Fleet Database
-                  </span>
-                  <span className="text-[11px] text-slate-600 dark:text-slate-400">
-                    Route queries via dynamic Postgres search_path and tenant schema partition
-                  </span>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setDatabaseShared(!databaseShared)}
-                className={`w-11 h-6 rounded-full transition-colors relative flex items-center px-1 cursor-pointer ${
-                  databaseShared ? 'bg-cyan-600' : 'bg-slate-300 dark:bg-slate-700'
-                }`}
-              >
-                <div
-                  className={`w-4 h-4 rounded-full bg-white transition-transform ${
-                    databaseShared ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
-              </button>
-            </div>
-          )}
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
@@ -189,12 +141,13 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-              Contact Phone (Optional)
+              Contact Phone *
             </label>
             <div className="relative">
               <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="tel"
+                required
                 value={contactPhone}
                 onChange={e => setContactPhone(e.target.value)}
                 placeholder="+880 1700-000000"
@@ -203,19 +156,18 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
             </div>
           </div>
 
-          <div className="md:col-span-2">
+          <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-              Monthly Retainer (৳ BDT)
+              WhatsApp Number (Optional)
             </label>
             <div className="relative">
-              <span className="text-sm font-bold text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 font-mono">৳</span>
+              <MessageCircle className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
-                type="number"
-                min={0}
-                step={100}
-                value={monthlyRetainer}
-                onChange={e => setMonthlyRetainer(Number(e.target.value))}
-                className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-lg text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 font-mono shadow-2xs"
+                type="tel"
+                value={contactWhatsapp}
+                onChange={e => setContactWhatsapp(e.target.value)}
+                placeholder="+880 1700-000000"
+                className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-lg text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono shadow-2xs"
               />
             </div>
           </div>
@@ -225,7 +177,7 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors cursor-pointer"
+            className="btn-cancel px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors cursor-pointer"
           >
             Cancel
           </button>

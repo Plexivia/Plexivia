@@ -80,7 +80,7 @@ export function StageChangeConfirmModal({
             type="button"
             disabled={loading}
             onClick={onClose}
-            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition cursor-pointer disabled:opacity-50"
+            className="btn-close p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition cursor-pointer disabled:opacity-50"
           >
             <X className="w-4 h-4" />
           </button>
@@ -182,7 +182,7 @@ export function StageChangeConfirmModal({
             type="button"
             disabled={loading}
             onClick={onClose}
-            className="px-4 py-2 rounded-xl border border-border text-foreground hover:bg-muted/50 font-bold text-xs transition cursor-pointer disabled:opacity-50"
+            className="btn-cancel px-4 py-2 rounded-xl border border-border text-foreground hover:bg-muted/50 font-bold text-xs transition cursor-pointer disabled:opacity-50"
           >
             Cancel
           </button>

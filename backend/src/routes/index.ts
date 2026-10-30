@@ -3,6 +3,7 @@ import authRouter from './auth.routes.js';
 import hubRouter from './hub.routes.js';
 import agencyRouter from './agency.routes.js';
 import accountingRouter from './accounting.routes.js';
+import backupRouter from './backup.routes.js';
 
 const router = Router();
 
@@ -13,6 +14,10 @@ const router = Router();
 // 1. Auth & Identity Chunk (/api/auth/*)
 router.use('/auth', authRouter);
 router.use('/v1/auth', authRouter);
+
+// 1b. Cloudflare R2 Database Backups (/api/r2-backups/*)
+router.use('/r2-backups', backupRouter);
+router.use('/v1/r2-backups', backupRouter);
 
 // 2. Master Hub Core Chunk (/api/hub/*)
 router.use('/hub', hubRouter);

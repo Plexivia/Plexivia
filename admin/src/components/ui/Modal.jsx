@@ -53,7 +53,7 @@ export const Modal = ({
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-lg border border-transparent hover:border-red-500/20 transition-colors cursor-pointer shrink-0"
+              className="btn-close p-1.5 text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-lg border border-transparent hover:border-red-500/20 transition-colors cursor-pointer shrink-0"
               title="Close"
             >
               <X className="size-4.5 stroke-[2.5]" />

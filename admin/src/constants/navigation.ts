@@ -22,6 +22,7 @@ import {
   Tag,
   TrendingUp,
   Server,
+  HardDrive,
 } from 'lucide-react';
 import type { MenuGroup } from '@/types';
 
@@ -62,11 +63,6 @@ export const NAVIGATION_MENU_GROUPS: MenuGroup[] = [
         title: 'Clients',
         url: '/clients',
         icon: Building2,
-      },
-      {
-        title: 'Team',
-        url: '/team',
-        icon: Users,
       },
       {
         title: 'Document Studio',
@@ -257,9 +253,15 @@ export const NAVIGATION_MENU_GROUPS: MenuGroup[] = [
     label: 'Administration',
     items: [
       {
-        title: 'Users',
+        title: 'Team',
         url: '/users',
         icon: UserCheck,
+      },
+      {
+        title: 'R2 Backups',
+        url: '/backups',
+        icon: HardDrive,
+        roles: ['owner', 'admin', 'super_admin'],
       },
       {
         title: 'Cpanel',

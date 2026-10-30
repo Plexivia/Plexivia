@@ -1,114 +1,63 @@
+# Plexivia Docker stack: MongoDB + Backend API + Admin Dashboard
+#   cp deploy/.env.example deploy/.env   (fill in the secrets)
+#   docker compose -f deploy/docker-compose.yml up -d --build
 services:
-  # MongoDB Shared Instance with 2-Tier DB Topology
-  plexivia_mongo:
+  mongo:
     image: mongo:7.0
     container_name: plexivia_mongo
     restart: unless-stopped
-    ports:
-      - "127.0.0.1:27025:27017"
-    volumes:
-      - mongo_data:/data/db
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: plexivia_secure_mongo_password
-    networks:
-      - plexivia_internal
-
-  # 1. Auth Service (Port 5001)
-  auth_service:
-    build:
-      context: ..
-      dockerfile: deploy/Dockerfile.service
-      args:
-        SERVICE_PATH: services/auth-service
-    container_name: plexivia_auth_service
-    restart: unless-stopped
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?set MONGO_ROOT_PASSWORD in deploy/.env}
     ports:
-      - "5001:5001"
-    environment:
-      PORT: 5001
-      AUTH_SERVICE_PORT: 5001
-      MONGODB_SECURE_URI: mongodb://root:plexivia_secure_mongo_password@plexivia_mongo:27017/plexivia_secure_db?authSource=admin
-    depends_on:
-      - plexivia_mongo
+      - "127.0.0.1:${MONGO_HOST_PORT:-27025}:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
     networks:
       - plexivia_internal
 
-  # 2. Hub Service (Port 5002)
-  hub_service:
-    build:
-      context: ..
-      dockerfile: deploy/Dockerfile.service
-      args:
-        SERVICE_PATH: services/hub-service
-    container_name: plexivia_hub_service
-    restart: unless-stopped
-    ports:
-      - "5002:5002"
-    environment:
-      PORT: 5002
-      HUB_SERVICE_PORT: 5002
-      MONGODB_OPERATIONS_URI: mongodb://root:plexivia_secure_mongo_password@plexivia_mongo:27017/plexivia_operations_db?authSource=admin
-    depends_on:
-      - plexivia_mongo
-    networks:
-      - plexivia_internal
-
-  # 3. Agency Service (Port 5003)
-  agency_service:
-    build:
-      context: ..
-      dockerfile: deploy/Dockerfile.service
-      args:
-        SERVICE_PATH: services/agency-service
-    container_name: plexivia_agency_service
-    restart: unless-stopped
-    ports:
-      - "5003:5003"
-    environment:
-      PORT: 5003
-      AGENCY_SERVICE_PORT: 5003
-      MONGODB_OPERATIONS_URI: mongodb://root:plexivia_secure_mongo_password@plexivia_mongo:27017/plexivia_operations_db?authSource=admin
-    depends_on:
-      - plexivia_mongo
-    networks:
-      - plexivia_internal
-
-  # 4. Finance Service (Port 5004)
-  finance_service:
-    build:
-      context: ..
-      dockerfile: deploy/Dockerfile.service
-      args:
-        SERVICE_PATH: services/finance-service
-    container_name: plexivia_finance_service
-    restart: unless-stopped
-    ports:
-      - "5004:5004"
-    environment:
-      PORT: 5004
-      FINANCE_SERVICE_PORT: 5004
-      MONGODB_SECURE_URI: mongodb://root:plexivia_secure_mongo_password@plexivia_mongo:27017/plexivia_secure_db?authSource=admin
-    depends_on:
-      - plexivia_mongo
-    networks:
-      - plexivia_internal
-
-  # Core API Gateway & Monolithic Runner (Port 5095)
-  api_gateway:
+  backend:
     build:
       context: ../backend
       dockerfile: Dockerfile
-    container_name: plexivia_backend_gateway
+    container_name: plexivia_backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: 5095
+      # MONGO_ROOT_PASSWORD must be URL-safe (letters, digits, - _ . ~)
+      MONGODB_SECURE_URI: mongodb://root:${MONGO_ROOT_PASSWORD}@mongo:27017/plexivia_secure_db?authSource=admin
+      MONGODB_OPERATIONS_URI: mongodb://root:${MONGO_ROOT_PASSWORD}@mongo:27017/plexivia_operations_db?authSource=admin
+    ports:
+      - "127.0.0.1:${BACKEND_HOST_PORT:-5095}:5095"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - plexivia_internal
+
+  admin:
+    build:
+      context: ../admin
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
+        VITE_WS_URL: ${VITE_WS_URL:-}
+    container_name: plexivia_admin
     restart: unless-stopped
     ports:
-      - "5095:5095"
-    environment:
-      PORT: 5095
-      MONGODB_SECURE_URI: mongodb://root:plexivia_secure_mongo_password@plexivia_mongo:27017/plexivia_secure_db?authSource=admin
-      MONGODB_OPERATIONS_URI: mongodb://root:plexivia_secure_mongo_password@plexivia_mongo:27017/plexivia_operations_db?authSource=admin
+      - "${ADMIN_HOST_PORT:-8010}:80"
     depends_on:
-      - plexivia_mongo
+      backend:
+        condition: service_healthy
     networks:
       - plexivia_internal
 

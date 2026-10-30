@@ -9,9 +9,10 @@ APP_DIR  ?= /opt/plexivia
 SERVICES := plexivia-backend plexivia-auth plexivia-hub plexivia-agency plexivia-finance
 NGINX_SITES := /etc/nginx/sites-available
 SVC ?= plexivia-backend
+DSVC ?=
 
 .PHONY: help install build build-services dev setup deploy restart status logs health \
-        nginx docker-up docker-down
+        nginx docker-up docker-down docker-logs docker-ps docker-deploy
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-16s\033[0m %s\n",$$1,$$2}'
@@ -57,8 +58,20 @@ health: ## Check API gateway health
 	curl -fsS http://127.0.0.1:5095/api/health && echo
 
 # ---------- Docker ----------
-docker-up: ## Start stack with docker compose
-	docker compose -f deploy/docker-compose.yml up -d --build
+COMPOSE := docker compose -f deploy/docker-compose.yml
+
+docker-up: ## Build and start mongo + backend + admin (needs deploy/.env)
+	$(COMPOSE) up -d --build
 
 docker-down: ## Stop docker compose stack
-	docker compose -f deploy/docker-compose.yml down
+	$(COMPOSE) down
+
+docker-logs: ## Tail container logs (make docker-logs DSVC=backend)
+	$(COMPOSE) logs -f --tail=100 $(DSVC)
+
+docker-ps: ## Show container status and health
+	$(COMPOSE) ps
+
+docker-deploy: ## Pull latest Live branch, rebuild and restart containers
+	git pull origin Live
+	$(COMPOSE) up -d --build

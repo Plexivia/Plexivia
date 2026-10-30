@@ -12,6 +12,12 @@ export interface IClient extends Document {
   name: string;
   email: string;
   phone: string[];
+  business_name?: string;
+  client_key?: string;
+  primary_domain?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  contact_whatsapp?: string;
   address?: string;
   services: string[];
   projects: IClientProjectRef[];
@@ -41,6 +47,12 @@ const ClientSchema = new Schema<IClient>(
         message: 'At least one valid phone number is required.',
       },
     },
+    business_name: { type: String, trim: true, default: '' },
+    client_key: { type: String, trim: true, lowercase: true, unique: true, sparse: true },
+    primary_domain: { type: String, trim: true, default: '' },
+    contact_email: { type: String, trim: true, lowercase: true, default: '' },
+    contact_phone: { type: String, trim: true, default: '' },
+    contact_whatsapp: { type: String, trim: true, default: '' },
     address: { type: String, default: '' },
     services: { type: [String], default: [] },
     projects: { type: [ClientProjectRefSchema], default: [] },

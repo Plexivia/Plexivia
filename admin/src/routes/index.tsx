@@ -15,10 +15,10 @@ import { OverviewPage } from '@/pages/OverviewPage';
 import { WebmailPage } from '@/pages/WebmailPage';
 import { SupportDeskPage } from '@/pages/SupportDeskPage';
 import { UsersPage } from '@/pages/UsersPage';
+import { BackupsPage } from '@/pages/BackupsPage';
 import { ProjectsPage } from '@/pages/ProjectsPage';
 import { TasksPage } from '@/pages/TasksPage';
 import { ClientsDirectoryPage } from '@/pages/ClientsDirectoryPage';
-import { AgencyTeamPage } from '@/pages/AgencyTeamPage';
 import { CpanelPage } from '@/pages/CpanelPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { DocumentStudioPage } from '@/features/document-studio/pages/DocumentStudioPage';
@@ -160,6 +160,14 @@ export const AppRoutes = () => {
         }
       />
       <Route
+        path="/backups"
+        element={
+          <AppShell>
+            <BackupsPage />
+          </AppShell>
+        }
+      />
+      <Route
         path="/cpanel"
         element={
           <AppShell>
@@ -191,14 +199,7 @@ export const AppRoutes = () => {
           </AppShell>
         }
       />
-      <Route
-        path="/team"
-        element={
-          <AppShell>
-            <AgencyTeamPage />
-          </AppShell>
-        }
-      />
+      <Route path="/team" element={<Navigate to="/users" replace />} />
 
       <Route
         path="/accounts"

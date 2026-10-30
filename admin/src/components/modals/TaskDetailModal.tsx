@@ -416,7 +416,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, 
                 <div className="flex justify-end gap-2">
                   <button
                     onClick={() => setIsEditingDesc(false)}
-                    className="px-3 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs rounded-lg cursor-pointer"
+                    className="btn-cancel px-3 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs rounded-lg cursor-pointer"
                   >
                     Cancel
                   </button>

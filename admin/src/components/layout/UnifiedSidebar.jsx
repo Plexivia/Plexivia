@@ -227,7 +227,7 @@ export const UnifiedSidebar = ({
                 setOpen(false);
                 if (isMobile) setOpenMobile(false);
               }}
-              className="size-7 rounded-full bg-sidebar-accent hover:bg-sidebar-accent/80 border border-sidebar-border text-cyan-300 hover:text-white flex items-center justify-center shrink-0 transition-all cursor-pointer shadow-xs"
+              className="btn-close size-7 rounded-full bg-sidebar-accent hover:bg-sidebar-accent/80 border border-sidebar-border text-cyan-300 hover:text-white flex items-center justify-center shrink-0 transition-all cursor-pointer shadow-xs"
               title={'Close Sidebar'}
             >
               <X className="w-3.5 h-3.5" />

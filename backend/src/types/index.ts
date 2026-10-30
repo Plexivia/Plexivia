@@ -425,6 +425,7 @@ export interface Client {
   monthly_retainer?: number;
   contact_email?: string;
   contact_phone?: string;
+  contact_whatsapp?: string;
   address?: string;
   projects_count?: number;
   modules?: ClientModules;

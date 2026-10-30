@@ -96,7 +96,7 @@ export function ExportModal({ isOpen, onClose, documentTitle = 'Document', data 
 
           <button
             onClick={onClose}
-            className="text-red-500 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer"
+            className="btn-close text-red-500 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer"
             title="Close"
           >
             <X className="w-5 h-5" />

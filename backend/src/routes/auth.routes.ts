@@ -40,6 +40,7 @@ router.post('/users', requireAuth, requireRole('OWNER', 'ADMIN', 'SUPER_ADMIN'),
 router.post('/users/bulk-delete', requireAuth, requireRole('OWNER', 'ADMIN', 'SUPER_ADMIN'), userController.bulkDeleteUsers);
 router.post('/users/:id/invite', requireAuth, requireRole('OWNER', 'ADMIN', 'SUPER_ADMIN'), userController.sendUserInvite);
 router.post('/users/:id/reset-password', requireAuth, requireRole('OWNER', 'ADMIN', 'SUPER_ADMIN'), userController.resetUserPassword);
+router.post('/users/:id/send-2fa', requireAuth, requireRole('OWNER', 'ADMIN', 'SUPER_ADMIN'), userController.sendUser2fa);
 router.get('/users/:id', requireAuth, requireRole('OWNER', 'ADMIN', 'SUPER_ADMIN'), userController.getUserById);
 router.put('/users/:id', requireAuth, requireRole('OWNER', 'ADMIN', 'SUPER_ADMIN'), userController.updateUser);
 router.patch('/users/:id', requireAuth, requireRole('OWNER', 'ADMIN', 'SUPER_ADMIN'), userController.updateUser);

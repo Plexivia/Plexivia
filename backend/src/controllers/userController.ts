@@ -1,8 +1,8 @@
 import crypto from 'crypto';
 import { Request, Response } from 'express';
 import { getAdminModel } from '../models/Admin.js';
-import { hashPassword } from '../utils/security.js';
-import { sendMail, renderTeamInviteEmailHtml, renderPasswordResetByAdminEmailHtml } from '../utils/mailer.js';
+import { hashPassword, generateTotpSecret } from '../utils/security.js';
+import { sendMail, renderTeamInviteEmailHtml, renderPasswordResetByAdminEmailHtml, renderMfaEmailHtml } from '../utils/mailer.js';
 import { AuthedRequest } from '../middleware/auth.js';
 
 const PRIVILEGED_ROLES = ['OWNER', 'SUPER_ADMIN'];
@@ -307,6 +307,46 @@ export const resetUserPassword = async (req: AuthedRequest, res: Response) => {
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message || 'Failed to reset password' });
+  }
+};
+
+// Email a team member the authenticator (2FA) setup QR code and secret
+export const sendUser2fa = async (req: AuthedRequest, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const AdminModel = getAdminModel();
+    const user = await AdminModel.findOne(userLookup(id));
+    if (!user) {
+      return res.status(404).json({ success: false, message: `User '${id}' not found` });
+    }
+    if (!canManageRole(req.auth?.role, user.role)) {
+      return res.status(403).json({ success: false, message: 'Insufficient permissions to manage this user' });
+    }
+    if (user.two_factor_secret) {
+      return res.status(409).json({ success: false, message: 'An authenticator is already configured for this user.' });
+    }
+
+    const secretKey = user.two_factor_pending_secret || generateTotpSecret();
+    if (!user.two_factor_pending_secret) {
+      await AdminModel.updateOne({ _id: user._id }, { $set: { two_factor_pending_secret: secretKey, updated_at: new Date().toISOString() } });
+    }
+
+    const otpauthUrl = `otpauth://totp/Plexivia:${encodeURIComponent(user.email)}?secret=${secretKey}&issuer=Plexivia`;
+    const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(otpauthUrl)}`;
+
+    const mail = await sendMail({
+      to: user.email,
+      subject: 'Setup Two-Factor Authenticator (Plexivia IAM)',
+      html: renderMfaEmailHtml(secretKey, qrCodeImageUrl, user.email),
+      text: `Setup your Plexivia Two-Factor Authenticator. Secret Key: ${secretKey}`,
+    });
+    if (!mail.success) {
+      return res.status(502).json({ success: false, message: 'Could not send the authenticator setup email. Please try again shortly.' });
+    }
+
+    return res.json({ success: true, message: `Authenticator setup email sent to ${user.email}` });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message || 'Failed to send 2FA setup email' });
   }
 };
 

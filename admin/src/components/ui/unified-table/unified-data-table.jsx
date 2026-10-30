@@ -101,6 +101,7 @@ export function UnifiedDataTable({
   className = '',
   tableClassName = '',
   initialDensity = 'normal',
+  initialColumnVisibility = {},
 
   // Server-side / Controlled Props
   manualPagination = false,
@@ -112,7 +113,7 @@ export function UnifiedDataTable({
 }) {
   // Local states
   const [rowSelection, setRowSelection] = useState({});
-  const [columnVisibility, setColumnVisibility] = useState({});
+  const [columnVisibility, setColumnVisibility] = useState(initialColumnVisibility);
   const [columnFilters, setColumnFilters] = useState([]);
   const [globalFilter, setGlobalFilter] = useState('');
   const [sorting, setSorting] = useState(initialSorting);

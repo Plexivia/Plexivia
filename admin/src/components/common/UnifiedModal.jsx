@@ -70,7 +70,7 @@ export function UnifiedModalHeader({
         <button
           type="button"
           onClick={onClose}
-          className="p-1.5 rounded-lg text-red-500 hover:text-red-600 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-colors cursor-pointer shrink-0 flex items-center justify-center"
+          className="btn-close p-1.5 rounded-lg text-red-500 hover:text-red-600 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-colors cursor-pointer shrink-0 flex items-center justify-center"
           aria-label="Close modal"
           title="Close"
         >

@@ -450,7 +450,7 @@ export function FileViewerModal({
             <button
               type="button"
               onClick={onClose}
-              className="p-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 border border-rose-500/30 rounded-xl shadow-2xs transition cursor-pointer ml-1"
+              className="btn-close p-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 border border-rose-500/30 rounded-xl shadow-2xs transition cursor-pointer ml-1"
               title="Close (Esc)"
             >
               <X className="size-4" />

@@ -70,6 +70,7 @@ interface DataContextType {
   deleteUser: (id: string) => Promise<void>;
   bulkDeleteUsers: (ids: string[]) => Promise<void>;
   resetUserPassword: (id: string, password: string) => Promise<void>;
+  sendUser2fa: (id: string) => Promise<void>;
   createTimeLog: (data: Omit<TimeLog, 'id' | 'created_at'>) => Promise<TimeLog>;
   triggerBackup: () => Promise<CloudflareBackup>;
   sendTestEmail: (recipient: string, subject: string) => Promise<MailLog>;
@@ -454,6 +455,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const sendUser2fa = async (id: string) => {
+    try {
+      const res = await apiClient.sendUser2fa(id);
+      showToast('success', '2FA Setup Sent', res?.message || 'Authenticator setup email sent.');
+    } catch (err: any) {
+      showToast('error', '2FA Failed', err.message);
+      throw err;
+    }
+  };
+
   // Time log actions
   const createTimeLog = async (data: Omit<TimeLog, 'id' | 'created_at'>) => {
     try {
@@ -534,6 +545,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         deleteUser,
         bulkDeleteUsers,
         resetUserPassword,
+        sendUser2fa,
         createTimeLog,
         triggerBackup,
         sendTestEmail,

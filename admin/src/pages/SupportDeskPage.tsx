@@ -178,7 +178,7 @@ export const SupportDeskPage: React.FC = () => {
         <form onSubmit={handleCreate} className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-4 space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-bold text-slate-900 dark:text-white">New ticket</h2>
-            <button type="button" onClick={() => setCreating(false)} className="p-1 text-slate-500 cursor-pointer" title="Close">
+            <button type="button" onClick={() => setCreating(false)} className="btn-close p-1 text-slate-500 cursor-pointer" title="Close">
               <X className="w-4 h-4" />
             </button>
           </div>

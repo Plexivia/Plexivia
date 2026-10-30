@@ -124,6 +124,7 @@ export interface ApiClient {
   deleteUser(id: string): Promise<{ success: boolean; message?: string }>;
   bulkDeleteUsers(ids: string[]): Promise<{ success: boolean; deleted: number; skipped: number; message?: string }>;
   resetUserPassword(id: string, password: string): Promise<{ success: boolean; emailSent?: boolean; message?: string }>;
+  sendUser2fa(id: string): Promise<{ success: boolean; message?: string }>;
 
   // Teams
   getTeams(): Promise<Team[]>;
@@ -400,6 +401,12 @@ export const apiClient: ApiClient = {
       body: JSON.stringify({ password }),
     });
     this.logActivity('reset password for', id, 'SYSTEM');
+    return res;
+  },
+
+  async sendUser2fa(id: string): Promise<{ success: boolean; message?: string }> {
+    const res = await apiFetch<any>('/users/' + encodeURIComponent(id) + '/send-2fa', { method: 'POST' });
+    this.logActivity('sent 2FA setup to', id, 'SYSTEM');
     return res;
   },
 

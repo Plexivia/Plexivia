@@ -889,7 +889,7 @@ export const WebmailPage: React.FC = () => {
             <textarea className={`${inputClass} min-h-[240px] font-sans`} placeholder="Write your message…" required value={draft.text} onChange={(e) => setDraft({ ...draft, text: e.target.value })} />
           </div>
           <div className="flex items-center justify-end gap-2 pt-1">
-            <button type="button" onClick={() => setComposeOpen(false)} className="px-4 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground cursor-pointer">
+            <button type="button" onClick={() => setComposeOpen(false)} className="btn-cancel px-4 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground cursor-pointer">
               Cancel
             </button>
             <button type="submit" disabled={sending} className="flex items-center gap-1.5 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-60 text-white rounded-lg text-xs font-bold cursor-pointer">
@@ -1038,7 +1038,7 @@ const MailSettingsModal: React.FC<{ isOpen: boolean; onClose: () => void; onSave
               <RefreshCw className={`w-3.5 h-3.5 ${testing ? 'animate-spin' : ''}`} /> Test connection
             </button>
             <div className="flex items-center gap-2">
-              <button type="button" onClick={onClose} className="px-4 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground cursor-pointer">
+              <button type="button" onClick={onClose} className="btn-cancel px-4 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground cursor-pointer">
                 Cancel
               </button>
               <button type="submit" disabled={saving} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-60 text-white rounded-lg text-xs font-bold cursor-pointer">

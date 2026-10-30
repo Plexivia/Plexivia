@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import { getSupportTicketModel, getProjectDocModel } from '../models/Hub.js';
 import { getClientModel } from '../models/Agency.js';
 import { generateDId } from '../utils/dId.js';
+import { getR2Config, isR2Configured, listDatabaseBackups, executeR2Backup } from '../utils/r2Backup.js';
+import { AuthedRequest } from '../middleware/auth.js';
 
 // Retrieve master hub system health and telemetry
 export const getHubOverview = async (_req: Request, res: Response) => {
@@ -343,33 +345,27 @@ export const getServices = async (_req: Request, res: Response) => {
   }
 };
 
-// Retrieve automated cloud database and application backups
+// Retrieve database backups stored in the Cloudflare R2 bucket
 export const getBackups = async (_req: Request, res: Response) => {
   try {
-    const backups = [
-      {
-        id: 'bkp-live-01',
-        filename: 'plexivia_backup_live_secure_db.gz',
-        size_mb: 28.4,
-        type: 'MONGODB_FULL',
-        destination: 'Cloudflare R2 Bucket (plexivia-backups)',
-        status: 'COMPLETED',
-        created_at: new Date(Date.now() - 3600000 * 6).toISOString(),
-      },
-      {
-        id: 'bkp-live-02',
-        filename: 'plexivia_backup_live_ops_db.gz',
-        size_mb: 42.1,
-        type: 'MONGODB_FULL',
-        destination: 'Cloudflare R2 Bucket (plexivia-backups)',
-        status: 'COMPLETED',
-        created_at: new Date(Date.now() - 3600000 * 18).toISOString(),
-      },
-    ];
+    const cfg = await getR2Config();
+    const entries = isR2Configured(cfg) ? await listDatabaseBackups(cfg) : [];
+    const backups = entries.map((b) => ({
+      id: b.key,
+      filename: b.key.split('/').pop(),
+      size_bytes: b.size,
+      size_formatted: b.size >= 1024 * 1024 ? `${(b.size / (1024 * 1024)).toFixed(2)} MB` : `${(b.size / 1024).toFixed(1)} KB`,
+      r2_bucket: cfg.bucketName,
+      account_id: cfg.accountId,
+      database_name: 'plexivia_secure_db + plexivia_operations_db',
+      created_at: b.createdAt,
+      status: 'COMPLETED',
+    }));
 
     return res.json({
       success: true,
       status: 'success',
+      configured: isR2Configured(cfg),
       data: backups,
     });
   } catch (error: any) {
@@ -377,24 +373,25 @@ export const getBackups = async (_req: Request, res: Response) => {
   }
 };
 
-// Trigger manual automated backup pipeline
-export const triggerBackup = async (_req: Request, res: Response) => {
+// Run a full database backup to Cloudflare R2 and return the uploaded archive
+export const triggerBackup = async (req: Request, res: Response) => {
   try {
-    const newBackup = {
-      id: `bkp-${Date.now()}`,
-      filename: `plexivia_snapshot_${new Date().toISOString().slice(0, 10)}.gz`,
-      size_mb: 34.5,
-      type: 'MONGODB_FULL',
-      destination: 'Cloudflare R2 Bucket (plexivia-backups)',
-      status: 'COMPLETED',
-      created_at: new Date().toISOString(),
-    };
-
+    const manifest = await executeR2Backup(`MANUAL:${(req as AuthedRequest).auth?.email || 'hub'}`);
     return res.status(201).json({
       success: true,
       status: 'success',
-      message: 'Cloud backup snapshot generated successfully',
-      data: newBackup,
+      message: `Backup uploaded to R2 bucket '${manifest.bucket}'`,
+      data: {
+        id: manifest.key,
+        filename: manifest.key.split('/').pop(),
+        size_bytes: manifest.sizeBytes,
+        size_formatted: manifest.sizeFormatted,
+        r2_bucket: manifest.bucket,
+        sha256_checksum: manifest.sha256,
+        database_name: 'plexivia_secure_db + plexivia_operations_db',
+        created_at: manifest.createdAt,
+        status: 'COMPLETED',
+      },
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message || 'Failed to trigger backup' });

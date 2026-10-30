@@ -2,7 +2,6 @@ import React, { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Search,
-  Users,
   FolderKanban,
   CheckSquare,
   Building2,
@@ -49,9 +48,9 @@ export function GlobalSearchModal() {
   const searchItems: SearchItem[] = useMemo(
     () => [
       {
-        title: 'Users Management',
+        title: 'Team',
         path: '/users',
-        desc: 'Active staff, roles, and department allocation',
+        desc: 'Team members, roles, departments, access, and user types',
         category: 'Agency',
         icon: UserCheck,
       },
@@ -75,13 +74,6 @@ export function GlobalSearchModal() {
         desc: 'Client accounts, business profiles, and contact details',
         category: 'Agency',
         icon: Building2,
-      },
-      {
-        title: 'Agency Team',
-        path: '/team',
-        desc: 'Specialist roster, workload distribution, and RBAC matrix',
-        category: 'Agency',
-        icon: Users,
       },
       {
         title: 'Document Studio',

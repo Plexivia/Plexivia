@@ -22,6 +22,9 @@ export const getClients = async (req: Request, res: Response) => {
       const q = String(search);
       filter.$or = [
         { name: new RegExp(q, 'i') },
+        { business_name: new RegExp(q, 'i') },
+        { client_key: new RegExp(q, 'i') },
+        { primary_domain: new RegExp(q, 'i') },
         { email: new RegExp(q, 'i') },
         { dId: new RegExp(q, 'i') },
         { phone: new RegExp(q, 'i') },
@@ -68,7 +71,12 @@ export const getClientById = async (req: Request, res: Response) => {
 // Create a new client with 16-digit dId in plexiAuth secure database
 export const createClient = async (req: Request, res: Response) => {
   try {
-    const { name, email, phone, address, services, projects, status } = req.body;
+    const body = req.body;
+    // Accept both the admin onboarding payload (business_name/contact_*) and the legacy name/email/phone shape
+    const name = body.name ?? body.business_name;
+    const email = body.email ?? body.contact_email;
+    const phone = body.phone ?? body.contact_phone;
+    const { address, services, projects, status } = body;
 
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
       return res.status(400).json({ success: false, message: 'Client name is required.' });
@@ -96,6 +104,12 @@ export const createClient = async (req: Request, res: Response) => {
       name: name.trim(),
       email: email.trim().toLowerCase(),
       phone: phoneList,
+      business_name: name.trim(),
+      client_key: body.client_key ? String(body.client_key).trim().toLowerCase() : undefined,
+      primary_domain: body.primary_domain ? String(body.primary_domain).trim() : '',
+      contact_email: email.trim().toLowerCase(),
+      contact_phone: phoneList[0],
+      contact_whatsapp: body.contact_whatsapp ? String(body.contact_whatsapp).trim() : '',
       address: address ? String(address).trim() : '',
       services: Array.isArray(services) ? services : [],
       projects: Array.isArray(projects) ? projects : [],
@@ -124,6 +138,12 @@ export const updateClient = async (req: Request, res: Response) => {
     if (updates.phone && !Array.isArray(updates.phone)) {
       updates.phone = [String(updates.phone).trim()];
     }
+    // Keep legacy and admin field names in sync
+    if (updates.business_name && !updates.name) updates.name = updates.business_name;
+    if (updates.name && !updates.business_name) updates.business_name = updates.name;
+    if (updates.contact_email && !updates.email) updates.email = String(updates.contact_email).trim().toLowerCase();
+    if (updates.email && !updates.contact_email) updates.contact_email = String(updates.email).trim().toLowerCase();
+    if (updates.contact_phone && !updates.phone) updates.phone = [String(updates.contact_phone).trim()];
 
     const ClientModel = getClientModel();
     const client = await ClientModel.findOneAndUpdate(
