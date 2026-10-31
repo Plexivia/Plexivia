@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import express, { Router } from 'express';
 import * as authController from '../controllers/authController.js';
 import * as userController from '../controllers/userController.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
@@ -24,6 +24,12 @@ router.post('/reset-password', authController.resetPassword);
 // Everything below requires a valid access token
 router.get('/me', requireAuth, authController.getMe);
 router.patch('/me', requireAuth, authController.updateMe);
+router.post(
+  '/me/avatar',
+  requireAuth,
+  express.raw({ type: ['image/png', 'image/jpeg', 'image/webp', 'image/gif'], limit: '2mb' }),
+  authController.uploadMyAvatar
+);
 
 // High-Security Client Vault (Owner / Admin Only)
 router.get('/vault/clients/:clientId', requireAuth, requireRole('OWNER', 'ADMIN', 'SUPER_ADMIN'), authController.getClientVault);

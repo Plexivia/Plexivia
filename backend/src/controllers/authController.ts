@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import jwt from 'jsonwebtoken';
 import { Request, Response } from 'express';
 import { getAdminModel, type IAdmin } from '../models/Admin.js';
@@ -434,7 +436,57 @@ export const getMe = async (req: AuthedRequest, res: Response) => {
   }
 };
 
-const SELF_UPDATABLE_FIELDS = ['full_name', 'phone', 'designation', 'address', 'country', 'city', 'postal_code', 'avatar'];
+export const AVATAR_DIR = path.resolve(process.cwd(), 'uploads', 'avatars');
+export const AVATAR_URL_PREFIX = '/api/uploads/avatars/';
+
+// Detect an image type from its magic bytes (never trust the client-sent content type)
+const detectImageExt = (buf: Buffer): string | null => {
+  if (buf.length > 8 && buf.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return 'png';
+  if (buf.length > 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return 'jpg';
+  if (buf.length > 6 && buf.subarray(0, 4).toString('ascii') === 'GIF8') return 'gif';
+  if (buf.length > 12 && buf.subarray(0, 4).toString('ascii') === 'RIFF' && buf.subarray(8, 12).toString('ascii') === 'WEBP') return 'webp';
+  return null;
+};
+
+// Save the signed-in user's profile photo as uploads/avatars/<dId>-<timestamp>.<ext> (renamed, never the original name)
+export const uploadMyAvatar = async (req: AuthedRequest, res: Response) => {
+  try {
+    const file = req.body;
+    if (!Buffer.isBuffer(file) || file.length === 0) {
+      return res.status(400).json({ success: false, message: 'Send the image as a png, jpeg, webp or gif file (max 2 MB).' });
+    }
+    const ext = detectImageExt(file);
+    if (!ext) {
+      return res.status(400).json({ success: false, message: 'Unsupported image. Use png, jpeg, webp or gif.' });
+    }
+
+    const AdminModel = getAdminModel();
+    const admin = await AdminModel.findById(req.auth?.sub);
+    if (!admin) {
+      return res.status(404).json({ success: false, message: 'Profile not found' });
+    }
+
+    fs.mkdirSync(AVATAR_DIR, { recursive: true });
+    const fileName = `${admin.dId}-${Date.now()}.${ext}`;
+    fs.writeFileSync(path.join(AVATAR_DIR, fileName), file);
+
+    // Remove the previous uploaded photo so old files do not pile up
+    if (admin.avatar && admin.avatar.startsWith(AVATAR_URL_PREFIX)) {
+      const oldFile = path.join(AVATAR_DIR, path.basename(admin.avatar));
+      if (oldFile.startsWith(AVATAR_DIR)) fs.rm(oldFile, { force: true }, () => {});
+    }
+
+    admin.avatar = AVATAR_URL_PREFIX + fileName;
+    admin.updated_at = new Date().toISOString();
+    await admin.save();
+
+    return res.json({ success: true, message: 'Profile photo updated', data: { user: admin } });
+  } catch {
+    return res.status(500).json({ success: false, message: 'Failed to upload profile photo' });
+  }
+};
+
+const SELF_UPDATABLE_FIELDS = ['full_name', 'phone', 'designation', 'address', 'country', 'city', 'postal_code'];
 
 // Let the signed-in user edit their own profile details (role, email and status stay admin-managed)
 export const updateMe = async (req: AuthedRequest, res: Response) => {

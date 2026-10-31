@@ -167,10 +167,16 @@
   --v2-primary: #58c1c3;
   /* Base text size of the dashboard main container; edit here to change it everywhere. */
   --body-font-size: 14px;
+  /* Field labels inside modals */
+  --modal-label-size: 13px;
   /* Universal Cancel / Close (X) button hover. Edit here to restyle every such button in the app. */
-  --close-hover-bg: #dc2626;
+  --close-bg: #dc2626;
+  --close-fg: #ffffff;
+  --close-hover-bg: #b91c1c;
   --close-hover-fg: #ffffff;
-  --cancel-hover-bg: #dc2626;
+  --cancel-bg: #dc2626;
+  --cancel-fg: #ffffff;
+  --cancel-hover-bg: #b91c1c;
   --cancel-hover-fg: #ffffff;
   --font-sans: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Hind Siliguri', sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -203,9 +209,10 @@
   body {
     @apply bg-background text-foreground;
   }
-  /* Tailwind's text-xs / text-sm resolve to the body size inside the dashboard main container and sidebar */
+  /* Tailwind's text-xs / text-sm resolve to the body size inside the dashboard main container, sidebar and modals */
   .dashboard-main,
-  .dashboard-sidebar {
+  .dashboard-sidebar,
+  .modal-scope {
     font-size: var(--body-font-size);
     --text-xs: var(--body-font-size);
     --text-sm: var(--body-font-size);
@@ -216,9 +223,23 @@
 }
 
 /* ------------------------------------------------------------- */
-/* UNIVERSAL CANCEL / CLOSE BUTTON HOVER (driven by theme vars)  */
-/* Unlayered so it overrides Tailwind utility hover classes.     */
+/* UNIVERSAL CANCEL / CLOSE BUTTONS (driven by theme vars)       */
+/* Always solid red; unlayered so it overrides Tailwind classes. */
 /* ------------------------------------------------------------- */
+.btn-close,
+.btn-close * {
+  background-color: var(--close-bg);
+  border-color: var(--close-bg);
+  color: var(--close-fg);
+}
+
+.btn-cancel,
+.btn-cancel * {
+  background-color: var(--cancel-bg);
+  border-color: var(--cancel-bg);
+  color: var(--cancel-fg);
+}
+
 .btn-close:hover:not(:disabled),
 .btn-close:hover:not(:disabled) * {
   background-color: var(--close-hover-bg);
@@ -233,10 +254,35 @@
   color: var(--cancel-hover-fg);
 }
 
+.btn-close *,
+.btn-cancel *,
 .btn-close:hover:not(:disabled) *,
 .btn-cancel:hover:not(:disabled) * {
   background-color: transparent;
   border-color: transparent;
+}
+
+/* ------------------------------------------------------------- */
+/* MODALS: all text is the theme text colour (black in light     */
+/* mode) instead of the tinted slate/gray steps.                 */
+/* ------------------------------------------------------------- */
+:root:not(.dark) .modal-scope {
+  --color-slate-400: var(--ui-text);
+  --color-slate-500: var(--ui-text);
+  --color-slate-600: var(--ui-text);
+  --color-slate-700: var(--ui-text);
+  --color-slate-800: var(--ui-text);
+  --color-slate-900: var(--ui-text);
+  --color-slate-950: var(--ui-text);
+}
+
+.modal-scope label {
+  font-size: var(--modal-label-size);
+}
+
+:root:not(.dark) .modal-scope input::placeholder,
+:root:not(.dark) .modal-scope textarea::placeholder {
+  color: color-mix(in srgb, var(--ui-text) 55%, transparent);
 }
 
 /* ------------------------------------------------------------- */

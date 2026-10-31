@@ -13,6 +13,7 @@ import {
   HardDrive,
   FolderPlus,
   ShieldCheck,
+  Circle,
 } from 'lucide-react';
 import { HeaderTitle } from '@/components/common/HeaderTitle';
 import { UnifiedDataTable, DataTableColumnHeader } from '@/components/ui/unified-table';
@@ -74,6 +75,36 @@ const formatBytes = (bytes: number) =>
   bytes >= 1024 * 1024 ? `${(bytes / (1024 * 1024)).toFixed(2)} MB` : `${(bytes / 1024).toFixed(1)} KB`;
 
 const header = (title: string) => ({ column }: any) => <DataTableColumnHeader column={column} title={title} />;
+
+// Small grey explanation shown under a field
+const Hint: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{children}</p>
+);
+
+// One row of the setup checklist
+const Step: React.FC<{ done: boolean; title: string; children: React.ReactNode }> = ({ done, title, children }) => (
+  <li className="flex items-start gap-3">
+    {done ? (
+      <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-emerald-500" />
+    ) : (
+      <Circle className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
+    )}
+    <div className="min-w-0">
+      <div className={`text-sm font-semibold ${done ? 'text-emerald-600 dark:text-emerald-400' : 'text-foreground'}`}>{title}</div>
+      <p className="text-[11px] leading-relaxed text-muted-foreground">{children}</p>
+    </div>
+  </li>
+);
+
+// Turn the most common cron schedules into plain words
+const describeCron = (cron: string): string => {
+  const m = /^(\d{1,2}) (\d{1,2}) \* \* \*$/.exec((cron || '').trim());
+  if (!m) return 'Custom schedule (cron format: minute hour day month weekday)';
+  const hour = Number(m[2]);
+  const suffix = hour >= 12 ? 'PM' : 'AM';
+  const h12 = hour % 12 === 0 ? 12 : hour % 12;
+  return `Every day at ${h12}:${m[1].padStart(2, '0')} ${suffix}`;
+};
 
 // Render the Cloudflare R2 database backup settings, status and history page
 export const BackupsPage: React.FC = () => {
@@ -231,12 +262,39 @@ export const BackupsPage: React.FC = () => {
         title="R2 Backups"
         onRefresh={load}
         actions={
-          <button onClick={backupNow} disabled={busy === 'backup' || status === 'running' || !settings?.configured} className={PRIMARY_BTN}>
+          <button
+            onClick={backupNow}
+            disabled={busy === 'backup' || status === 'running' || !settings?.configured}
+            title={settings?.configured ? 'Create a backup right now' : 'Save your R2 details first (step 1)'}
+            className={PRIMARY_BTN}
+          >
             {status === 'running' ? <Loader2 className="w-4 h-4 animate-spin" /> : <CloudUpload className="w-4 h-4" />}
             <span>{status === 'running' ? 'Backing Up...' : 'Backup Now'}</span>
           </button>
         }
       />
+
+      <div className={CARD_CLASS}>
+        <h3 className="mb-1 text-sm font-bold text-foreground">How database backup works</h3>
+        <p className="mb-4 text-xs leading-relaxed text-muted-foreground">
+          Plexivia copies both of its databases into a private storage bucket on Cloudflare R2 every day. If something ever goes wrong
+          you can download a backup file from the list below. Follow the steps in order:
+        </p>
+        <ol className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <Step done={!!settings?.configured} title="1. Save your Cloudflare R2 details">
+            Fill in Account ID, Bucket Name, Access Key ID and Secret Access Key below, then press Save Settings.
+          </Step>
+          <Step done={settings?.last_test_status === 'connected'} title="2. Test the connection">
+            Press Test Connection. It should say "connected". If it fails, the message tells you which detail is wrong.
+          </Step>
+          <Step done={status === 'success'} title="3. Run your first backup">
+            Press Backup Now (top right). It takes a minute; the Last Backup card shows the result.
+          </Step>
+          <Step done={form.backup_enabled !== false && !!settings?.next_backup_at} title="4. Automatic daily backup">
+            Once Automatic daily backup is on, a backup runs by itself on the schedule. Nothing more to do.
+          </Step>
+        </ol>
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="p-4 bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 rounded-2xl shadow-xs space-y-1">
@@ -315,14 +373,17 @@ export const BackupsPage: React.FC = () => {
             <div>
               <label className={LABEL_CLASS}>Account ID</label>
               <input value={form.account_id || ''} onChange={(e) => set('account_id', e.target.value)} placeholder="Cloudflare account ID" className={INPUT_CLASS} />
+              <Hint>Cloudflare dashboard → R2 → "Account ID" (shown on the right side).</Hint>
             </div>
             <div>
               <label className={LABEL_CLASS}>Bucket Name</label>
               <input value={form.bucket_name || ''} onChange={(e) => set('bucket_name', e.target.value)} placeholder="plexivia-backups" className={INPUT_CLASS} />
+              <Hint>The R2 bucket that will hold the backups. No bucket yet? Use "Create Bucket" on the right.</Hint>
             </div>
             <div>
               <label className={LABEL_CLASS}>Access Key ID</label>
               <input value={form.access_key_id || ''} onChange={(e) => set('access_key_id', e.target.value)} placeholder="R2 S3 access key ID" className={INPUT_CLASS} />
+              <Hint>R2 → Manage R2 API Tokens → Create API token (Object Read &amp; Write). Copy the Access Key ID.</Hint>
             </div>
             <div>
               <label className={LABEL_CLASS}>Secret Access Key</label>
@@ -333,9 +394,10 @@ export const BackupsPage: React.FC = () => {
                 placeholder={settings?.has_secret_access_key ? `Saved (${settings.secret_access_key_masked}) — leave blank to keep` : 'R2 S3 secret access key'}
                 className={INPUT_CLASS}
               />
+              <Hint>Shown only once when you create the token. It is stored encrypted and never displayed again.</Hint>
             </div>
             <div className="sm:col-span-2">
-              <label className={LABEL_CLASS}>Cloudflare API Token <span className="normal-case font-normal text-slate-400">(used to create buckets)</span></label>
+              <label className={LABEL_CLASS}>Cloudflare API Token <span className="normal-case font-normal text-slate-400">(optional)</span></label>
               <input
                 type="password"
                 value={form.api_token || ''}
@@ -343,22 +405,27 @@ export const BackupsPage: React.FC = () => {
                 placeholder={settings?.has_api_token ? `Saved (${settings.api_token_masked}) — leave blank to keep` : 'Account API token with R2 edit permission'}
                 className={INPUT_CLASS}
               />
+              <Hint>Only needed if you want to create a bucket from this page. Backups themselves do not use it.</Hint>
             </div>
             <div>
               <label className={LABEL_CLASS}>Schedule (cron)</label>
               <input value={form.backup_cron || ''} onChange={(e) => set('backup_cron', e.target.value)} placeholder="0 3 * * *" className={INPUT_CLASS} />
+              <Hint>{describeCron(form.backup_cron || '')}</Hint>
             </div>
             <div>
               <label className={LABEL_CLASS}>Timezone</label>
               <input value={form.backup_timezone || ''} onChange={(e) => set('backup_timezone', e.target.value)} placeholder="Asia/Dhaka" className={INPUT_CLASS} />
+              <Hint>The schedule above runs in this timezone.</Hint>
             </div>
             <div>
               <label className={LABEL_CLASS}>Keep Daily (days)</label>
               <input type="number" min={1} max={60} value={form.keep_daily_days ?? 7} onChange={(e) => set('keep_daily_days', Number(e.target.value))} className={INPUT_CLASS} />
+              <Hint>Keep one backup per day for this many days, then delete older ones.</Hint>
             </div>
             <div>
               <label className={LABEL_CLASS}>Keep Weekly (weeks)</label>
               <input type="number" min={0} max={52} value={form.keep_weekly_weeks ?? 5} onChange={(e) => set('keep_weekly_weeks', Number(e.target.value))} className={INPUT_CLASS} />
+              <Hint>Also keep one backup per week for this many weeks (0 = none).</Hint>
             </div>
           </div>
 
@@ -404,6 +471,11 @@ export const BackupsPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <p className="-mb-3 text-xs text-muted-foreground">
+        Backup files in your bucket. "Daily" and "Weekly" show why a file is kept; "Removed on next run" files are older than your
+        retention settings. Download gives you the file to restore from.
+      </p>
 
       <UnifiedDataTable
         columns={columns}

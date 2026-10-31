@@ -2,6 +2,7 @@ import { CORS_ORIGINS } from './config/env.js';
 import express from 'express';
 import cors from 'cors';
 import apiRoutes from './routes/index.js';
+import { AVATAR_DIR } from './controllers/authController.js';
 import { initDatabases, operationsDbConnection, secureDbConnection } from './config/database.js';
 import { initRealtime } from './utils/realtime.js';
 import { startImapListener } from './utils/imapSync.js';
@@ -34,6 +35,9 @@ app.use(cors({
 }));
 
 app.use(express.json({ limit: '1mb' }));
+
+// Uploaded profile photos (saved by /auth/me/avatar)
+app.use('/api/uploads/avatars', express.static(AVATAR_DIR, { index: false, fallthrough: false, setHeaders: (res) => res.setHeader('X-Content-Type-Options', 'nosniff') }));
 
 // API health endpoint
 app.get('/api/health', (_req, res) => {

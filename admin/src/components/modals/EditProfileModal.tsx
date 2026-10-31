@@ -2,6 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { Modal } from '../common/Modal';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useToast } from '../../context/ToastContext';
+import { Camera } from 'lucide-react';
+
+const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
+const AVATAR_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
 
 export type ProfileSection = 'profile' | 'address';
 
@@ -16,15 +20,19 @@ const INPUT_CLASS =
 
 // Render modal for the signed-in user to edit their own profile or address details
 export const EditProfileModal: React.FC<EditProfileModalProps> = ({ section, onClose }) => {
-  const { user, updateProfile } = useAuthStore();
+  const { user, updateProfile, uploadAvatar } = useAuthStore();
   const { showToast } = useToast();
   const u = (user || {}) as Record<string, any>;
   const [values, setValues] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [preview, setPreview] = useState('');
 
   // Load current values whenever a section is opened
   useEffect(() => {
     if (!section) return;
+    setPhoto(null);
+    setPreview('');
     setValues({
       name: u.fullName || u.name || '',
       phone: u.phone || '',
@@ -37,6 +45,24 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ section, onC
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [section]);
 
+  // Preview a chosen photo; it is uploaded when the form is saved
+  const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!AVATAR_TYPES.includes(file.type)) {
+      showToast('error', 'Invalid Photo', 'Use a png, jpeg, webp or gif image.');
+      return;
+    }
+    if (file.size > MAX_AVATAR_BYTES) {
+      showToast('error', 'Photo Too Large', 'The photo must be 2 MB or smaller.');
+      return;
+    }
+    if (preview) URL.revokeObjectURL(preview);
+    setPhoto(file);
+    setPreview(URL.createObjectURL(file));
+  };
+
   const set = (key: string) => (e: React.ChangeEvent<HTMLInputElement>) => setValues((v) => ({ ...v, [key]: e.target.value }));
 
   // Save only the fields shown in the open section
@@ -47,6 +73,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ section, onC
 
     setLoading(true);
     try {
+      if (section === 'profile' && photo) await uploadAvatar(photo);
       await updateProfile(Object.fromEntries(keys.map((k) => [k, (values[k] || '').trim()])));
       showToast('success', 'Profile Updated', 'Your changes have been saved.');
       onClose();
@@ -73,6 +100,26 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ section, onC
       maxWidth="2xl"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
+        {section === 'profile' && (
+          <div className="flex items-center gap-4">
+            <div className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-100 text-2xl font-semibold dark:border-slate-700 dark:bg-slate-800">
+              {preview || u.avatar ? (
+                <img src={preview || u.avatar} alt="" className="size-20 object-cover" />
+              ) : (
+                (values.name || 'U').charAt(0).toUpperCase()
+              )}
+            </div>
+            <div>
+              <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-semibold text-slate-900 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white">
+                <Camera className="size-4" />
+                {photo ? 'Change photo' : 'Upload photo'}
+                <input type="file" accept={AVATAR_TYPES.join(',')} onChange={handlePhoto} className="hidden" />
+              </label>
+              <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">PNG, JPEG, WebP or GIF, up to 2 MB.</p>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {section === 'profile' && (
             <>

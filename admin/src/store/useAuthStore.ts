@@ -1,7 +1,10 @@
 import { create } from 'zustand';
-import { apiClient } from '@/lib/api-client';
+import { apiClient, API_BASE_URL } from '@/lib/api-client';
 import { getGenericErrorMessage } from '@/lib/error-handler';
 import type { User, Verify2faPayload } from '@/types/auth';
+
+// Uploaded photos are served by the API as relative paths; prefix the API origin when it differs
+const resolveAvatarUrl = (url: string): string => (url.startsWith('/api/') ? `${API_BASE_URL}${url}` : url);
 
 const ROLES_ADMIN = ['Owner', 'Admin', 'Superadmin'];
 
@@ -36,7 +39,7 @@ const mapApiUser = (apiUser: any, email?: string): User => ({
   department: apiUser.department || '',
   designation: apiUser.designation || '',
   subRole: apiUser.subRole || '',
-  avatar: apiUser.avatar || apiUser.avatar_url || '',
+  avatar: resolveAvatarUrl(apiUser.avatar || apiUser.avatar_url || ''),
 });
 
 interface AuthStore {
@@ -51,6 +54,7 @@ interface AuthStore {
   sendQrCodeEmail: (twoFactorToken?: string) => Promise<any>;
   logout: () => Promise<void>;
   updateProfile: (profileData: Partial<User>) => Promise<void>;
+  uploadAvatar: (file: File) => Promise<void>;
   hasRole: (roles: string[]) => boolean;
   setUser: (user: User | null) => void;
 }
@@ -210,6 +214,16 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     } finally {
       set({ isLoading: false });
     }
+  },
+
+  uploadAvatar: async (file: File) => {
+    const current = get().user;
+    if (!current) return;
+    const { data } = await apiClient.post('/api/v1/auth/me/avatar', file, { headers: { 'Content-Type': file.type } });
+    const saved = mapApiUser(data?.data?.user || {}, current.email);
+    const updated = { ...current, avatar: saved.avatar };
+    localStorage.setItem('user', JSON.stringify(updated));
+    set({ user: updated });
   },
 
   hasRole: (roles: string[]) => {

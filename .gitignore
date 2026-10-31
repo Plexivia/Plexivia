@@ -76,3 +76,6 @@ coverage/
 **/.turbo/
 .parcel-cache/
 .eslintcache
+
+# User uploads
+backend/uploads/
