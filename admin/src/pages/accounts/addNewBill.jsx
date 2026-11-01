@@ -34,7 +34,8 @@ import { toast } from 'sonner';
 import { calculateFeeAmount, formatFeeRate } from '@/components/dashboard/accounts/PaymentFeesEditor';
 import { AttachmentUploader } from '@/components/dashboard/accounts/AttachmentUploader';
 import { useAssetOptions, NO_ASSET } from '@/components/dashboard/accounts/AssetFilter';
-import { billsApi, apiErrorMessage } from '@/services/paymentsApi';
+import { billsApi, apiErrorMessage, paymentMethodsApi } from '@/services/paymentsApi';
+import { ChargesEditor, EMPTY_CHARGES, buildCharges, chargesToEditorValue } from '@/components/dashboard/accounts/ChargesEditor';
 
 // Formats a numeric value into BDT currency string
 const formatCurrency = (val) => {
@@ -65,7 +66,15 @@ export const AddNewBillPage = () => {
 
   const assets = useAssetOptions();
   const [allBillTypes, setAllBillTypes] = useState([]);
-  const allPaymentTypes = useMemo(() => [], []);
+  const [allPaymentTypes, setAllPaymentTypes] = useState([]);
+  const [chargesValue, setChargesValue] = useState(EMPTY_CHARGES);
+
+  useEffect(() => {
+    paymentMethodsApi
+      .list()
+      .then(setAllPaymentTypes)
+      .catch((error) => toast.error(apiErrorMessage(error, 'Failed to load payment methods')));
+  }, []);
   const allInvestors = useMemo(() => [], []);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -160,21 +169,15 @@ export const AddNewBillPage = () => {
       },
       (error) => toast.error(apiErrorMessage(error, 'Failed to load bill'))
     );
+    billsApi.get(editId).then((existing) => setChargesValue(chargesToEditorValue(existing.charges)), () => undefined);
   }, [editId]);
 
   const totalAmountNum = Number(formData.totalAmount) || 0;
 
-  const selectedMethodFees =
-    allPaymentTypes.find((pt) => pt.name.trim() === formData.billingMethod)?.fees || [];
-  const selectedFee =
-    formData.feeChoice === 'custom'
-      ? {
-          name: formData.customFeeName.trim() || 'Custom charge',
-          percent: Number(formData.customFeePercent) || 0,
-          fixed: Number(formData.customFeeFixed) || 0,
-        }
-      : selectedMethodFees.find((fee) => fee.name === formData.feeChoice) || null;
-  const feeAmountNum = selectedFee ? calculateFeeAmount(selectedFee, totalAmountNum) : 0;
+  const selectedMethod = allPaymentTypes.find((pt) => pt.name.trim() === formData.billingMethod);
+  // Regular charge of the method plus any extra charges; all are added on top of the bill amount
+  const charges = buildCharges(selectedMethod, chargesValue, totalAmountNum);
+  const feeAmountNum = Math.round(charges.reduce((sum, c) => sum + c.amount, 0) * 100) / 100;
   const grandTotalNum = Math.round((totalAmountNum + feeAmountNum) * 100) / 100;
   const paidAmountNum = formData.isPaid ? grandTotalNum : Number(formData.paidAmount) || 0;
   const pendingAmountNum = Math.max(0, Math.round((grandTotalNum - paidAmountNum) * 100) / 100);
@@ -248,9 +251,10 @@ export const AddNewBillPage = () => {
     setIsSaving(true);
     try {
       const asset = assets.find((a) => a.id === formData.assetId);
-      const form = { ...formData, totalAmount: grandTotalNum, paidAmount: paidAmountNum };
-      if (editId) await billsApi.update(editId, form, asset);
-      else await billsApi.create(form, asset);
+      // The server adds the charges to the base amount, so the base is sent as totalAmount
+      const form = { ...formData, totalAmount: totalAmountNum, paidAmount: paidAmountNum, paymentMethodId: selectedMethod?.id || '' };
+      if (editId) await billsApi.update(editId, form, asset, charges);
+      else await billsApi.create(form, asset, charges);
       toast.success(editId ? 'Bill record updated' : 'Bill record saved');
       navigate('/accounts/bills');
     } catch (error) {
@@ -465,7 +469,10 @@ export const AddNewBillPage = () => {
                   <label className="text-xs font-semibold text-foreground">Payment Method</label>
                   <Select
                     value={formData.billingMethod}
-                    onValueChange={(v) => setFormData((prev) => ({ ...prev, billingMethod: v, feeChoice: 'none' }))}
+                    onValueChange={(v) => {
+                      setFormData((prev) => ({ ...prev, billingMethod: v }));
+                      setChargesValue((prev) => ({ ...prev, regular: 'none' }));
+                    }}
                   >
                     <SelectTrigger className="text-xs">
                       <SelectValue placeholder="Payment Method" />
@@ -487,67 +494,9 @@ export const AddNewBillPage = () => {
                 </div>
               </div>
 
-              <div className="space-y-2 rounded-lg border bg-muted/20 p-3">
-                <label className="text-xs font-semibold text-foreground">Charge / Fee</label>
-                <Select
-                  value={formData.feeChoice}
-                  onValueChange={(v) => handleInputChange('feeChoice', v)}
-                >
-                  <SelectTrigger className="text-xs">
-                    <SelectValue placeholder="No charge" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No charge</SelectItem>
-                    {selectedMethodFees.map((fee) => (
-                      <SelectItem key={fee.name} value={fee.name}>
-                        {fee.name} ({formatFeeRate(fee)})
-                      </SelectItem>
-                    ))}
-                    <SelectItem value="custom">Custom charge</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                {formData.feeChoice === 'custom' && (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                    <Input
-                      placeholder="Charge name"
-                      value={formData.customFeeName}
-                      onChange={(e) => handleInputChange('customFeeName', e.target.value)}
-                      className="text-xs"
-                    />
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      placeholder="Percent (%)"
-                      value={formData.customFeePercent}
-                      onChange={(e) => handleInputChange('customFeePercent', e.target.value)}
-                      className="text-xs font-mono"
-                    />
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      placeholder="Amount (৳)"
-                      value={formData.customFeeFixed}
-                      onChange={(e) => handleInputChange('customFeeFixed', e.target.value)}
-                      className="text-xs font-mono"
-                    />
-                  </div>
-                )}
-
-                {selectedFee && (
-                  <p className="text-[11px] text-muted-foreground">
-                    {selectedFee.name}: {formatFeeRate(selectedFee)} on ৳{totalAmountNum.toLocaleString()} ={' '}
-                    <span className="font-semibold text-amber-600">৳{feeAmountNum.toLocaleString()}</span>
-                    {' '}· Total ৳{grandTotalNum.toLocaleString()}
-                  </p>
-                )}
-                {selectedMethodFees.length === 0 && formData.feeChoice === 'none' && (
-                  <p className="text-[11px] text-muted-foreground">
-                    No fees set for {formData.billingMethod}. Add them in Payment Methods, or use a custom charge.
-                  </p>
-                )}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground">Charges</label>
+                <ChargesEditor method={selectedMethod} baseAmount={totalAmountNum} value={chargesValue} onChange={setChargesValue} mode="add" />
               </div>
 
               <div className="flex items-center justify-between rounded-lg border bg-muted/20 p-3">
@@ -679,10 +628,12 @@ export const AddNewBillPage = () => {
                       <span className="text-muted-foreground">Bill Amount:</span>
                       <span className="font-medium text-foreground font-mono">{formatCurrency(totalAmountNum)}</span>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">+ {selectedFee?.name}:</span>
-                      <span className="font-medium text-amber-600 font-mono">{formatCurrency(feeAmountNum)}</span>
-                    </div>
+                    {charges.map((c) => (
+                      <div key={`${c.kind}-${c.name}`} className="flex justify-between items-center">
+                        <span className="text-muted-foreground">+ {c.name}:</span>
+                        <span className="font-medium text-amber-600 font-mono">{formatCurrency(c.amount)}</span>
+                      </div>
+                    ))}
                   </>
                 )}
                 <div className="flex justify-between items-center">
@@ -712,9 +663,9 @@ export const AddNewBillPage = () => {
                   <span>Payment Method:</span>
                   <span className="font-medium text-foreground">{formData.billingMethod || '—'}</span>
                 </div>
-                {selectedFee && (
+                {feeAmountNum > 0 && (
                   <div className="flex justify-between">
-                    <span>{selectedFee.name}:</span>
+                    <span>Charges:</span>
                     <span className="font-medium text-amber-600">৳{feeAmountNum.toLocaleString()}</span>
                   </div>
                 )}

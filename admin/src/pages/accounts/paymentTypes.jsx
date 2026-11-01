@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { TableV2, TablePaginationV2, useRowSelection } from '@/components/table/versionTwo';
 import { useTranslation } from 'react-i18next';
 import {
@@ -45,6 +45,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ConfirmDeleteDialog } from '@/components/ui/confirm-delete-dialog';
 import { DateRangeFilter } from '@/components/dashboard/accounts/DateRangeFilter';
 import { toast } from 'sonner';
+import { apiErrorMessage, paymentMethodsApi, paymentsApi } from '@/services/paymentsApi';
 import { PaymentFeesEditor, cleanFees, formatFeeRate } from '@/components/dashboard/accounts/PaymentFeesEditor';
 
 const CATEGORY_OPTIONS = [
@@ -74,7 +75,7 @@ const INITIAL_FORM = {
   isDefault: false,
 };
 
-// Renders the Payment Methods and Types management page (API integration placeholder: fetch, create, update, delete payment methods)
+// Renders the Payment Methods and Types management page
 export const PaymentTypesPage = () => {
   const { t } = useTranslation();
 
@@ -97,14 +98,48 @@ export const PaymentTypesPage = () => {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 
-  const [paymentTypes, setPaymentTypes] = useState([]);
-  const allPayments = useMemo(() => [], []);
-  const isLoading = false;
-  const isAdding = false;
-  const isUpdating = false;
-  const isDeleting = false;
-  const isBulkDeleting = false;
+  const [allMethods, setAllMethods] = useState([]);
+  const [allPayments, setAllPayments] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const isAdding = isSaving;
+  const isUpdating = isSaving;
+  const isBulkDeleting = isDeleting;
   const totalPages = 1;
+
+  const loadMethods = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const [methods, payments] = await Promise.all([paymentMethodsApi.list(), paymentsApi.list().catch(() => [])]);
+      setAllMethods(methods);
+      setAllPayments(payments);
+    } catch (error) {
+      toast.error(apiErrorMessage(error, 'Failed to load payment methods'));
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadMethods();
+  }, [loadMethods]);
+
+  const paymentTypes = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return allMethods.filter(
+      (m) =>
+        (categoryFilter === 'All' || m.category === categoryFilter) &&
+        (statusFilter === 'All' || m.status === statusFilter) &&
+        (!q || [m.name, m.provider, m.accountNumber, m.accountName].some((v) => String(v || '').toLowerCase().includes(q)))
+    );
+  }, [allMethods, searchQuery, categoryFilter, statusFilter]);
+
+  // Runs one API call per selected method and reports how many failed
+  const runForSelected = async (action) => {
+    const results = await Promise.allSettled(selectedIds.map(action));
+    return { total: selectedIds.length, failed: results.filter((r) => r.status === 'rejected').length };
+  };
 
   const typeStats = useMemo(() => {
     const counts = {};
@@ -118,13 +153,13 @@ export const PaymentTypesPage = () => {
   }, [allPayments]);
 
   const summaryStats = useMemo(() => {
-    const total = paymentTypes.length;
-    const active = paymentTypes.filter((item) => item.status === 'Active').length;
-    const mfs = paymentTypes.filter((item) => item.category === 'mfs').length;
-    const bank = paymentTypes.filter((item) => item.category === 'bank').length;
+    const total = allMethods.length;
+    const active = allMethods.filter((item) => item.status === 'Active').length;
+    const mfs = allMethods.filter((item) => item.category === 'mfs').length;
+    const bank = allMethods.filter((item) => item.category === 'bank').length;
     const totalVolume = Object.values(typeStats.volumes).reduce((acc, v) => acc + v, 0);
     return { total, active, mfs, bank, totalVolume };
-  }, [paymentTypes, typeStats]);
+  }, [allMethods, typeStats]);
 
 
   // Toggles selection state for all payment methods on the current page
@@ -138,23 +173,30 @@ export const PaymentTypesPage = () => {
     }
   };
 
-  // Updates status for all selected payment methods (API integration placeholder: PATCH /api/v1/payment-types/bulk)
+  // Updates status for all selected payment methods 
   const handleBulkStatusChange = async (targetStatus) => {
     if (!targetStatus || targetStatus === 'placeholder' || selectedIds.length === 0) return;
-    setPaymentTypes((prev) =>
-      prev.map((item) => (selectedIds.includes(item.id) ? { ...item, status: targetStatus } : item))
-    );
-    toast.success(`Updated ${selectedIds.length} payment method(s) to ${targetStatus}`);
+    const { total, failed } = await runForSelected((id) => paymentMethodsApi.updateStatus(id, targetStatus));
+    if (failed) toast.error(`${failed} of ${total} payment methods could not be updated`);
+    else toast.success(`Updated ${total} payment method(s) to ${targetStatus}`);
     setSelectedIds([]);
+    loadMethods();
   };
 
-  // Deletes all selected payment methods (API integration placeholder: DELETE /api/v1/payment-types/bulk)
+  // Deletes all selected payment methods 
   const handleBulkDelete = async () => {
     if (selectedIds.length === 0) return;
-    setPaymentTypes((prev) => prev.filter((item) => !selectedIds.includes(item.id)));
-    toast.success(`Deleted ${selectedIds.length} payment method(s)`);
-    setSelectedIds([]);
-    setBulkDeleteOpen(false);
+    setIsDeleting(true);
+    try {
+      const { total, failed } = await runForSelected((id) => paymentMethodsApi.remove(id));
+      if (failed) toast.error(`${failed} of ${total} payment methods could not be deleted`);
+      else toast.success(`Deleted ${total} payment method(s)`);
+      setSelectedIds([]);
+      setBulkDeleteOpen(false);
+      loadMethods();
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   // Copies account number text to clipboard
@@ -202,7 +244,7 @@ export const PaymentTypesPage = () => {
     setDetailsModalOpen(true);
   };
 
-  // Validates and saves a new or edited payment method (API integration placeholder: POST/PUT /api/v1/payment-types)
+  // Validates and saves a new or edited payment method
   const handleSave = async (e) => {
     e.preventDefault();
     if (!typeForm.name.trim()) {
@@ -228,24 +270,34 @@ export const PaymentTypesPage = () => {
       chargeFixed: fees[0]?.fixed || 0,
     };
 
-    if (editingType) {
-      setPaymentTypes((prev) =>
-        prev.map((item) => (item.id === editingType.id ? { ...item, ...payload } : item))
-      );
-      toast.success('Payment method updated');
-    } else {
-      setPaymentTypes((prev) => [...prev, { id: `pm-${Date.now()}`, ...payload }]);
-      toast.success('Payment method created');
+    setIsSaving(true);
+    try {
+      if (editingType) await paymentMethodsApi.update(editingType.id, payload);
+      else await paymentMethodsApi.create(payload);
+      toast.success(editingType ? 'Payment method updated' : 'Payment method created');
+      setModalOpen(false);
+      loadMethods();
+    } catch (error) {
+      toast.error(apiErrorMessage(error, 'Failed to save payment method'));
+    } finally {
+      setIsSaving(false);
     }
-    setModalOpen(false);
   };
 
-  // Deletes a single payment method record (API integration placeholder: DELETE /api/v1/payment-types/:id)
+  // Deletes a single payment method record
   const handleDelete = async () => {
     if (!deleteTarget) return;
-    setPaymentTypes((prev) => prev.filter((item) => item.id !== deleteTarget.id));
-    toast.success('Payment method deleted');
-    setDeleteTarget(null);
+    setIsDeleting(true);
+    try {
+      await paymentMethodsApi.remove(deleteTarget.id);
+      toast.success('Payment method deleted');
+      setDeleteTarget(null);
+      loadMethods();
+    } catch (error) {
+      toast.error(apiErrorMessage(error, 'Failed to delete payment method'));
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   // Returns styled category badge with icon for the given category key

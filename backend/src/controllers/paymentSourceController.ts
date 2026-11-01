@@ -2,9 +2,10 @@ import { Request, Response } from 'express';
 import { getPaymentModel, getPaymentSourceModel, IPaymentSource } from '../models/Finance.js';
 import { getClientModel } from '../models/Client.js';
 import { softDeleteOne } from '../plugins/softDelete.js';
+import { getBusinessModel, getPaymentMethodModel, nextInvoiceNumber, normalizeCharges, roundMoney } from '../models/Accounts.js';
 
 const CLIENT_SOURCE_NAME = 'Client';
-const LINK_TYPES = ['client', 'none'];
+const LINK_TYPES = ['client', 'business', 'none'];
 const STATUSES = ['Active', 'Inactive'];
 const PAYMENT_STATUSES = ['SUCCESS', 'PENDING', 'PARTIAL', 'FAILED'];
 
@@ -165,19 +166,42 @@ const resolvePaymentParties = async (body: any) => {
   const source = await findSource(String(sourceId));
   if (!source) return { error: 'Payment source not found' };
 
+  const cleared = {
+    client_id: undefined,
+    client_dId: undefined,
+    client_name: undefined,
+    project_dId: undefined,
+    project_name: undefined,
+    business_dId: undefined,
+    business_name: undefined,
+  };
+
+  if (source.link_type === 'business') {
+    const businessId = String(body.business_id || '').trim();
+    if (!businessId) return { error: 'Business is required for business payments' };
+    const business = await getBusinessModel().findOne({ dId: businessId }).lean();
+    if (!business) return { error: 'Business not found' };
+    return {
+      fields: {
+        ...cleared,
+        payment_source_dId: source.dId,
+        payment_source_name: source.name,
+        payer_name: business.name,
+        business_dId: business.dId,
+        business_name: business.name,
+      },
+    };
+  }
+
   if (source.link_type !== 'client') {
     const payer = String(body.payer_name || '').trim();
     if (!payer) return { error: 'Payer name is required' };
     return {
       fields: {
+        ...cleared,
         payment_source_dId: source.dId,
         payment_source_name: source.name,
         payer_name: payer,
-        client_id: undefined,
-        client_dId: undefined,
-        client_name: undefined,
-        project_dId: undefined,
-        project_name: undefined,
       },
     };
   }
@@ -196,6 +220,7 @@ const resolvePaymentParties = async (body: any) => {
 
   return {
     fields: {
+      ...cleared,
       payment_source_dId: source.dId,
       payment_source_name: source.name,
       payer_name: client.name,
@@ -219,7 +244,28 @@ const pickPaymentFields = (body: any) => {
   if (Array.isArray(body.attachments)) fields.attachments = body.attachments;
   if (body.paid_at) fields.paid_at = new Date(body.paid_at).toISOString();
   if (body.status !== undefined) fields.status = body.status;
+  if (body.payment_method_id !== undefined) fields.payment_method_dId = body.payment_method_id || undefined;
   return fields;
+};
+
+// Charges are a percent / fixed amount of the received amount and are deducted from it
+const applyCharges = (fields: Record<string, any>, body: any, currentAmount?: number) => {
+  if (body.charges === undefined && fields.amount === undefined) return;
+  const amount = fields.amount ?? currentAmount ?? 0;
+  const charges = normalizeCharges(body.charges ?? [], amount);
+  const total = roundMoney(charges.reduce((sum, c) => sum + c.amount, 0));
+  fields.charges = charges;
+  fields.charge_total = total;
+  fields.net_amount = roundMoney(amount - total);
+};
+
+// The method's name is stored on the payment so lists don't need a lookup
+const resolveMethodName = async (fields: Record<string, any>) => {
+  if (!fields.payment_method_dId) return null;
+  const method = await getPaymentMethodModel().findOne({ dId: fields.payment_method_dId }).lean();
+  if (!method) return 'Payment method not found';
+  fields.payment_method = method.name;
+  return null;
 };
 
 const validateMoney = (fields: Record<string, any>) => {
@@ -246,9 +292,15 @@ export const recordPayment = async (req: Request, res: Response) => {
 
     const parties = await resolvePaymentParties(body);
     if (parties.error) return res.status(400).json({ success: false, message: parties.error });
+    const methodError = await resolveMethodName(fields);
+    if (methodError) return res.status(400).json({ success: false, message: methodError });
+    applyCharges(fields, body);
+    if (fields.charge_total > fields.amount) return res.status(400).json({ success: false, message: 'Charges cannot be more than the received amount' });
+    // Every payment gets a PX invoice number unless one was typed in
+    if (!fields.invoice_id) fields.invoice_id = await nextInvoiceNumber();
 
     const created = await getPaymentModel().create({
-      payment_number: body.payment_number || `PAY-${Date.now().toString().slice(-8)}`,
+      payment_number: body.payment_number || `PX-PAY-${Date.now().toString().slice(-8)}`,
       currency: body.currency || 'BDT',
       status: 'SUCCESS',
       paid_at: nowIso(),
@@ -291,6 +343,14 @@ export const updatePayment = async (req: Request, res: Response) => {
       if (parties.error) return res.status(400).json({ success: false, message: parties.error });
       partyFields = parties.fields!;
     }
+    const methodError = await resolveMethodName(fields);
+    if (methodError) return res.status(400).json({ success: false, message: methodError });
+    applyCharges(fields, body, payment.amount);
+    if ((fields.charge_total ?? 0) > (fields.amount ?? payment.amount)) {
+      return res.status(400).json({ success: false, message: 'Charges cannot be more than the received amount' });
+    }
+    // Clearing the invoice field keeps the existing number instead of leaving the payment without one
+    if (fields.invoice_id === '' || fields.invoice_id === null) delete fields.invoice_id;
 
     payment.set({ ...fields, ...partyFields, updated_at: nowIso() });
     await payment.save();
@@ -326,7 +386,7 @@ export const getPayments = async (req: Request, res: Response) => {
     }
     if (q) {
       const rx = new RegExp(escapeRegex(String(q)), 'i');
-      filter.$or = [{ payer_name: rx }, { payment_number: rx }, { invoice_id: rx }, { transaction_reference: rx }, { project_name: rx }];
+      filter.$or = [{ payer_name: rx }, { payment_number: rx }, { invoice_id: rx }, { transaction_reference: rx }, { project_name: rx }, { business_name: rx }];
     }
 
     const payments = await getPaymentModel().find(filter).sort({ paid_at: -1, created_at: -1 });

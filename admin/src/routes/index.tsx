@@ -17,6 +17,7 @@ import { SupportDeskPage } from '@/pages/SupportDeskPage';
 import { UsersPage } from '@/pages/UsersPage';
 import { BackupsPage } from '@/pages/BackupsPage';
 import { ProjectsPage } from '@/pages/ProjectsPage';
+import { BusinessesPage } from '@/pages/BusinessesPage';
 import { TasksPage } from '@/pages/TasksPage';
 import { ClientsDirectoryPage } from '@/pages/ClientsDirectoryPage';
 import { CpanelPage } from '@/pages/CpanelPage';
@@ -181,6 +182,14 @@ export const AppRoutes = () => {
         element={
           <AppShell>
             <ProjectsPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/businesses"
+        element={
+          <AppShell>
+            <BusinessesPage />
           </AppShell>
         }
       />

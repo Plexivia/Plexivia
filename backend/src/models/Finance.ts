@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { secureDbConnection } from '../config/database.js';
 import { generateDId } from '../utils/dId.js';
+import { AppliedChargeSchema, IAppliedCharge } from './Accounts.js';
 
 export interface IInvoice extends Document {
   dId: string;
@@ -32,6 +33,13 @@ export interface IPayment extends Document {
   payment_source_dId?: string;
   payment_source_name?: string;
   payer_name?: string;
+  business_dId?: string;
+  business_name?: string;
+  payment_method_dId?: string;
+  // Charges taken out of the received amount; net_amount = amount - charge_total
+  charges?: IAppliedCharge[];
+  charge_total?: number;
+  net_amount?: number;
   // Order / bill total the payment settles; amount is what was actually received
   total_amount?: number;
   amount: number;
@@ -51,7 +59,7 @@ export interface IPaymentSource extends Document {
   name: string;
   description?: string;
   // 'client' payments are tied to a client and one of their projects; 'none' takes a free-text payer
-  link_type: 'client' | 'none';
+  link_type: 'client' | 'business' | 'none';
   status: 'Active' | 'Inactive';
   is_system: boolean;
   created_at: string;
@@ -69,6 +77,12 @@ export interface IBill extends Document {
   title?: string;
   // Free-form bill type configured in Bill Types (category stays the legacy enum)
   bill_type?: string;
+  payment_method?: string;
+  payment_method_dId?: string;
+  // Amount before charges; amount = base_amount + charge_total
+  base_amount?: number;
+  charges?: IAppliedCharge[];
+  charge_total?: number;
   vendor_name: string;
   category: 'INFRASTRUCTURE' | 'SOFTWARE' | 'OFFICE' | 'MARKETING' | 'OTHER';
   amount: number;
@@ -132,6 +146,12 @@ const PaymentSchema = new Schema<IPayment>({
   payment_source_dId: { type: String, index: true },
   payment_source_name: { type: String },
   payer_name: { type: String },
+  business_dId: { type: String, index: true },
+  business_name: { type: String },
+  payment_method_dId: { type: String, index: true },
+  charges: { type: [AppliedChargeSchema], default: [] },
+  charge_total: { type: Number, default: 0 },
+  net_amount: { type: Number },
   total_amount: { type: Number },
   amount: { type: Number, required: true },
   currency: { type: String, default: 'BDT' },
@@ -150,7 +170,7 @@ const PaymentSourceSchema = new Schema<IPaymentSource>({
   dId: { type: String, required: true, unique: true, index: true, default: generateDId },
   name: { type: String, required: true, trim: true },
   description: { type: String, trim: true },
-  link_type: { type: String, enum: ['client', 'none'], default: 'none' },
+  link_type: { type: String, enum: ['client', 'business', 'none'], default: 'none' },
   status: { type: String, enum: ['Active', 'Inactive'], default: 'Active' },
   is_system: { type: Boolean, default: false },
   created_at: { type: String, default: () => new Date().toISOString() },
@@ -169,6 +189,11 @@ const BillSchema = new Schema<IBill>({
   project_name: { type: String },
   title: { type: String },
   bill_type: { type: String },
+  payment_method: { type: String },
+  payment_method_dId: { type: String, index: true },
+  base_amount: { type: Number },
+  charges: { type: [AppliedChargeSchema], default: [] },
+  charge_total: { type: Number, default: 0 },
   vendor_name: { type: String, required: true },
   category: { type: String, enum: ['INFRASTRUCTURE', 'SOFTWARE', 'OFFICE', 'MARKETING', 'OTHER'], default: 'INFRASTRUCTURE' },
   amount: { type: Number, required: true },

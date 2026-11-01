@@ -3,6 +3,7 @@ import {
   Mail,
   LifeBuoy,
   FolderKanban,
+  Briefcase,
   Building2,
   Users,
   CheckSquare,
@@ -54,6 +55,11 @@ export const NAVIGATION_MENU_GROUPS: MenuGroup[] = [
         title: 'Projects',
         url: '/projects',
         icon: FolderKanban,
+      },
+      {
+        title: 'Businesses',
+        url: '/businesses',
+        icon: Briefcase,
       },
       {
         title: 'Tasks',

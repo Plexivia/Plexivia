@@ -23,9 +23,8 @@ import { AttachmentUploader } from '@/components/dashboard/accounts/AttachmentUp
 import { toast } from 'sonner';
 import { useData } from '@/context/DataContext';
 import { getClientName, getClientProjects } from '@/components/dashboard/accounts/paymentSources';
-import { apiErrorMessage, paymentSourcesApi, paymentsApi } from '@/services/paymentsApi';
-
-const DEFAULT_PAYMENT_METHODS = ['Cash', 'bKash', 'Nagad', 'Bank Transfer', 'Card'];
+import { apiErrorMessage, businessesApi, paymentMethodsApi, paymentSourcesApi, paymentsApi } from '@/services/paymentsApi';
+import { ChargesEditor, EMPTY_CHARGES, buildCharges, chargesToEditorValue } from '@/components/dashboard/accounts/ChargesEditor';
 
 // Formats a numeric value into BDT currency string
 const formatCurrency = (val) => {
@@ -41,9 +40,10 @@ export const AddNewPaymentPage = () => {
   const editId = searchParams.get('edit');
 
   const { clients } = useData();
-  // API integration placeholder: payment methods have no backend yet, so fall back to the common ones
-  const allPaymentTypes = useMemo(() => [], []);
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [businesses, setBusinesses] = useState([]);
   const [paymentSources, setPaymentSources] = useState([]);
+  const [chargesValue, setChargesValue] = useState(EMPTY_CHARGES);
   const [isSaving, setIsSaving] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -51,11 +51,13 @@ export const AddNewPaymentPage = () => {
     clientId: '',
     projectId: '',
     projectName: '',
+    businessId: '',
     customerName: '',
     invoiceId: '',
     amount: '',
     paidAmount: '',
     paymentMethod: '',
+    paymentMethodId: '',
     trxId: '',
     date: new Date().toISOString().slice(0, 10),
     status: 'Completed',
@@ -63,17 +65,12 @@ export const AddNewPaymentPage = () => {
     attachments: [],
   });
 
-  const availableMethods = useMemo(() => {
-    const customNames = allPaymentTypes
-      .filter((pt) => pt.status === 'Active')
-      .map((pt) => pt.name.trim())
-      .filter(Boolean);
-    const combined = Array.from(new Set(customNames.length > 0 ? customNames : DEFAULT_PAYMENT_METHODS));
-    if (formData.paymentMethod && !combined.includes(formData.paymentMethod)) {
-      combined.push(formData.paymentMethod);
-    }
-    return combined;
-  }, [allPaymentTypes, formData.paymentMethod]);
+  const availableMethods = useMemo(
+    () => paymentMethods.filter((m) => m.status === 'Active' || m.id === formData.paymentMethodId),
+    [paymentMethods, formData.paymentMethodId]
+  );
+  const selectedMethod = paymentMethods.find((m) => m.id === formData.paymentMethodId);
+  const activeBusinesses = businesses.filter((b) => b.status === 'Active' || b.id === formData.businessId);
 
   const activeSources = useMemo(
     () => paymentSources.filter((s) => s.status === 'Active' || s.id === formData.paymentSourceId),
@@ -81,6 +78,8 @@ export const AddNewPaymentPage = () => {
   );
   const selectedSource = paymentSources.find((s) => s.id === formData.paymentSourceId);
   const isClientSource = selectedSource?.linkType === 'client';
+  const isBusinessSource = selectedSource?.linkType === 'business';
+  const selectedBusiness = businesses.find((b) => b.id === formData.businessId);
   const selectedClient = (clients || []).find((c) => c.id === formData.clientId);
   const clientProjects = getClientProjects(selectedClient);
 
@@ -94,7 +93,20 @@ export const AddNewPaymentPage = () => {
         setFormData((prev) => (prev.paymentSourceId || !clientSource ? prev : { ...prev, paymentSourceId: clientSource.id }));
       })
       .catch((error) => toast.error(apiErrorMessage(error, 'Failed to load payment sources')));
-  }, []);
+    paymentMethodsApi
+      .list()
+      .then((list) => {
+        setPaymentMethods(list);
+        // New payments start on the default method
+        const fallback = list.find((m) => m.isDefault && m.status === 'Active');
+        setFormData((prev) => (prev.paymentMethodId || !fallback || editId ? prev : { ...prev, paymentMethodId: fallback.id, paymentMethod: fallback.name }));
+      })
+      .catch((error) => toast.error(apiErrorMessage(error, 'Failed to load payment methods')));
+    businessesApi
+      .list()
+      .then(setBusinesses)
+      .catch((error) => toast.error(apiErrorMessage(error, 'Failed to load businesses')));
+  }, [editId]);
 
   useEffect(() => {
     if (!editId) return;
@@ -106,23 +118,30 @@ export const AddNewPaymentPage = () => {
           clientId: existing.clientId || '',
           projectId: existing.projectId || '',
           projectName: existing.projectName || '',
+          businessId: existing.businessId || '',
           customerName: existing.customerName || '',
           invoiceId: existing.invoiceId || '',
           amount: existing.amount !== undefined ? String(existing.amount) : '',
           paidAmount: existing.paidAmount !== undefined ? String(existing.paidAmount) : '',
           paymentMethod: existing.paymentMethod || existing.method || '',
+          paymentMethodId: existing.paymentMethodId || '',
           trxId: existing.trxId || '',
           date: existing.date || new Date().toISOString().slice(0, 10),
           status: existing.status || 'Completed',
           notes: existing.notes || '',
           attachments: existing.attachments || [],
         });
+        setChargesValue(chargesToEditorValue(existing.charges));
       })
       .catch((error) => toast.error(apiErrorMessage(error, 'Failed to load payment')));
   }, [editId]);
 
   const amountNum = Number(formData.amount) || 0;
   const paidAmountNum = Number(formData.paidAmount !== '' ? formData.paidAmount : formData.amount) || 0;
+  // Charges are a share of the money received and come out of it
+  const charges = buildCharges(selectedMethod, chargesValue, paidAmountNum);
+  const chargeTotal = Math.round(charges.reduce((sum, c) => sum + c.amount, 0) * 100) / 100;
+  const netReceived = Math.round((paidAmountNum - chargeTotal) * 100) / 100;
 
   // Updates a single field in formData and synchronizes paidAmount when amount changes
   const handleInputChange = (field, value) => {
@@ -137,7 +156,19 @@ export const AddNewPaymentPage = () => {
 
   // Switching source clears the payer fields, since client and free-text payers don't mix
   const handleSourceChange = (sourceId) => {
-    setFormData((prev) => ({ ...prev, paymentSourceId: sourceId, clientId: '', projectId: '', projectName: '', customerName: '' }));
+    setFormData((prev) => ({ ...prev, paymentSourceId: sourceId, clientId: '', projectId: '', projectName: '', businessId: '', customerName: '' }));
+  };
+
+  const handleBusinessChange = (businessId) => {
+    const business = businesses.find((b) => b.id === businessId);
+    setFormData((prev) => ({ ...prev, businessId, customerName: business?.name || '' }));
+  };
+
+  // A different method has different regular charges, so the picked one is reset
+  const handleMethodChange = (methodId) => {
+    const method = paymentMethods.find((m) => m.id === methodId);
+    setFormData((prev) => ({ ...prev, paymentMethodId: methodId, paymentMethod: method?.name || '' }));
+    setChargesValue((prev) => ({ ...prev, regular: 'none' }));
   };
 
   // Selecting a client fills the payer name and resets the project
@@ -162,6 +193,10 @@ export const AddNewPaymentPage = () => {
       toast.error('Please select a client');
       return;
     }
+    if (isBusinessSource && !formData.businessId) {
+      toast.error('Please select a business');
+      return;
+    }
     if (isClientSource && clientProjects.length > 0 && !formData.projectId) {
       toast.error('Please select the client project this payment is for');
       return;
@@ -174,11 +209,16 @@ export const AddNewPaymentPage = () => {
       toast.error('Please enter a valid amount');
       return;
     }
+    if (chargeTotal > paidAmountNum) {
+      toast.error('Charges cannot be more than the received amount');
+      return;
+    }
 
     setIsSaving(true);
     try {
-      if (editId) await paymentsApi.update(editId, formData);
-      else await paymentsApi.create(formData);
+      const payload = { ...formData, charges };
+      if (editId) await paymentsApi.update(editId, payload);
+      else await paymentsApi.create(payload);
       toast.success(editId ? 'Payment record updated' : 'Payment record saved');
       navigate('/accounts/payments');
     } catch (error) {
@@ -291,6 +331,35 @@ export const AddNewPaymentPage = () => {
                       </Select>
                     </div>
                   </>
+                ) : isBusinessSource ? (
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-semibold text-foreground">
+                        Business <span className="text-red-500">*</span>
+                      </label>
+                      <Link to="/businesses" className="text-[11px] font-medium text-primary hover:underline">
+                        Manage businesses
+                      </Link>
+                    </div>
+                    <Select value={formData.businessId} onValueChange={handleBusinessChange}>
+                      <SelectTrigger className="text-xs">
+                        <SelectValue placeholder="Select a business">{selectedBusiness?.name}</SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {activeBusinesses.length > 0 ? (
+                          activeBusinesses.map((b) => (
+                            <SelectItem key={b.id} value={b.id}>
+                              {b.name}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="none" disabled>
+                            No businesses yet. Add one on the Businesses page.
+                          </SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 ) : (
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-foreground">
@@ -308,14 +377,15 @@ export const AddNewPaymentPage = () => {
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-foreground">
-                    Invoice / Order ID Ref
+                    Invoice ID
                   </label>
                   <Input
-                    placeholder="e.g. INV-2026-089"
+                    placeholder="Auto: PX-INV-2026-00001"
                     value={formData.invoiceId}
                     onChange={(e) => handleInputChange('invoiceId', e.target.value)}
                     className="text-xs font-mono"
                   />
+                  <p className="text-[11px] text-muted-foreground">Leave empty and a PX invoice number is generated on save.</p>
                 </div>
               </div>
             </CardContent>
@@ -365,18 +435,15 @@ export const AddNewPaymentPage = () => {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-foreground">Payment Method</label>
-                  <Select
-                    value={formData.paymentMethod}
-                    onValueChange={(v) => handleInputChange('paymentMethod', v)}
-                  >
+                  <Select value={formData.paymentMethodId} onValueChange={handleMethodChange}>
                     <SelectTrigger className="text-xs">
-                      <SelectValue placeholder="Payment Method" />
+                      <SelectValue placeholder="Payment Method">{selectedMethod?.name || formData.paymentMethod || undefined}</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {availableMethods.length > 0 ? (
                         availableMethods.map((m) => (
-                          <SelectItem key={m} value={m}>
-                            {m}
+                          <SelectItem key={m.id} value={m.id}>
+                            {m.name}
                           </SelectItem>
                         ))
                       ) : (
@@ -407,6 +474,11 @@ export const AddNewPaymentPage = () => {
                     className="text-xs"
                   />
                 </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground">Charges</label>
+                <ChargesEditor method={selectedMethod} baseAmount={paidAmountNum} value={chargesValue} onChange={setChargesValue} mode="deduct" />
               </div>
 
               <div className="space-y-1.5">
@@ -467,7 +539,7 @@ export const AddNewPaymentPage = () => {
                   <span className="text-[11px] text-muted-foreground block">Project: {formData.projectName}</span>
                 )}
                 <span className="text-muted-foreground font-mono text-[11px] block">
-                  {formData.invoiceId || 'INV-AUTO-GENERATED'}
+                  {formData.invoiceId || 'PX-INV-auto'}
                 </span>
               </div>
 
@@ -478,7 +550,17 @@ export const AddNewPaymentPage = () => {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Collected Amount:</span>
-                  <span className="font-bold text-emerald-600 font-mono text-sm">{formatCurrency(paidAmountNum)}</span>
+                  <span className="font-bold text-foreground font-mono">{formatCurrency(paidAmountNum)}</span>
+                </div>
+                {chargeTotal > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Charges:</span>
+                    <span className="font-bold text-rose-600 font-mono">− {formatCurrency(chargeTotal)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center border-t pt-2">
+                  <span className="text-muted-foreground">Net Received:</span>
+                  <span className="font-bold text-emerald-600 font-mono text-sm">{formatCurrency(netReceived)}</span>
                 </div>
               </div>
 

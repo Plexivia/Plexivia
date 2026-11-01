@@ -4,6 +4,7 @@ import { getClientModel } from '../models/Agency.js';
 import { generatePlexiviaBarcodeSvg, generatePlexiviaBarcodeDataUrl } from '../utils/barcodeGenerator.js';
 import { convertNumberToWords } from '../utils/numberToWords.js';
 import { softDeleteOne } from '../plugins/softDelete.js';
+import { getPaymentMethodModel, nextInvoiceNumber, nextSequence, normalizeCharges, roundMoney } from '../models/Accounts.js';
 
 // Retrieve all invoices with client and status filtering
 export const getInvoices = async (req: Request, res: Response) => {
@@ -66,7 +67,7 @@ export const createInvoice = async (req: Request, res: Response) => {
     const client = await ClientModel.findOne({ $or: [{ id: data.client_id }, { client_key: data.client_id }] });
 
     const created = await InvoiceModel.create({
-      invoice_number: data.invoice_number || `INV-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
+      invoice_number: data.invoice_number || (await nextInvoiceNumber()),
       client_id: data.client_id,
       client_name: client?.name || data.client_name || 'Client',
       amount: Number(data.amount),
@@ -153,17 +154,45 @@ export const getBills = async (req: Request, res: Response) => {
   }
 };
 
+// Bill numbers like PX-BILL-2026-00001, numbered per year
+const nextBillNumber = async () => {
+  const year = new Date().getFullYear();
+  return `PX-BILL-${year}-${String(await nextSequence(`bill:${year}`)).padStart(5, '0')}`;
+};
+
+// When the dashboard sends base_amount / charges, the bill total is the base plus its payment-method charges
+const billChargeFields = async (data: any) => {
+  const fields: Record<string, any> = {};
+  if (data.payment_method_id !== undefined) {
+    fields.payment_method_dId = data.payment_method_id || undefined;
+    if (data.payment_method_id) {
+      const method = await getPaymentMethodModel().findOne({ dId: String(data.payment_method_id) }).lean();
+      if (!method) return { error: 'Payment method not found' };
+      fields.payment_method = method.name;
+    } else fields.payment_method = undefined;
+  }
+  if (data.base_amount === undefined && data.charges === undefined) return { fields };
+  const base = Math.max(0, Number(data.base_amount ?? data.amount) || 0);
+  const charges = normalizeCharges(data.charges ?? [], base);
+  const chargeTotal = roundMoney(charges.reduce((sum, c) => sum + c.amount, 0));
+  Object.assign(fields, { base_amount: base, charges, charge_total: chargeTotal, amount: roundMoney(base + chargeTotal) });
+  return { fields };
+};
+
 // Create a new operational expense bill or vendor voucher
 export const createBill = async (req: Request, res: Response) => {
   try {
     const data = req.body;
-    if (!data.vendor_name || !data.amount) {
+    if (!data.vendor_name || !(data.amount || data.base_amount)) {
       return res.status(400).json({ success: false, message: 'Vendor name and amount are required' });
     }
 
+    const charged = await billChargeFields(data);
+    if (charged.error) return res.status(400).json({ success: false, message: charged.error });
+
     const BillModel = getBillModel();
     const created = await BillModel.create({
-      bill_number: data.bill_number || `BILL-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
+      bill_number: data.bill_number || (await nextBillNumber()),
       client_dId: data.client_dId || data.client_id || undefined,
       client_name: data.client_name || undefined,
       project_dId: data.project_dId || data.project_id || undefined,
@@ -182,6 +211,7 @@ export const createBill = async (req: Request, res: Response) => {
       external_ref: data.external_ref || undefined,
       notes: data.notes || undefined,
       attachments: Array.isArray(data.attachments) ? data.attachments : [],
+      ...charged.fields,
       created_at: new Date().toISOString(),
     });
 
@@ -220,6 +250,9 @@ export const updateBill = async (req: Request, res: Response) => {
     for (const key of BILL_EDITABLE) if (req.body[key] !== undefined) updates[key] = req.body[key];
     if (updates.amount !== undefined) updates.amount = Number(updates.amount) || 0;
     if (updates.paid_amount !== undefined) updates.paid_amount = Number(updates.paid_amount) || 0;
+    const charged = await billChargeFields(req.body || {});
+    if (charged.error) return res.status(400).json({ success: false, message: charged.error });
+    Object.assign(updates, charged.fields);
     const bill = await getBillModel().findOneAndUpdate(findBillQuery(String(req.params.id)), { $set: updates }, { new: true });
     if (!bill) return res.status(404).json({ success: false, message: 'Bill not found' });
     return res.json({ success: true, message: 'Bill updated', data: bill });

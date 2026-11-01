@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as accountingController from '../controllers/accountingController.js';
 import * as paymentSourceController from '../controllers/paymentSourceController.js';
+import * as accountsSetupController from '../controllers/accountsSetupController.js';
 import { requireAuth } from '../middleware/auth.js';
 import { importSurokkhaDay } from '../utils/surokkhaBillImport.js';
 
@@ -22,6 +23,19 @@ router.post('/payments', paymentSourceController.recordPayment);
 router.get('/payments/:id', paymentSourceController.getPaymentById);
 router.put('/payments/:id', paymentSourceController.updatePayment);
 router.delete('/payments/:id', paymentSourceController.deletePayment);
+
+// Payment methods (with their regular charges)
+router.get('/payment-methods', accountsSetupController.getPaymentMethods);
+router.post('/payment-methods', accountsSetupController.createPaymentMethod);
+router.put('/payment-methods/:id', accountsSetupController.updatePaymentMethod);
+router.delete('/payment-methods/:id', accountsSetupController.deletePaymentMethod);
+
+// The owner's own businesses
+router.get('/businesses', accountsSetupController.getBusinesses);
+router.post('/businesses', accountsSetupController.createBusiness);
+router.get('/businesses/:id', accountsSetupController.getBusinessById);
+router.put('/businesses/:id', accountsSetupController.updateBusiness);
+router.delete('/businesses/:id', accountsSetupController.deleteBusiness);
 
 // Payment sources
 router.get('/payment-sources', paymentSourceController.getPaymentSources);

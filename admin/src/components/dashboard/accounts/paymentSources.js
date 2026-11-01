@@ -1,6 +1,7 @@
 // How a payment source identifies the payer on the payment form
 export const SOURCE_LINK_TYPES = [
   { value: 'client', label: 'Client & Project', hint: 'Pick a client, then one of their projects' },
+  { value: 'business', label: 'Business', hint: 'Pick one of your own businesses (no project)' },
   { value: 'none', label: 'Free Text', hint: 'Type the payer name by hand' },
 ];
 
