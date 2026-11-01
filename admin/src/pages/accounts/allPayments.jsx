@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { TableV2, TablePaginationV2, useRowSelection } from '@/components/table/versionTwo';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
@@ -42,6 +42,7 @@ const settledAmount = (p) => p.paidAmount || (p.status === 'Completed' ? p.amoun
 import { ConfirmDeleteDialog } from '@/components/ui/confirm-delete-dialog';
 import { DateRangeFilter } from '@/components/dashboard/accounts/DateRangeFilter';
 import { toast } from 'sonner';
+import { apiErrorMessage, paymentsApi } from '@/services/paymentsApi';
 
 const METHOD_COLORS = {
   bKash: 'bg-pink-500/10 text-pink-600 border-pink-500/30',
@@ -77,18 +78,52 @@ export const AllPaymentsPage = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 
-  const [payments, setPayments] = useState([]);
-  const isLoading = false;
-  const isError = false;
+  const [allPayments, setAllPayments] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
   const totalPages = 1;
 
+  const loadPayments = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      setAllPayments(await paymentsApi.list());
+      setIsError(false);
+    } catch (error) {
+      setIsError(true);
+      toast.error(apiErrorMessage(error, 'Failed to load payments'));
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadPayments();
+  }, [loadPayments]);
+
+  // Search, status, method and date filters run on the loaded list
+  const payments = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return allPayments.filter((p) => {
+      if (statusFilter !== 'All' && p.status !== statusFilter) return false;
+      if (methodFilter !== 'All' && p.method !== methodFilter) return false;
+      if (dateRange.startDate && p.date < dateRange.startDate) return false;
+      if (dateRange.endDate && p.date > dateRange.endDate) return false;
+      if (!q) return true;
+      return [p.customerName, p.invoiceId, p.trxId, p.projectName, p.paymentSource, p.paymentNumber]
+        .some((v) => String(v || '').toLowerCase().includes(q));
+    });
+  }, [allPayments, searchQuery, statusFilter, methodFilter, dateRange]);
+
   const summary = useMemo(() => {
+    // Partial payments count their received part as collected and the remainder as pending
     const totalCollected = payments
-      .filter((p) => p.status === 'Completed' || p.status === 'Paid')
-      .reduce((acc, p) => acc + (Number(p.paidAmount || p.amount) || 0), 0);
-    const totalPending = payments
-      .filter((p) => p.status === 'Pending' || p.status === 'Partial')
-      .reduce((acc, p) => acc + (Number(p.amount) || 0), 0);
+      .filter((p) => p.status === 'Completed' || p.status === 'Paid' || p.status === 'Partial')
+      .reduce((acc, p) => acc + (Number(p.paidAmount ?? p.amount) || 0), 0);
+    const totalPending = payments.reduce((acc, p) => {
+      if (p.status === 'Pending') return acc + (Number(p.amount) || 0);
+      if (p.status === 'Partial') return acc + Math.max(0, (Number(p.amount) || 0) - (Number(p.paidAmount) || 0));
+      return acc;
+    }, 0);
     const totalFailed = payments
       .filter((p) => p.status === 'Failed')
       .reduce((acc, p) => acc + (Number(p.amount) || 0), 0);
@@ -178,24 +213,33 @@ export const AllPaymentsPage = () => {
     }
   };
 
-  // Performs bulk status update on selected payments (API integration placeholder: PATCH /api/v1/payments/bulk)
-  const handleBulkStatusChange = async (targetStatus) => {
-    if (!targetStatus || targetStatus === 'placeholder') return;
-    setPayments((prev) =>
-      prev.map((p) => (selectedIds.includes(p.id) ? { ...p, status: targetStatus } : p))
-    );
-    toast.success(`Updated ${selectedIds.length} payments to status "${targetStatus}"`);
-    setSelectedIds([]);
+  // Runs one API call per selected payment and reports how many failed
+  const runForSelected = async (action) => {
+    const ids = [...selectedIds];
+    const results = await Promise.allSettled(ids.map(action));
+    return { total: ids.length, failed: results.filter((r) => r.status === 'rejected').length };
   };
 
-  // Performs bulk deletion of selected payments (API integration placeholder: DELETE /api/v1/payments/bulk)
+  // Performs bulk status update on selected payments
+  const handleBulkStatusChange = async (targetStatus) => {
+    if (!targetStatus || targetStatus === 'placeholder') return;
+    const { total, failed } = await runForSelected((id) => paymentsApi.updateStatus(id, targetStatus));
+    if (failed) toast.error(`${failed} of ${total} payments could not be updated`);
+    else toast.success(`Updated ${total} payments to status "${targetStatus}"`);
+    setSelectedIds([]);
+    loadPayments();
+  };
+
+  // Performs bulk deletion of selected payments 
   const handleBulkDelete = async () => {
     setIsDeleting(true);
     try {
-      setPayments((prev) => prev.filter((p) => !selectedIds.includes(p.id)));
-      toast.success(`Deleted ${selectedIds.length} payments`);
+      const { total, failed } = await runForSelected((id) => paymentsApi.remove(id));
+      if (failed) toast.error(`${failed} of ${total} payments could not be deleted`);
+      else toast.success(`Deleted ${total} payments`);
       setSelectedIds([]);
       setBulkDeleteOpen(false);
+      loadPayments();
     } catch {
       toast.error('Failed to delete selected payments');
     } finally {
@@ -203,16 +247,17 @@ export const AllPaymentsPage = () => {
     }
   };
 
-  // Deletes a single payment record (API integration placeholder: DELETE /api/v1/payments/:id)
+  // Deletes a single payment record
   const handleSingleDelete = async () => {
     if (!singleDeleteTarget) return;
     setIsDeleting(true);
     try {
-      setPayments((prev) => prev.filter((p) => p.id !== singleDeleteTarget.id));
-      toast.success(`Payment ${singleDeleteTarget.invoiceId || singleDeleteTarget.id} deleted`);
+      await paymentsApi.remove(singleDeleteTarget.id);
+      toast.success(`Payment ${singleDeleteTarget.paymentNumber || singleDeleteTarget.id} deleted`);
       setSingleDeleteTarget(null);
-    } catch {
-      toast.error('Failed to delete payment');
+      loadPayments();
+    } catch (error) {
+      toast.error(apiErrorMessage(error, 'Failed to delete payment'));
     } finally {
       setIsDeleting(false);
     }
@@ -225,7 +270,7 @@ export const AllPaymentsPage = () => {
       className: 'w-[160px]',
       render: (p) => (
         <>
-          <span className="block truncate font-mono text-xs font-semibold text-foreground">{p.invoiceId}</span>
+          <span className="block truncate font-mono text-xs font-semibold text-foreground">{p.invoiceId || p.paymentNumber}</span>
           {p.trxId && <span className="block truncate font-mono text-[10px] text-muted-foreground">{p.trxId}</span>}
         </>
       ),

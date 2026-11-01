@@ -22,7 +22,10 @@ import {
 import { AttachmentUploader } from '@/components/dashboard/accounts/AttachmentUploader';
 import { toast } from 'sonner';
 import { useData } from '@/context/DataContext';
-import { CLIENT_PAYMENT_SOURCE, getClientName, getClientProjects } from '@/components/dashboard/accounts/paymentSources';
+import { getClientName, getClientProjects } from '@/components/dashboard/accounts/paymentSources';
+import { apiErrorMessage, paymentSourcesApi, paymentsApi } from '@/services/paymentsApi';
+
+const DEFAULT_PAYMENT_METHODS = ['Cash', 'bKash', 'Nagad', 'Bank Transfer', 'Card'];
 
 // Formats a numeric value into BDT currency string
 const formatCurrency = (val) => {
@@ -38,14 +41,13 @@ export const AddNewPaymentPage = () => {
   const editId = searchParams.get('edit');
 
   const { clients } = useData();
-  const allPayments = useMemo(() => [], []);
+  // API integration placeholder: payment methods have no backend yet, so fall back to the common ones
   const allPaymentTypes = useMemo(() => [], []);
-  // API integration placeholder: GET /api/v1/payment-sources (the built-in Client source is always present)
-  const paymentSources = useMemo(() => [CLIENT_PAYMENT_SOURCE], []);
+  const [paymentSources, setPaymentSources] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
 
   const [formData, setFormData] = useState({
-    paymentSourceId: CLIENT_PAYMENT_SOURCE.id,
+    paymentSourceId: '',
     clientId: '',
     projectId: '',
     projectName: '',
@@ -66,7 +68,7 @@ export const AddNewPaymentPage = () => {
       .filter((pt) => pt.status === 'Active')
       .map((pt) => pt.name.trim())
       .filter(Boolean);
-    const combined = Array.from(new Set(customNames));
+    const combined = Array.from(new Set(customNames.length > 0 ? customNames : DEFAULT_PAYMENT_METHODS));
     if (formData.paymentMethod && !combined.includes(formData.paymentMethod)) {
       combined.push(formData.paymentMethod);
     }
@@ -82,12 +84,25 @@ export const AddNewPaymentPage = () => {
   const selectedClient = (clients || []).find((c) => c.id === formData.clientId);
   const clientProjects = getClientProjects(selectedClient);
 
+  // Load sources once; a new payment defaults to the built-in Client source
   useEffect(() => {
-    if (editId && allPayments.length > 0) {
-      const existing = allPayments.find((p) => p.id === editId || p.invoiceId === editId);
-      if (existing) {
+    paymentSourcesApi
+      .list()
+      .then((list) => {
+        setPaymentSources(list);
+        const clientSource = list.find((s) => s.system && s.linkType === 'client');
+        setFormData((prev) => (prev.paymentSourceId || !clientSource ? prev : { ...prev, paymentSourceId: clientSource.id }));
+      })
+      .catch((error) => toast.error(apiErrorMessage(error, 'Failed to load payment sources')));
+  }, []);
+
+  useEffect(() => {
+    if (!editId) return;
+    paymentsApi
+      .get(editId)
+      .then((existing) => {
         setFormData({
-          paymentSourceId: existing.paymentSourceId || CLIENT_PAYMENT_SOURCE.id,
+          paymentSourceId: existing.paymentSourceId,
           clientId: existing.clientId || '',
           projectId: existing.projectId || '',
           projectName: existing.projectName || '',
@@ -102,9 +117,9 @@ export const AddNewPaymentPage = () => {
           notes: existing.notes || '',
           attachments: existing.attachments || [],
         });
-      }
-    }
-  }, [editId, allPayments]);
+      })
+      .catch((error) => toast.error(apiErrorMessage(error, 'Failed to load payment')));
+  }, [editId]);
 
   const amountNum = Number(formData.amount) || 0;
   const paidAmountNum = Number(formData.paidAmount !== '' ? formData.paidAmount : formData.amount) || 0;
@@ -162,8 +177,12 @@ export const AddNewPaymentPage = () => {
 
     setIsSaving(true);
     try {
+      if (editId) await paymentsApi.update(editId, formData);
+      else await paymentsApi.create(formData);
       toast.success(editId ? 'Payment record updated' : 'Payment record saved');
       navigate('/accounts/payments');
+    } catch (error) {
+      toast.error(apiErrorMessage(error, 'Failed to save payment'));
     } finally {
       setIsSaving(false);
     }

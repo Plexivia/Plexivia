@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import * as accountingController from '../controllers/accountingController.js';
+import * as paymentSourceController from '../controllers/paymentSourceController.js';
 import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
@@ -15,8 +16,17 @@ router.patch('/invoices/:id/status', accountingController.updateInvoiceStatus);
 router.put('/invoices/:id/status', accountingController.updateInvoiceStatus);
 
 // Payments (Income)
-router.get('/payments', accountingController.getPayments);
-router.post('/payments', accountingController.recordPayment);
+router.get('/payments', paymentSourceController.getPayments);
+router.post('/payments', paymentSourceController.recordPayment);
+router.get('/payments/:id', paymentSourceController.getPaymentById);
+router.put('/payments/:id', paymentSourceController.updatePayment);
+router.delete('/payments/:id', paymentSourceController.deletePayment);
+
+// Payment sources
+router.get('/payment-sources', paymentSourceController.getPaymentSources);
+router.post('/payment-sources', paymentSourceController.createPaymentSource);
+router.put('/payment-sources/:id', paymentSourceController.updatePaymentSource);
+router.delete('/payment-sources/:id', paymentSourceController.deletePaymentSource);
 
 // Bills (Expenses & Vouchers)
 router.get('/bills', accountingController.getBills);

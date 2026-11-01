@@ -25,7 +25,8 @@ export interface IProject extends Document {
   progress: number;
   progress_percent?: number;
   priority: 'Low' | 'Medium' | 'High' | 'Critical';
-  due_date: string;
+  due_date?: string;
+  is_internal?: boolean;
   tasks_count: number;
   created_at: string;
 }
@@ -87,7 +88,8 @@ const ProjectSchema = new Schema<IProject>(
     progress: { type: Number, default: 0 },
     progress_percent: { type: Number, default: 0 },
     priority: { type: String, enum: ['Low', 'Medium', 'High', 'Critical'], default: 'Medium' },
-    due_date: { type: String, required: true },
+    due_date: { type: String, default: '' },
+    is_internal: { type: Boolean, default: false },
     tasks_count: { type: Number, default: 0 },
     created_at: { type: String, default: () => new Date().toISOString() },
   },

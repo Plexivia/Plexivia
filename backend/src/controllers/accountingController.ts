@@ -116,62 +116,6 @@ export const updateInvoiceStatus = async (req: Request, res: Response) => {
   }
 };
 
-// Retrieve client incoming payment records
-export const getPayments = async (req: Request, res: Response) => {
-  try {
-    const { clientId } = req.query;
-    const filter: any = {};
-    if (clientId) {
-      filter.client_id = String(clientId);
-    }
-
-    const PaymentModel = getPaymentModel();
-    const payments = await PaymentModel.find(filter).sort({ created_at: -1 });
-
-    return res.json({
-      success: true,
-      status: 'success',
-      count: payments.length,
-      data: payments,
-    });
-  } catch (error: any) {
-    return res.status(500).json({ success: false, message: error.message || 'Failed to retrieve payments' });
-  }
-};
-
-// Record a new incoming client payment
-export const recordPayment = async (req: Request, res: Response) => {
-  try {
-    const data = req.body;
-    if (!data.client_id || !data.amount) {
-      return res.status(400).json({ success: false, message: 'Client ID and amount are required' });
-    }
-
-    const PaymentModel = getPaymentModel();
-    const created = await PaymentModel.create({
-      payment_number: data.payment_number || `PAY-${Math.floor(1000 + Math.random() * 9000)}`,
-      invoice_id: data.invoice_id || `INV-${Date.now().toString().slice(-4)}`,
-      client_id: data.client_id,
-      amount: Number(data.amount),
-      currency: data.currency || 'BDT',
-      payment_method: data.payment_method || 'BANK_TRANSFER',
-      transaction_reference: data.transaction_ref || `TXN-${Date.now().toString().slice(-6)}`,
-      status: 'SUCCESS',
-      paid_at: new Date().toISOString(),
-      created_at: new Date().toISOString(),
-    });
-
-    return res.status(201).json({
-      success: true,
-      status: 'success',
-      message: 'Payment recorded successfully',
-      data: created,
-    });
-  } catch (error: any) {
-    return res.status(500).json({ success: false, message: error.message || 'Failed to record payment' });
-  }
-};
-
 // Retrieve agency operational bills and expenses
 export const getBills = async (req: Request, res: Response) => {
   try {

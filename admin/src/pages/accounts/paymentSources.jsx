@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { TableV2, TablePaginationV2, useRowSelection } from '@/components/table/versionTwo';
 import { useTranslation } from 'react-i18next';
 import {
@@ -33,7 +33,8 @@ import { ConfirmDeleteDialog } from '@/components/ui/confirm-delete-dialog';
 import { DateRangeFilter } from '@/components/dashboard/accounts/DateRangeFilter';
 import { toast } from 'sonner';
 import { formatDate } from '@/utils/dateHelper';
-import { CLIENT_PAYMENT_SOURCE, SOURCE_LINK_TYPES, getSourceLinkLabel } from '@/components/dashboard/accounts/paymentSources';
+import { SOURCE_LINK_TYPES, getSourceLinkLabel } from '@/components/dashboard/accounts/paymentSources';
+import { apiErrorMessage, paymentSourcesApi } from '@/services/paymentsApi';
 
 const EMPTY_FORM = { name: '', description: '', linkType: 'none', status: 'Active' };
 
@@ -56,29 +57,68 @@ export const PaymentSourcesPage = () => {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 
-  const [sources, setSources] = useState([CLIENT_PAYMENT_SOURCE]);
-  const isLoading = false;
-  const isSaving = false;
-  const isDeleting = false;
+  const [sources, setSources] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const totalPages = 1;
 
-  // Updates status for all selected sources except the built-in one (API integration placeholder: PUT /api/v1/payment-sources/bulk-update)
+  const loadSources = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      setSources(await paymentSourcesApi.list());
+      setLoadError(null);
+    } catch (error) {
+      setLoadError(apiErrorMessage(error, 'Failed to load payment sources.'));
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadSources();
+  }, [loadSources]);
+
+  const visibleSources = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return sources.filter(
+      (s) =>
+        (statusFilter === 'All' || s.status === statusFilter) &&
+        (!q || s.name.toLowerCase().includes(q) || s.description.toLowerCase().includes(q))
+    );
+  }, [sources, searchQuery, statusFilter]);
+
+  const editableSelection = () => sources.filter((s) => selectedIds.includes(s.id) && !s.system);
+
+  // Updates status for all selected sources except the built-in one
   const handleBulkStatusChange = async (targetStatus) => {
     if (!targetStatus || targetStatus === 'placeholder' || selectedIds.length === 0) return;
-    setSources((prev) =>
-      prev.map((s) => (selectedIds.includes(s.id) && !s.system ? { ...s, status: targetStatus } : s))
-    );
-    toast.success(`Updated ${selectedIds.length} payment sources to "${targetStatus}"`);
+    const targets = editableSelection();
+    const results = await Promise.allSettled(targets.map((s) => paymentSourcesApi.update(s.id, { ...s, status: targetStatus })));
+    const failed = results.filter((r) => r.status === 'rejected').length;
+    if (failed) toast.error(`${failed} of ${targets.length} sources could not be updated`);
+    else toast.success(`Updated ${targets.length} payment sources to "${targetStatus}"`);
     setSelectedIds([]);
+    loadSources();
   };
 
-  // Deletes all selected sources except the built-in one (API integration placeholder: DELETE /api/v1/payment-sources/bulk-delete)
+  // Deletes all selected sources except the built-in one
   const handleBulkDelete = async () => {
     if (selectedIds.length === 0) return;
-    setSources((prev) => prev.filter((s) => s.system || !selectedIds.includes(s.id)));
-    toast.success('Deleted selected payment sources');
-    setSelectedIds([]);
-    setBulkDeleteOpen(false);
+    setIsDeleting(true);
+    try {
+      const targets = editableSelection();
+      const results = await Promise.allSettled(targets.map((s) => paymentSourcesApi.remove(s.id)));
+      const failed = results.filter((r) => r.status === 'rejected').length;
+      if (failed) toast.error(`${failed} of ${targets.length} sources could not be deleted`);
+      else toast.success(`Deleted ${targets.length} payment sources`);
+      setSelectedIds([]);
+      setBulkDeleteOpen(false);
+      loadSources();
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   // Opens modal dialog to add a new payment source
@@ -113,32 +153,39 @@ export const PaymentSourcesPage = () => {
       return;
     }
 
-    if (editingSource) {
-      // The built-in Client source keeps its name, payer selection and status
-      const patch = editingSource.system ? { description: sourceForm.description } : { ...sourceForm, name };
-      setSources((prev) => prev.map((s) => (s.id === editingSource.id ? { ...s, ...patch } : s)));
-      toast.success('Payment source updated');
-    } else {
-      const newSource = {
-        id: `ps-${Date.now()}`,
-        ...sourceForm,
-        name,
-        linkedPaymentsCount: 0,
-        totalReceived: 0,
-        createdAt: new Date().toISOString(),
-      };
-      setSources((prev) => [...prev, newSource]);
-      toast.success('Payment source created');
+    setIsSaving(true);
+    try {
+      if (editingSource) {
+        // The server ignores everything but the description for the built-in Client source
+        await paymentSourcesApi.update(editingSource.id, { ...sourceForm, name });
+        toast.success('Payment source updated');
+      } else {
+        await paymentSourcesApi.create({ ...sourceForm, name });
+        toast.success('Payment source created');
+      }
+      setModalOpen(false);
+      loadSources();
+    } catch (error) {
+      toast.error(apiErrorMessage(error, 'Failed to save payment source'));
+    } finally {
+      setIsSaving(false);
     }
-    setModalOpen(false);
   };
 
-  // Deletes a single payment source (API integration placeholder: DELETE /api/v1/payment-sources/:id)
+  // Deletes a single payment source; the built-in Client source cannot be deleted
   const handleDelete = async () => {
     if (!deleteTarget || deleteTarget.system) return;
-    setSources((prev) => prev.filter((s) => s.id !== deleteTarget.id));
-    toast.success('Payment source deleted');
-    setDeleteTarget(null);
+    setIsDeleting(true);
+    try {
+      await paymentSourcesApi.remove(deleteTarget.id);
+      toast.success('Payment source deleted');
+      setDeleteTarget(null);
+      loadSources();
+    } catch (error) {
+      toast.error(apiErrorMessage(error, 'Failed to delete payment source'));
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const columns = [
@@ -327,8 +374,9 @@ export const PaymentSourcesPage = () => {
 
         <TableV2
           columns={columns}
-          rows={sources}
+          rows={visibleSources}
           isLoading={isLoading}
+          error={loadError}
           emptyText="No payment sources found matching your query."
           selection={selection}
           onRowClick={(source) => handleOpenEdit(source)}
@@ -344,7 +392,7 @@ export const PaymentSourcesPage = () => {
           className="rounded-none border-0 border-t"
           page={currentPage}
           totalPages={totalPages}
-          total={sources.length}
+          total={visibleSources.length}
           pageSize={pageSize}
           setPage={(p) => {
             setCurrentPage(p);
@@ -354,7 +402,7 @@ export const PaymentSourcesPage = () => {
             setPageSize(size);
             setCurrentPage(1);
           }}
-          shownCount={sources.length}
+          shownCount={visibleSources.length}
         />
       </div>
 

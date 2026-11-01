@@ -72,7 +72,18 @@ export const createProject = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: 'Project name is required' });
     }
 
-    const clientDId = data.clientDId || data.client_dId || data.clientId || data.client_id || '';
+    const isInternal = Boolean(data.is_internal ?? data.isInternal);
+    const projectCode = String(data.project_code || data.projectCode || '').trim().toUpperCase();
+    if (!projectCode) {
+      return res.status(400).json({ success: false, message: 'Project identifier code is required' });
+    }
+    // Domain is stored bare (no scheme); https:// is added wherever a link is rendered
+    const domain = String(data.production_url || data.productionUrl || data.domain || '')
+      .trim()
+      .replace(/^https?:\/\//i, '')
+      .replace(/\/+$/, '');
+
+    const clientDId = isInternal ? '' : data.clientDId || data.client_dId || data.clientId || data.client_id || '';
     const projectTypeDId = data.projectTypeDId || data.project_type_dId || '';
     const ProjectModel = getProjectModel();
     const dId = generateDId();
@@ -83,22 +94,23 @@ export const createProject = async (req: Request, res: Response) => {
       id: dId,
       client_dId: clientDId,
       client_id: clientDId,
-      client_name: data.client_name || data.clientName || '',
+      client_name: isInternal ? 'Plexivia Vision Business' : data.client_name || data.clientName || '',
+      is_internal: isInternal,
       project_type_dId: projectTypeDId,
       project_type: data.project_type || data.projectType || 'WHITELABEL_ECOMMERCE',
       name: projectName.trim(),
       project_name: projectName.trim(),
-      project_code: (data.project_code || data.projectCode || 'PRJ').trim().toUpperCase(),
+      project_code: projectCode,
       description: data.description || '',
-      git_repo_url: data.git_repo_url || data.gitRepoUrl || '',
-      production_url: data.production_url || data.productionUrl || '',
+      git_repo_url: String(data.git_repo_url || data.gitRepoUrl || '').trim(),
+      production_url: domain,
       lead_id: data.lead_id || data.leadId || '',
       lead_name: data.lead_name || data.leadName || '',
       status: data.status || 'ACTIVE',
       progress: progressVal,
       progress_percent: progressVal,
       priority: data.priority || 'Medium',
-      due_date: data.due_date || data.dueDate || new Date().toISOString(),
+      due_date: data.due_date || data.dueDate || '',
       tasks_count: 0,
       created_at: new Date().toISOString(),
     });

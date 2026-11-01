@@ -26,13 +26,36 @@ export interface IPayment extends Document {
   invoice_id?: string;
   client_dId?: string;
   client_id?: string;
+  client_name?: string;
+  project_dId?: string;
+  project_name?: string;
+  payment_source_dId?: string;
+  payment_source_name?: string;
+  payer_name?: string;
+  // Order / bill total the payment settles; amount is what was actually received
+  total_amount?: number;
   amount: number;
   currency: string;
-  payment_method: 'BKASH' | 'NAGAD' | 'BANK_TRANSFER' | 'STRIPE' | 'CASH';
+  payment_method: string;
   transaction_reference?: string;
-  status: 'SUCCESS' | 'PENDING' | 'FAILED';
+  status: 'SUCCESS' | 'PENDING' | 'PARTIAL' | 'FAILED';
+  notes?: string;
+  attachments?: { name?: string; url: string }[];
   paid_at: string;
   created_at: string;
+  updated_at?: string;
+}
+
+export interface IPaymentSource extends Document {
+  dId: string;
+  name: string;
+  description?: string;
+  // 'client' payments are tied to a client and one of their projects; 'none' takes a free-text payer
+  link_type: 'client' | 'none';
+  status: 'Active' | 'Inactive';
+  is_system: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface IBill extends Document {
@@ -87,14 +110,39 @@ const PaymentSchema = new Schema<IPayment>({
   invoice_id: { type: String, index: true },
   client_dId: { type: String, index: true },
   client_id: { type: String, index: true },
+  client_name: { type: String },
+  project_dId: { type: String, index: true },
+  project_name: { type: String },
+  payment_source_dId: { type: String, index: true },
+  payment_source_name: { type: String },
+  payer_name: { type: String },
+  total_amount: { type: Number },
   amount: { type: Number, required: true },
   currency: { type: String, default: 'BDT' },
-  payment_method: { type: String, enum: ['BKASH', 'NAGAD', 'BANK_TRANSFER', 'STRIPE', 'CASH'], default: 'BANK_TRANSFER' },
+  // Free-form so it can hold any configured payment method name, not just the legacy codes
+  payment_method: { type: String, default: 'BANK_TRANSFER' },
   transaction_reference: { type: String },
-  status: { type: String, enum: ['SUCCESS', 'PENDING', 'FAILED'], default: 'SUCCESS' },
+  status: { type: String, enum: ['SUCCESS', 'PENDING', 'PARTIAL', 'FAILED'], default: 'SUCCESS' },
+  notes: { type: String },
+  attachments: { type: [{ _id: false, name: String, url: String }], default: [] },
   paid_at: { type: String, default: () => new Date().toISOString() },
   created_at: { type: String, default: () => new Date().toISOString() },
+  updated_at: { type: String },
 }, { collection: 'payments', timestamps: false });
+
+const PaymentSourceSchema = new Schema<IPaymentSource>({
+  dId: { type: String, required: true, unique: true, index: true, default: generateDId },
+  name: { type: String, required: true, trim: true },
+  description: { type: String, trim: true },
+  link_type: { type: String, enum: ['client', 'none'], default: 'none' },
+  status: { type: String, enum: ['Active', 'Inactive'], default: 'Active' },
+  is_system: { type: Boolean, default: false },
+  created_at: { type: String, default: () => new Date().toISOString() },
+  updated_at: { type: String, default: () => new Date().toISOString() },
+}, { collection: 'payment_sources', timestamps: false });
+
+// Source names are unique regardless of case
+PaymentSourceSchema.index({ name: 1 }, { unique: true, collation: { locale: 'en', strength: 2 } });
 
 const BillSchema = new Schema<IBill>({
   dId: { type: String, required: true, unique: true, index: true, default: generateDId },
@@ -134,6 +182,12 @@ export const getInvoiceModel = (): mongoose.Model<IInvoice> => {
 export const getPaymentModel = (): mongoose.Model<IPayment> => {
   if (secureDbConnection) return secureDbConnection.models.Payment || secureDbConnection.model<IPayment>('Payment', PaymentSchema);
   return mongoose.models.Payment || mongoose.model<IPayment>('Payment', PaymentSchema);
+};
+
+// Retrieve or compile PaymentSource model
+export const getPaymentSourceModel = (): mongoose.Model<IPaymentSource> => {
+  if (secureDbConnection) return secureDbConnection.models.PaymentSource || secureDbConnection.model<IPaymentSource>('PaymentSource', PaymentSourceSchema);
+  return mongoose.models.PaymentSource || mongoose.model<IPaymentSource>('PaymentSource', PaymentSourceSchema);
 };
 
 // Retrieve or compile Bill model

@@ -67,6 +67,7 @@ export interface Project {
   id: string;
   client_id?: string;
   client_name?: string;
+  is_internal?: boolean;
   project_name?: string;
   project_code?: string;
   project_type?: ProjectType;

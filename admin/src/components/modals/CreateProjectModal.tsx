@@ -9,6 +9,8 @@ interface CreateProjectModalProps {
   onClose: () => void;
 }
 
+const INTERNAL_CLIENT = '__internal__';
+
 export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose }) => {
   const { clients, users, createProject } = useData();
   const safeClients = Array.isArray(clients) ? clients : [];
@@ -19,7 +21,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
   const [projectType, setProjectType] = useState<ProjectType>('WHITELABEL_ECOMMERCE');
   const [gitRepoUrl, setGitRepoUrl] = useState('');
   const [productionUrl, setProductionUrl] = useState('');
-  const [leadId, setLeadId] = useState(safeUsers[0]?.id || '');
+  const [leadId, setLeadId] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -42,21 +44,23 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
 
     setLoading(true);
     try {
-      const selectedClient = safeClients.find(c => c.id === clientId);
+      const isInternal = clientId === INTERNAL_CLIENT;
+      const selectedClient = isInternal ? undefined : safeClients.find(c => c.id === clientId);
       const selectedLead = safeUsers.find(u => u.id === leadId);
 
       await createProject({
-        client_id: clientId || safeClients[0]?.id,
-        client_name: selectedClient?.business_name || 'Client',
+        is_internal: isInternal,
+        client_id: isInternal ? '' : clientId || safeClients[0]?.id,
+        client_name: isInternal ? 'Plexivia Vision Business' : selectedClient?.business_name || 'Client',
         project_name: projectName.trim(),
         project_code: projectCode.trim().toUpperCase(),
         project_type: projectType,
-        git_repo_url: gitRepoUrl.trim() || ('https://git.plexivia.com/plexivia/' + projectCode.toLowerCase()),
-        production_url: productionUrl.trim() || ('https://' + projectCode.toLowerCase() + '.plexivia.com'),
+        git_repo_url: gitRepoUrl.trim(),
+        production_url: productionUrl.trim().replace(/^https?:\/\//i, '').replace(/\/+$/, ''),
         status: 'ACTIVE' as ProjectStatus,
         progress_percent: 0,
-        lead_id: leadId || safeUsers[0]?.id,
-        lead_name: selectedLead?.full_name || 'Admin',
+        lead_id: selectedLead?.id || '',
+        lead_name: selectedLead?.full_name || '',
         due_date: dueDate,
       });
 
@@ -66,6 +70,8 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
       setProjectCode('');
       setGitRepoUrl('');
       setProductionUrl('');
+      setLeadId('');
+      setDueDate('');
     } catch (err) {
       console.error(err);
     } finally {
@@ -93,6 +99,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
               onChange={e => setClientId(e.target.value)}
               className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 font-mono shadow-2xs"
             >
+              <option value={INTERNAL_CLIENT}>Plexivia Vision Business (Internal)</option>
               {safeClients.map(c => (
                 <option key={c.id} value={c.id}>
                   {c.business_name}{c.client_name ? ` (${c.client_name})` : ''}
@@ -152,15 +159,15 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
           {/* Git Repo URL */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-              Private Git Repo (Gitea)
+              Git Repo Link
             </label>
             <div className="relative">
               <GitBranch className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
-                type="url"
+                type="text"
                 value={gitRepoUrl}
                 onChange={e => setGitRepoUrl(e.target.value)}
-                placeholder="https://git.plexivia.com/plexivia/repo"
+                placeholder="github.com/org/repo (any git link)"
                 className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono shadow-2xs"
               />
             </div>
@@ -169,15 +176,15 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
           {/* Production Domain */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-              Production Ingress Domain
+              Domain
             </label>
             <div className="relative">
               <Globe className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
-                type="url"
+                type="text"
                 value={productionUrl}
                 onChange={e => setProductionUrl(e.target.value)}
-                placeholder="https://clientdomain.com"
+                placeholder="clientdomain.com"
                 className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono shadow-2xs"
               />
             </div>
@@ -186,13 +193,14 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
           {/* Project Lead */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-              Assigned Project Lead *
+              Assigned Project Lead
             </label>
             <select
               value={leadId}
               onChange={e => setLeadId(e.target.value)}
               className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 font-mono shadow-2xs"
             >
+              <option value="">No lead</option>
               {safeUsers.map(u => (
                 <option key={u.id} value={u.id}>
                   {u.full_name} ({u.role})
@@ -204,13 +212,12 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
           {/* Target Delivery Date */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-              Target Delivery Date *
+              Target Delivery Date
             </label>
             <div className="relative">
               <Calendar className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="date"
-                required
                 value={dueDate}
                 onChange={e => setDueDate(e.target.value)}
                 className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 font-mono shadow-2xs"

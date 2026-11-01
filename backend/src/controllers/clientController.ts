@@ -314,7 +314,7 @@ export const getClient360 = async (req: Request, res: Response) => {
       VaultModel.findOne({ $or: [{ client_dId: clientDId }, { client_id: clientDId }] }),
     ]);
 
-    const totalPaid = payments.filter((p) => p.status === 'SUCCESS').reduce((acc, p) => acc + p.amount, 0);
+    const totalPaid = payments.filter((p) => p.status === 'SUCCESS' || p.status === 'PARTIAL').reduce((acc, p) => acc + p.amount, 0);
     const unpaidInvoices = invoices.filter((i) => i.status === 'SENT' || i.status === 'OVERDUE');
     const unpaidAmount = unpaidInvoices.reduce((acc, i) => acc + i.amount, 0);
 
