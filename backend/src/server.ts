@@ -7,6 +7,7 @@ import { initDatabases, operationsDbConnection, secureDbConnection } from './con
 import { initRealtime } from './utils/realtime.js';
 import { startImapListener } from './utils/imapSync.js';
 import { initBackupScheduler } from './utils/backupScheduler.js';
+import { initSurokkhaImportScheduler } from './utils/surokkhaBillImport.js';
 
 const app = express();
 const PORT = process.env.PORT || 5095;
@@ -77,6 +78,9 @@ const startServer = async () => {
   // Daily Cloudflare R2 database backup
   if (secureDbConnection.readyState === 1) initBackupScheduler();
   else secureDbConnection.once('connected', () => initBackupScheduler());
+
+  // Nightly Surokkha store bill summary (3 AM Dhaka)
+  initSurokkhaImportScheduler();
 };
 
 startServer();

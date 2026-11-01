@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { getPaymentModel, getPaymentSourceModel, IPaymentSource } from '../models/Finance.js';
 import { getClientModel } from '../models/Client.js';
+import { softDeleteOne } from '../plugins/softDelete.js';
 
 const CLIENT_SOURCE_NAME = 'Client';
 const LINK_TYPES = ['client', 'none'];
@@ -68,7 +69,26 @@ export const createPaymentSource = async (req: Request, res: Response) => {
     if (!LINK_TYPES.includes(linkType)) return res.status(400).json({ success: false, message: 'Invalid payer selection type' });
     if (!STATUSES.includes(status)) return res.status(400).json({ success: false, message: 'Invalid status' });
 
-    const created = await getPaymentSourceModel().create({
+    // A deleted source keeps its (unique) name; re-creating it brings the old record back
+    const SourceModel = getPaymentSourceModel();
+    const deleted = await SourceModel.findOne({ name, is_active: false })
+      .collation({ locale: 'en', strength: 2 })
+      .setOptions({ withInactive: true });
+    if (deleted) {
+      deleted.set({
+        name,
+        description: req.body.description,
+        link_type: linkType,
+        status,
+        is_active: true,
+        deleted_at: undefined,
+        updated_at: nowIso(),
+      });
+      await deleted.save();
+      return res.status(201).json({ success: true, status: 'success', message: 'Payment source created', data: deleted });
+    }
+
+    const created = await SourceModel.create({
       name,
       description: req.body.description,
       link_type: linkType,
@@ -130,7 +150,8 @@ export const deletePaymentSource = async (req: Request, res: Response) => {
     if (!source) return res.status(404).json({ success: false, message: 'Payment source not found' });
     if (source.is_system) return res.status(400).json({ success: false, message: 'The built-in Client source cannot be deleted' });
 
-    await source.deleteOne();
+    source.set({ is_active: false, deleted_at: nowIso(), updated_at: nowIso() });
+    await source.save();
     return res.json({ success: true, status: 'success', message: 'Payment source deleted' });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message || 'Failed to delete payment source' });
@@ -281,7 +302,7 @@ export const updatePayment = async (req: Request, res: Response) => {
 
 export const deletePayment = async (req: Request, res: Response) => {
   try {
-    const deleted = await getPaymentModel().findOneAndDelete({ dId: String(req.params.id) });
+    const deleted = await softDeleteOne(getPaymentModel(), { dId: String(req.params.id) });
     if (!deleted) return res.status(404).json({ success: false, message: 'Payment not found' });
     return res.json({ success: true, status: 'success', message: 'Payment deleted' });
   } catch (error: any) {

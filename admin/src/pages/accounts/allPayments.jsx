@@ -41,6 +41,7 @@ const settledAmount = (p) => p.paidAmount || (p.status === 'Completed' ? p.amoun
 
 import { ConfirmDeleteDialog } from '@/components/ui/confirm-delete-dialog';
 import { DateRangeFilter } from '@/components/dashboard/accounts/DateRangeFilter';
+import { AssetFilter, FilteredTotals, ALL_ASSETS, matchesAsset } from '@/components/dashboard/accounts/AssetFilter';
 import { toast } from 'sonner';
 import { apiErrorMessage, paymentsApi } from '@/services/paymentsApi';
 
@@ -66,6 +67,7 @@ export const AllPaymentsPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [methodFilter, setMethodFilter] = useState('All');
+  const [assetFilter, setAssetFilter] = useState(ALL_ASSETS);
   const [dateRange, setDateRange] = useState({ startDate: '', endDate: '', preset: 'all' });
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -100,19 +102,20 @@ export const AllPaymentsPage = () => {
     loadPayments();
   }, [loadPayments]);
 
-  // Search, status, method and date filters run on the loaded list
+  // Search, status, method, asset and date filters run on the loaded list
   const payments = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     return allPayments.filter((p) => {
       if (statusFilter !== 'All' && p.status !== statusFilter) return false;
       if (methodFilter !== 'All' && p.method !== methodFilter) return false;
+      if (!matchesAsset(assetFilter, p.projectId)) return false;
       if (dateRange.startDate && p.date < dateRange.startDate) return false;
       if (dateRange.endDate && p.date > dateRange.endDate) return false;
       if (!q) return true;
       return [p.customerName, p.invoiceId, p.trxId, p.projectName, p.paymentSource, p.paymentNumber]
         .some((v) => String(v || '').toLowerCase().includes(q));
     });
-  }, [allPayments, searchQuery, statusFilter, methodFilter, dateRange]);
+  }, [allPayments, searchQuery, statusFilter, methodFilter, assetFilter, dateRange]);
 
   const summary = useMemo(() => {
     // Partial payments count their received part as collected and the remainder as pending
@@ -147,6 +150,13 @@ export const AllPaymentsPage = () => {
   // Updates payment method filter and resets pagination and selection
   const handleMethodFilter = (v) => {
     setMethodFilter(v || 'All');
+    setCurrentPage(1);
+    setSelectedIds([]);
+  };
+
+  // Updates asset filter and resets pagination and selection
+  const handleAssetFilter = (v) => {
+    setAssetFilter(v);
     setCurrentPage(1);
     setSelectedIds([]);
   };
@@ -405,6 +415,8 @@ export const AllPaymentsPage = () => {
           <div className="flex flex-wrap items-center gap-2">
             {selectedIds.length === 0 ? (
               <>
+                <AssetFilter value={assetFilter} onChange={handleAssetFilter} />
+
                 <Select value={methodFilter} onValueChange={handleMethodFilter}>
                   <SelectTrigger className="h-9 text-xs w-[150px]">
                     <span className="truncate">Method: {methodFilter === 'All' ? 'All' : methodFilter}</span>
@@ -479,6 +491,15 @@ export const AllPaymentsPage = () => {
             { label: 'View Details', icon: Eye, onClick: () => setViewPaymentTarget(p) },
             { label: 'Edit Payment', icon: Edit, onClick: () => navigate(`/accounts/payments/new?edit=${p.id}`) },
             { label: 'Delete Payment', icon: Trash2, destructive: true, separatorBefore: true, onClick: () => setSingleDeleteTarget(p) },
+          ]}
+        />
+
+        <FilteredTotals
+          count={payments.length}
+          items={[
+            { label: 'Bill / Order', value: formatCurrency(payments.reduce((acc, p) => acc + (Number(p.amount) || 0), 0)) },
+            { label: 'Received', value: formatCurrency(summary.totalCollected), className: 'text-emerald-600' },
+            { label: 'Pending', value: formatCurrency(summary.totalPending), className: 'text-amber-600' },
           ]}
         />
 

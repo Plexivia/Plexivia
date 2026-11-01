@@ -33,6 +33,8 @@ import {
 import { toast } from 'sonner';
 import { calculateFeeAmount, formatFeeRate } from '@/components/dashboard/accounts/PaymentFeesEditor';
 import { AttachmentUploader } from '@/components/dashboard/accounts/AttachmentUploader';
+import { useAssetOptions, NO_ASSET } from '@/components/dashboard/accounts/AssetFilter';
+import { billsApi, apiErrorMessage } from '@/services/paymentsApi';
 
 // Formats a numeric value into BDT currency string
 const formatCurrency = (val) => {
@@ -61,7 +63,7 @@ export const AddNewBillPage = () => {
   const [searchParams] = useSearchParams();
   const editId = searchParams.get('edit');
 
-  const allBillings = useMemo(() => [], []);
+  const assets = useAssetOptions();
   const [allBillTypes, setAllBillTypes] = useState([]);
   const allPaymentTypes = useMemo(() => [], []);
   const allInvestors = useMemo(() => [], []);
@@ -82,6 +84,7 @@ export const AddNewBillPage = () => {
 
   const [formData, setFormData] = useState({
     title: '',
+    assetId: NO_ASSET,
     billType: '',
     investorId: '',
     vendor: '',
@@ -130,11 +133,12 @@ export const AddNewBillPage = () => {
   }, [allBillTypes, editId, formData.billType]);
 
   useEffect(() => {
-    if (editId && allBillings.length > 0) {
-      const existing = allBillings.find((b) => b.id === editId || b.did === editId);
-      if (existing) {
+    if (!editId) return;
+    billsApi.get(editId).then(
+      (existing) => {
         setFormData({
           title: existing.title || '',
+          assetId: existing.projectId || NO_ASSET,
           billType: existing.billType || (allBillTypes[0]?.name || ''),
           investorId: existing.investorId || '',
           vendor: existing.vendor || existing.customerName || '',
@@ -153,9 +157,10 @@ export const AddNewBillPage = () => {
           notes: existing.notes || '',
           attachments: existing.attachments || [],
         });
-      }
-    }
-  }, [editId, allBillings, allBillTypes]);
+      },
+      (error) => toast.error(apiErrorMessage(error, 'Failed to load bill'))
+    );
+  }, [editId]);
 
   const totalAmountNum = Number(formData.totalAmount) || 0;
 
@@ -231,7 +236,7 @@ export const AddNewBillPage = () => {
       toast.error('Please enter a bill title / payee');
       return;
     }
-    if (!formData.billingMethod) {
+    if (!formData.billingMethod && activeBillingMethods.length > 0) {
       toast.error('Please select a payment method (add one in Payment Methods first)');
       return;
     }
@@ -242,8 +247,14 @@ export const AddNewBillPage = () => {
 
     setIsSaving(true);
     try {
+      const asset = assets.find((a) => a.id === formData.assetId);
+      const form = { ...formData, totalAmount: grandTotalNum, paidAmount: paidAmountNum };
+      if (editId) await billsApi.update(editId, form, asset);
+      else await billsApi.create(form, asset);
       toast.success(editId ? 'Bill record updated' : 'Bill record saved');
       navigate('/accounts/bills');
+    } catch (error) {
+      toast.error(apiErrorMessage(error, 'Failed to save bill'));
     } finally {
       setIsSaving(false);
     }
@@ -293,6 +304,24 @@ export const AddNewBillPage = () => {
                   className="text-xs"
                   required
                 />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground">Asset</label>
+                <Select value={formData.assetId} onValueChange={(v) => handleInputChange('assetId', v)}>
+                  <SelectTrigger className="text-xs">
+                    <SelectValue placeholder="Select asset" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={NO_ASSET}>Plexivia (own expense, no asset)</SelectItem>
+                    {assets.map((a) => (
+                      <SelectItem key={a.id} value={a.id}>
+                        {a.name}
+                        {a.clientName ? ` · ${a.clientName}` : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

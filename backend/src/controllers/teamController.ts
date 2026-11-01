@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { getTeamModel } from '../models/Agency.js';
 import { generateDId } from '../utils/dId.js';
+import { softDeleteOne } from '../plugins/softDelete.js';
 
 // Retrieve all agency teams with department and status filtering
 export const getTeams = async (req: Request, res: Response) => {
@@ -121,7 +122,7 @@ export const deleteTeam = async (req: Request, res: Response) => {
   try {
     const identifier = (req.params.dId || req.params.id) as string;
     const TeamModel = getTeamModel();
-    const deleted = await TeamModel.findOneAndDelete({
+    const deleted = await softDeleteOne(TeamModel, {
       $or: [{ dId: identifier }, { id: identifier }],
     });
 

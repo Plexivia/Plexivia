@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { useData } from '../context/DataContext';
 import { Project, ProjectStatus } from '../types';
 import { CreateProjectModal } from '../components/modals/CreateProjectModal';
+import { ConfirmDeleteDialog } from '@/components/ui/confirm-delete-dialog';
 import {
   FolderKanban,
   Plus,
@@ -23,6 +24,22 @@ import {
 export const ProjectsPage: React.FC = () => {
   const { projects, clients, deleteProject, refreshAll, loading } = useData();
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Runs only after the user confirms in the dialog; DataContext shows the success/error toast
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      await deleteProject(deleteTarget.id || (deleteTarget as any).dId);
+      setDeleteTarget(null);
+    } catch {
+      // error toast already shown
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const safeProjects = Array.isArray(projects) ? projects : [];
   const safeClients = Array.isArray(clients) ? clients : [];
@@ -170,7 +187,7 @@ export const ProjectsPage: React.FC = () => {
       enableHiding: false,
       cell: ({ row }: any) => (
         <button
-          onClick={() => deleteProject(row.original.id || row.original.dId)}
+          onClick={() => setDeleteTarget(row.original)}
           title="Delete Project"
           className="rounded-lg bg-rose-600 p-1.5 text-white transition hover:bg-rose-500 cursor-pointer"
         >
@@ -261,6 +278,15 @@ export const ProjectsPage: React.FC = () => {
         exportFilename="projects"
         emptyTitle="No projects found"
         emptyDescription="No projects match your filter or search query."
+      />
+
+      <ConfirmDeleteDialog
+        open={!!deleteTarget}
+        onOpenChange={(open: boolean) => !open && !isDeleting && setDeleteTarget(null)}
+        onConfirm={handleConfirmDelete}
+        isDeleting={isDeleting}
+        title="Are you sure you want to delete this project?"
+        description={`"${(deleteTarget as any)?.name || (deleteTarget as any)?.project_name || 'This project'}" will be deactivated and hidden from the dashboard. Its data is kept and can be restored from the database.`}
       />
 
       {/* Create Project Modal */}

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { getEmployeeModel } from '../models/Agency.js';
 import { generateDId } from '../utils/dId.js';
+import { softDeleteOne } from '../plugins/softDelete.js';
 
 // Retrieve all agency employees with optional department and role filtering
 export const getEmployees = async (req: Request, res: Response) => {
@@ -123,7 +124,7 @@ export const deleteEmployee = async (req: Request, res: Response) => {
   try {
     const identifier = (req.params.dId || req.params.id) as string;
     const EmployeeModel = getEmployeeModel();
-    const deleted = await EmployeeModel.findOneAndDelete({
+    const deleted = await softDeleteOne(EmployeeModel, {
       $or: [{ dId: identifier }, { id: identifier }, { employee_code: identifier }],
     });
 

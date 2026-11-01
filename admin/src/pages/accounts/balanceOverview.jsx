@@ -21,6 +21,7 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Toolti
 import { Link } from 'react-router-dom';
 import { apiClient } from '@/lib/api-client';
 import { getApiErrorMessage } from '@/lib/error-handler';
+import { AssetFilter, ALL_ASSETS } from '@/components/dashboard/accounts/AssetFilter';
 
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -92,6 +93,7 @@ export const BalanceOverview = () => {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
+  const [asset, setAsset] = useState(ALL_ASSETS);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -101,7 +103,8 @@ export const BalanceOverview = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await apiClient.get('/api/v1/accounting/balance/monthly', { params: { year } });
+      const params = asset === ALL_ASSETS ? { year } : { year, project: asset };
+      const res = await apiClient.get('/api/v1/accounting/balance/monthly', { params });
       setData(res.data?.data || null);
     } catch (err) {
       setError(getApiErrorMessage(err, 'Failed to load account balance.'));
@@ -109,7 +112,7 @@ export const BalanceOverview = () => {
     } finally {
       setLoading(false);
     }
-  }, [year]);
+  }, [year, asset]);
 
   useEffect(() => {
     load();
@@ -160,6 +163,7 @@ export const BalanceOverview = () => {
               </option>
             ))}
           </select>
+          <AssetFilter value={asset} onChange={setAsset} />
           {loading && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
         </div>
       </div>

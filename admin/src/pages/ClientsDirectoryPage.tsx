@@ -226,7 +226,7 @@ export const ClientsDirectoryPage: React.FC = () => {
         onClose={() => setDeleteTarget(null)}
         onConfirm={() => deleteTarget && deleteClient(deleteTarget.id)}
         title="Delete Client"
-        message={`Remove "${deleteTarget?.business_name || 'this client'}" from the directory? This cannot be undone.`}
+        message={`Remove "${deleteTarget?.business_name || 'this client'}" from the directory? The client is deactivated and hidden; its data is kept.`}
         confirmText="Delete"
       />
 

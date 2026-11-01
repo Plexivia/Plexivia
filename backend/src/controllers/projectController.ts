@@ -4,6 +4,7 @@ import { getProjectTypeModel } from '../models/ProjectType.js';
 import { getWhiteLabelEcommerceModel } from '../models/WhiteLabelEcommerce.js';
 import { getClientModel } from '../models/Client.js';
 import { generateDId } from '../utils/dId.js';
+import { softDeleteOne } from '../plugins/softDelete.js';
 
 // Retrieve all agency projects with status, client, and search filtering
 export const getProjects = async (req: Request, res: Response) => {
@@ -167,7 +168,7 @@ export const deleteProject = async (req: Request, res: Response) => {
   try {
     const identifier = (req.params.dId || req.params.id) as string;
     const ProjectModel = getProjectModel();
-    const deleted = await ProjectModel.findOneAndDelete({
+    const deleted = await softDeleteOne(ProjectModel, {
       $or: [{ dId: identifier }, { id: identifier }],
     });
 

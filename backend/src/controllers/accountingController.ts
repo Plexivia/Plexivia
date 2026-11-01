@@ -3,6 +3,7 @@ import { getInvoiceModel, getPaymentModel, getBillModel, getPayrollModel } from 
 import { getClientModel } from '../models/Agency.js';
 import { generatePlexiviaBarcodeSvg, generatePlexiviaBarcodeDataUrl } from '../utils/barcodeGenerator.js';
 import { convertNumberToWords } from '../utils/numberToWords.js';
+import { softDeleteOne } from '../plugins/softDelete.js';
 
 // Retrieve all invoices with client and status filtering
 export const getInvoices = async (req: Request, res: Response) => {
@@ -116,11 +117,20 @@ export const updateInvoiceStatus = async (req: Request, res: Response) => {
   }
 };
 
+// Narrows bills/payments to one asset: ?project=<dId> or ?client=<dId>; project=__none__ is Plexivia's own records
+const assetFilter = (query: any) => {
+  const filter: any = {};
+  if (query.project === '__none__') filter.project_dId = { $in: [null, ''] };
+  else if (query.project) filter.project_dId = String(query.project);
+  if (query.client) filter.client_dId = String(query.client);
+  return filter;
+};
+
 // Retrieve agency operational bills and expenses
 export const getBills = async (req: Request, res: Response) => {
   try {
     const { category, status } = req.query;
-    const filter: any = {};
+    const filter: any = { ...assetFilter(req.query) };
 
     if (category) {
       filter.category = new RegExp(String(category), 'i');
@@ -154,12 +164,24 @@ export const createBill = async (req: Request, res: Response) => {
     const BillModel = getBillModel();
     const created = await BillModel.create({
       bill_number: data.bill_number || `BILL-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
+      client_dId: data.client_dId || data.client_id || undefined,
+      client_name: data.client_name || undefined,
+      project_dId: data.project_dId || data.project_id || undefined,
+      project_name: data.project_name || undefined,
+      title: data.title || undefined,
+      bill_type: data.bill_type || undefined,
       vendor_name: data.vendor_name,
       category: data.category || 'INFRASTRUCTURE',
       amount: Number(data.amount),
       currency: data.currency || 'BDT',
+      paid_amount: Number(data.paid_amount) || 0,
       status: data.status || 'PENDING',
-      due_date: data.due_date || new Date().toISOString(),
+      billing_date: data.billing_date || new Date().toISOString(),
+      due_date: data.due_date || '',
+      line_items: Array.isArray(data.line_items) ? data.line_items : [],
+      external_ref: data.external_ref || undefined,
+      notes: data.notes || undefined,
+      attachments: Array.isArray(data.attachments) ? data.attachments : [],
       created_at: new Date().toISOString(),
     });
 
@@ -171,6 +193,49 @@ export const createBill = async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message || 'Failed to create bill' });
+  }
+};
+
+// Fields a bill update may change; numbers and the importer ref are kept out of free-form $set
+const BILL_EDITABLE = ['title', 'bill_type', 'vendor_name', 'category', 'amount', 'paid_amount', 'status', 'billing_date', 'due_date',
+  'client_dId', 'client_name', 'project_dId', 'project_name', 'line_items', 'notes', 'attachments'];
+
+const findBillQuery = (id: string) => ({ $or: [{ dId: id }, { bill_number: id }] });
+
+// Retrieve one bill by dId or bill number
+export const getBillById = async (req: Request, res: Response) => {
+  try {
+    const bill = await getBillModel().findOne(findBillQuery(String(req.params.id)));
+    if (!bill) return res.status(404).json({ success: false, message: 'Bill not found' });
+    return res.json({ success: true, data: bill });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message || 'Failed to retrieve bill' });
+  }
+};
+
+// Update a bill's editable fields
+export const updateBill = async (req: Request, res: Response) => {
+  try {
+    const updates: any = {};
+    for (const key of BILL_EDITABLE) if (req.body[key] !== undefined) updates[key] = req.body[key];
+    if (updates.amount !== undefined) updates.amount = Number(updates.amount) || 0;
+    if (updates.paid_amount !== undefined) updates.paid_amount = Number(updates.paid_amount) || 0;
+    const bill = await getBillModel().findOneAndUpdate(findBillQuery(String(req.params.id)), { $set: updates }, { new: true });
+    if (!bill) return res.status(404).json({ success: false, message: 'Bill not found' });
+    return res.json({ success: true, message: 'Bill updated', data: bill });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message || 'Failed to update bill' });
+  }
+};
+
+// Delete a bill
+export const deleteBill = async (req: Request, res: Response) => {
+  try {
+    const bill = await softDeleteOne(getBillModel(), findBillQuery(String(req.params.id)));
+    if (!bill) return res.status(404).json({ success: false, message: 'Bill not found' });
+    return res.json({ success: true, message: 'Bill deleted' });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message || 'Failed to delete bill' });
   }
 };
 
@@ -278,9 +343,10 @@ export const getFinancialSummary = async (_req: Request, res: Response) => {
 export const getMonthlyBalance = async (req: Request, res: Response) => {
   try {
     const year = Number(req.query.year) || new Date().getFullYear();
+    const asset = assetFilter(req.query);
     const [payments, bills] = await Promise.all([
-      getPaymentModel().find({ status: 'SUCCESS' }).lean(),
-      getBillModel().find({ status: 'PAID' }).lean(),
+      getPaymentModel().find({ status: 'SUCCESS', ...asset }).lean(),
+      getBillModel().find({ status: 'PAID', ...asset }).lean(),
     ]);
 
     const months = Array.from({ length: 12 }, (_, i) => ({

@@ -367,7 +367,7 @@ export const deleteUser = async (req: AuthedRequest, res: Response) => {
       return res.status(403).json({ success: false, message: 'Insufficient permissions to delete this user' });
     }
 
-    await AdminModel.deleteOne({ _id: user._id });
+    await AdminModel.updateOne({ _id: user._id }, { $set: { is_active: false, deleted_at: new Date().toISOString() } });
 
     return res.json({
       success: true,
@@ -393,7 +393,10 @@ export const bulkDeleteUsers = async (req: AuthedRequest, res: Response) => {
     const skipped = users.length - deletable.length;
 
     if (deletable.length > 0) {
-      await AdminModel.deleteMany({ _id: { $in: deletable.map((u) => u._id) } });
+      await AdminModel.updateMany(
+        { _id: { $in: deletable.map((u) => u._id) } },
+        { $set: { is_active: false, deleted_at: new Date().toISOString() } }
+      );
     }
 
     return res.json({

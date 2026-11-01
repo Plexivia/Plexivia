@@ -2,6 +2,7 @@ import { Router } from 'express';
 import * as accountingController from '../controllers/accountingController.js';
 import * as paymentSourceController from '../controllers/paymentSourceController.js';
 import { requireAuth } from '../middleware/auth.js';
+import { importSurokkhaDay } from '../utils/surokkhaBillImport.js';
 
 const router = Router();
 
@@ -31,6 +32,19 @@ router.delete('/payment-sources/:id', paymentSourceController.deletePaymentSourc
 // Bills (Expenses & Vouchers)
 router.get('/bills', accountingController.getBills);
 router.post('/bills', accountingController.createBill);
+// Import one day's Surokkha bill summary now (?date=YYYY-MM-DD); the nightly job does this automatically
+router.post('/bills/import-surokkha', async (req, res) => {
+  const date = String(req.query.date || req.body?.date || '');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ success: false, message: 'date must be YYYY-MM-DD' });
+  try {
+    return res.json({ success: true, data: await importSurokkhaDay(date) });
+  } catch (error: any) {
+    return res.status(502).json({ success: false, message: error.message });
+  }
+});
+router.get('/bills/:id', accountingController.getBillById);
+router.put('/bills/:id', accountingController.updateBill);
+router.delete('/bills/:id', accountingController.deleteBill);
 
 // Payroll (Employee Salaries)
 router.get('/payroll', accountingController.getPayrolls);

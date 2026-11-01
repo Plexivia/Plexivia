@@ -332,7 +332,7 @@ export const PaymentsPage = () => {
         onConfirm={handleBulkDelete}
         isDeleting={isBulkDeleting}
         title="Delete Selected Payments"
-        description={`Are you sure you want to permanently delete the ${selectedIds.length} selected payment records? This action cannot be undone.`}
+        description={`Delete the ${selectedIds.length} selected payment records? They are deactivated and hidden, not permanently removed.`}
       />
 
       <ConfirmDeleteDialog

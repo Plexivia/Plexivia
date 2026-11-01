@@ -80,3 +80,61 @@ export const paymentsApi = {
   updateStatus: (id, status) => send(`/accounting/payments/${id}`, 'PUT', { status: STATUS_TO_API[status] || status }),
   remove: (id) => send(`/accounting/payments/${id}`, 'DELETE'),
 };
+
+// Bills: UI status labels <-> API status codes
+const BILL_STATUS_TO_API = { Paid: 'PAID', Pending: 'PENDING', Partial: 'PARTIAL', Overdue: 'OVERDUE' };
+const BILL_STATUS_FROM_API = Object.fromEntries(Object.entries(BILL_STATUS_TO_API).map(([ui, api]) => [api, ui]));
+
+export const toBill = (b) => {
+  const total = Number(b.amount) || 0;
+  const paid = Number(b.paid_amount) || 0;
+  return {
+    id: b.dId,
+    did: b.bill_number,
+    title: b.title || b.vendor_name || '',
+    vendor: b.vendor_name || '',
+    billType: b.bill_type || '',
+    clientId: b.client_dId || '',
+    clientName: b.client_name || '',
+    projectId: b.project_dId || '',
+    projectName: b.project_name || '',
+    totalAmount: total,
+    billAmount: total,
+    paidAmount: paid,
+    pendingAmount: Math.max(0, Math.round((total - paid) * 100) / 100),
+    billingDate: (b.billing_date || b.created_at || '').slice(0, 10),
+    dueDate: (b.due_date || '').slice(0, 10),
+    status: BILL_STATUS_FROM_API[b.status] || b.status,
+    lineItems: b.line_items || [],
+    automated: !!b.external_ref,
+    notes: b.notes || '',
+    attachments: b.attachments || [],
+  };
+};
+
+// Form state from addNewBill -> API body
+export const fromBillForm = (f, asset) => ({
+  title: f.title,
+  bill_type: f.billType || undefined,
+  vendor_name: f.vendor || f.title,
+  amount: Number(f.totalAmount) || 0,
+  paid_amount: Number(f.paidAmount) || 0,
+  status: BILL_STATUS_TO_API[f.status] || 'PENDING',
+  billing_date: f.billingDate,
+  due_date: f.dueDate || '',
+  project_dId: asset?.id || '',
+  project_name: asset?.name || '',
+  client_dId: asset?.clientId || '',
+  client_name: asset?.clientName || '',
+  notes: f.notes,
+  attachments: f.attachments,
+});
+
+export const billsApi = {
+  list: async () => ((await apiFetch('/accounting/bills'))?.data || []).map(toBill),
+  get: async (id) => toBill((await apiFetch(`/accounting/bills/${id}`)).data),
+  create: async (form, asset) => toBill((await send('/accounting/bills', 'POST', fromBillForm(form, asset))).data),
+  update: async (id, form, asset) => toBill((await send(`/accounting/bills/${id}`, 'PUT', fromBillForm(form, asset))).data),
+  updateStatus: (id, status) => send(`/accounting/bills/${id}`, 'PUT', { status: BILL_STATUS_TO_API[status] || status }),
+  remove: (id) => send(`/accounting/bills/${id}`, 'DELETE'),
+};

@@ -61,12 +61,28 @@ export interface IPaymentSource extends Document {
 export interface IBill extends Document {
   dId: string;
   bill_number: string;
+  // Asset the bill belongs to (a client and one of their projects, or an internal project)
+  client_dId?: string;
+  client_name?: string;
+  project_dId?: string;
+  project_name?: string;
+  title?: string;
+  // Free-form bill type configured in Bill Types (category stays the legacy enum)
+  bill_type?: string;
   vendor_name: string;
   category: 'INFRASTRUCTURE' | 'SOFTWARE' | 'OFFICE' | 'MARKETING' | 'OTHER';
   amount: number;
   currency: string;
-  status: 'PENDING' | 'PAID' | 'OVERDUE';
-  due_date: string;
+  paid_amount?: number;
+  status: 'PENDING' | 'PARTIAL' | 'PAID' | 'OVERDUE';
+  billing_date?: string;
+  due_date?: string;
+  // Breakdown shown inside the bill, e.g. deliveries / returns of a daily summary
+  line_items?: { label: string; quantity?: number; amount: number }[];
+  // Set by automated importers so the same period is never billed twice
+  external_ref?: string;
+  notes?: string;
+  attachments?: { name?: string; url: string }[];
   created_at: string;
 }
 
@@ -147,12 +163,24 @@ PaymentSourceSchema.index({ name: 1 }, { unique: true, collation: { locale: 'en'
 const BillSchema = new Schema<IBill>({
   dId: { type: String, required: true, unique: true, index: true, default: generateDId },
   bill_number: { type: String, required: true, unique: true },
+  client_dId: { type: String, index: true },
+  client_name: { type: String },
+  project_dId: { type: String, index: true },
+  project_name: { type: String },
+  title: { type: String },
+  bill_type: { type: String },
   vendor_name: { type: String, required: true },
   category: { type: String, enum: ['INFRASTRUCTURE', 'SOFTWARE', 'OFFICE', 'MARKETING', 'OTHER'], default: 'INFRASTRUCTURE' },
   amount: { type: Number, required: true },
   currency: { type: String, default: 'BDT' },
-  status: { type: String, enum: ['PENDING', 'PAID', 'OVERDUE'], default: 'PENDING' },
-  due_date: { type: String, required: true },
+  paid_amount: { type: Number, default: 0 },
+  status: { type: String, enum: ['PENDING', 'PARTIAL', 'PAID', 'OVERDUE'], default: 'PENDING' },
+  billing_date: { type: String, default: () => new Date().toISOString() },
+  due_date: { type: String, default: '' },
+  line_items: { type: [{ _id: false, label: String, quantity: Number, amount: Number }], default: [] },
+  external_ref: { type: String, index: { unique: true, sparse: true } },
+  notes: { type: String },
+  attachments: { type: [{ _id: false, name: String, url: String }], default: [] },
   created_at: { type: String, default: () => new Date().toISOString() },
 }, { collection: 'bills', timestamps: false });
 

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { TableV2, TablePaginationV2, useRowSelection } from '@/components/table/versionTwo';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
@@ -37,6 +37,8 @@ import {
 import { RecordQuickView, QuickViewSection, QuickViewLine } from '@/components/dashboard/accounts/RecordQuickView';
 import { ConfirmDeleteDialog } from '@/components/ui/confirm-delete-dialog';
 import { DateRangeFilter } from '@/components/dashboard/accounts/DateRangeFilter';
+import { AssetFilter, FilteredTotals, ALL_ASSETS, matchesAsset } from '@/components/dashboard/accounts/AssetFilter';
+import { billsApi, apiErrorMessage } from '@/services/paymentsApi';
 import { toast } from 'sonner';
 
 // Formats a numeric value into BDT currency string
@@ -53,6 +55,7 @@ export const AllBillsPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [billTypeFilter, setBillTypeFilter] = useState('All');
+  const [assetFilter, setAssetFilter] = useState(ALL_ASSETS);
   const [dateRange, setDateRange] = useState({ startDate: '', endDate: '', preset: 'all' });
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -65,11 +68,47 @@ export const AllBillsPage = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 
-  const allBillTypes = useMemo(() => [], []);
-  const [billings, setBillings] = useState([]);
-  const isLoading = false;
-  const isError = false;
+  const [allBillings, setBillings] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
   const totalPages = 1;
+
+  const loadBills = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      setBillings(await billsApi.list());
+      setIsError(false);
+    } catch (error) {
+      setIsError(true);
+      toast.error(apiErrorMessage(error, 'Failed to load bills'));
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadBills();
+  }, [loadBills]);
+
+  // Bill types offered in the filter are the ones used on loaded bills
+  const allBillTypes = useMemo(
+    () => Array.from(new Set(allBillings.map((b) => b.billType).filter(Boolean))).map((name) => ({ id: name, name })),
+    [allBillings]
+  );
+
+  // Search, status, type, asset and date filters run on the loaded list
+  const billings = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return allBillings.filter((b) => {
+      if (statusFilter !== 'All' && b.status !== statusFilter) return false;
+      if (billTypeFilter !== 'All' && b.billType !== billTypeFilter) return false;
+      if (!matchesAsset(assetFilter, b.projectId)) return false;
+      if (dateRange.startDate && b.billingDate < dateRange.startDate) return false;
+      if (dateRange.endDate && b.billingDate > dateRange.endDate) return false;
+      if (!q) return true;
+      return [b.title, b.did, b.vendor, b.projectName, b.billType].some((v) => String(v || '').toLowerCase().includes(q));
+    });
+  }, [allBillings, searchQuery, statusFilter, billTypeFilter, assetFilter, dateRange]);
 
   const summary = useMemo(() => {
     const totalBilled = billings.reduce((acc, b) => acc + (Number(b.totalAmount) || 0), 0);
@@ -95,6 +134,13 @@ export const AllBillsPage = () => {
   // Updates bill category filter and resets pagination and selection
   const handleBillTypeFilter = (v) => {
     setBillTypeFilter(v || 'All');
+    setCurrentPage(1);
+    setSelectedIds([]);
+  };
+
+  // Updates asset filter and resets pagination and selection
+  const handleAssetFilter = (v) => {
+    setAssetFilter(v);
     setCurrentPage(1);
     setSelectedIds([]);
   };
@@ -160,37 +206,49 @@ export const AllBillsPage = () => {
     }
   };
 
-  // Updates status for all selected bills (API integration placeholder: PUT /api/v1/billings/:id)
-  const handleBulkStatusChange = async (targetStatus) => {
-    if (!targetStatus || targetStatus === 'placeholder') return;
-    setBillings((prev) =>
-      prev.map((b) => (selectedIds.includes(b.id) ? { ...b, status: targetStatus } : b))
-    );
-    toast.success(`Updated ${selectedIds.length} bills to status "${targetStatus}"`);
-    setSelectedIds([]);
+  // Runs an API call for every selected bill and reports how many failed
+  const runForSelected = async (fn) => {
+    const ids = [...selectedIds];
+    const results = await Promise.allSettled(ids.map(fn));
+    return { total: ids.length, failed: results.filter((r) => r.status === 'rejected').length };
   };
 
-  // Deletes all selected bill records (API integration placeholder: DELETE /api/v1/billings/:id)
+  // Updates status for all selected bills
+  const handleBulkStatusChange = async (targetStatus) => {
+    if (!targetStatus || targetStatus === 'placeholder') return;
+    const { total, failed } = await runForSelected((id) => billsApi.updateStatus(id, targetStatus));
+    if (failed) toast.error(`${failed} of ${total} bills could not be updated`);
+    else toast.success(`Updated ${total} bills to status "${targetStatus}"`);
+    setSelectedIds([]);
+    loadBills();
+  };
+
+  // Deletes all selected bill records
   const handleBulkDelete = async () => {
     setIsDeleting(true);
     try {
-      setBillings((prev) => prev.filter((b) => !selectedIds.includes(b.id)));
-      toast.success(`Deleted ${selectedIds.length} bills`);
+      const { total, failed } = await runForSelected((id) => billsApi.remove(id));
+      if (failed) toast.error(`${failed} of ${total} bills could not be deleted`);
+      else toast.success(`Deleted ${total} bills`);
       setSelectedIds([]);
       setBulkDeleteOpen(false);
+      loadBills();
     } finally {
       setIsDeleting(false);
     }
   };
 
-  // Deletes a single target bill record (API integration placeholder: DELETE /api/v1/billings/:id)
+  // Deletes a single target bill record
   const handleSingleDelete = async () => {
     if (!singleDeleteTarget) return;
     setIsDeleting(true);
     try {
-      setBillings((prev) => prev.filter((b) => b.id !== singleDeleteTarget.id));
+      await billsApi.remove(singleDeleteTarget.id);
       toast.success(`Bill ${singleDeleteTarget.did || singleDeleteTarget.title} deleted`);
       setSingleDeleteTarget(null);
+      loadBills();
+    } catch (error) {
+      toast.error(apiErrorMessage(error, 'Failed to delete bill'));
     } finally {
       setIsDeleting(false);
     }
@@ -217,6 +275,12 @@ export const AllBillsPage = () => {
           <span className="block truncate text-[11px] text-muted-foreground">{b.vendor || b.customerName}</span>
         </>
       ),
+    },
+    {
+      key: 'asset',
+      header: 'Asset',
+      className: 'w-[150px]',
+      render: (b) => <span className="block truncate text-xs text-muted-foreground">{b.projectName || 'Plexivia'}</span>,
     },
     {
       key: 'billType',
@@ -356,6 +420,8 @@ export const AllBillsPage = () => {
           <div className="flex flex-wrap items-center gap-2">
             {selectedIds.length === 0 ? (
               <>
+                <AssetFilter value={assetFilter} onChange={handleAssetFilter} />
+
                 <Select value={statusFilter} onValueChange={handleStatusFilter}>
                   <SelectTrigger className="h-9 text-xs w-[130px]">
                     <SelectValue placeholder="Status" />
@@ -436,6 +502,15 @@ export const AllBillsPage = () => {
           ]}
         />
 
+        <FilteredTotals
+          count={billings.length}
+          items={[
+            { label: 'Billed', value: formatCurrency(summary.totalBilled) },
+            { label: 'Paid', value: formatCurrency(summary.totalPaid), className: 'text-emerald-600' },
+            { label: 'Due', value: formatCurrency(summary.totalPending), className: 'text-amber-600' },
+          ]}
+        />
+
         <TablePaginationV2
           className="rounded-none border-0 border-t"
           page={currentPage}
@@ -474,7 +549,13 @@ export const AllBillsPage = () => {
             reference: viewBillTarget.did || viewBillTarget.id,
             rows: [
               { label: 'Title / Payee', value: viewBillTarget.title },
+              { label: 'Asset', value: viewBillTarget.projectName || 'Plexivia' },
+              { label: 'Vendor', value: viewBillTarget.vendor },
               { label: 'Bill Type', value: viewBillTarget.billType },
+              ...(viewBillTarget.lineItems || []).map((li) => ({
+                label: li.quantity ? `${li.label} (${li.quantity})` : li.label,
+                value: formatCurrency(li.amount),
+              })),
               { label: 'Investor', value: viewBillTarget.investorName },
               { label: 'Billing Date', value: viewBillTarget.billingDate || viewBillTarget.date },
               { label: 'Due Date', value: viewBillTarget.dueDate || 'Immediate' },
@@ -499,6 +580,8 @@ export const AllBillsPage = () => {
         {viewBillTarget && (
           <>
           <QuickViewSection title="Details">
+            <QuickViewLine label="Asset" value={viewBillTarget.projectName || 'Plexivia'} />
+            <QuickViewLine label="Vendor" value={viewBillTarget.vendor} />
             <QuickViewLine label="Bill Type" value={viewBillTarget.billType} />
             {viewBillTarget.investorName && <QuickViewLine label="Investor" value={viewBillTarget.investorName} />}
             <QuickViewLine label="Billing Date" value={viewBillTarget.billingDate || viewBillTarget.date} />
@@ -506,6 +589,17 @@ export const AllBillsPage = () => {
             <QuickViewLine label="Payment Method" value={viewBillTarget.billingMethod} />
             <QuickViewLine label="Status" value={getStatusBadge(viewBillTarget.status)} />
           </QuickViewSection>
+          {viewBillTarget.lineItems?.length > 0 && (
+            <QuickViewSection title="Breakdown">
+              {viewBillTarget.lineItems.map((li) => (
+                <QuickViewLine
+                  key={li.label}
+                  label={li.quantity ? `${li.label} (${li.quantity})` : li.label}
+                  value={formatCurrency(li.amount)}
+                />
+              ))}
+            </QuickViewSection>
+          )}
           <QuickViewSection title="Amount">
             {viewBillTarget.feeAmount > 0 && (
               <>
@@ -545,7 +639,7 @@ export const AllBillsPage = () => {
         onConfirm={handleBulkDelete}
         isDeleting={isDeleting}
         title="Delete Selected Bills"
-        description={`Are you sure you want to permanently delete the ${selectedIds.length} selected bills? This action cannot be undone.`}
+        description={`Delete the ${selectedIds.length} selected bills? They are deactivated and hidden, not permanently removed.`}
       />
 
       <ConfirmDeleteDialog

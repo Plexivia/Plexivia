@@ -2,6 +2,10 @@ import mongoose from 'mongoose';
 import { hashPassword } from '../utils/security.js';
 import { seedDefaultProjectTypes } from '../models/ProjectType.js';
 import { seedDefaultWhiteLabelProjects } from '../models/WhiteLabelEcommerce.js';
+import { softDeletePlugin } from '../plugins/softDelete.js';
+
+// Registered before any model compiles (models are compiled lazily), so every schema gets soft delete
+mongoose.plugin(softDeletePlugin);
 
 const DEFAULT_SECURE_URI = process.env.MONGODB_SECURE_URI || process.env.MONGODB_URI || 'mongodb://127.0.0.1:27025/plexivia_secure_db';
 const DEFAULT_OPERATIONS_URI = process.env.MONGODB_OPERATIONS_URI || process.env.MONGODB_URI || 'mongodb://127.0.0.1:27025/plexivia_operations_db';

@@ -5,6 +5,7 @@ import { getInvoiceModel, getPaymentModel } from '../models/Finance.js';
 import { getSupportTicketModel, getProjectDocModel } from '../models/Hub.js';
 import { getClientVaultModel } from '../models/ClientVault.js';
 import { generateDId } from '../utils/dId.js';
+import { softDeleteOne } from '../plugins/softDelete.js';
 
 // Retrieve all clients with optional filtering by status, keyword search, or service
 export const getClients = async (req: Request, res: Response) => {
@@ -174,7 +175,7 @@ export const deleteClient = async (req: Request, res: Response) => {
   try {
     const identifier = (req.params.dId || req.params.id) as string;
     const ClientModel = getClientModel();
-    const deleted = await ClientModel.findOneAndDelete({
+    const deleted = await softDeleteOne(ClientModel, {
       $or: [{ dId: identifier }, { id: identifier }],
     });
 

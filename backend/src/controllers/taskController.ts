@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { getTaskModel } from '../models/Agency.js';
 import { generateDId } from '../utils/dId.js';
+import { softDeleteOne } from '../plugins/softDelete.js';
 
 // Retrieve all tasks with status, priority, and project filtering
 export const getTasks = async (req: Request, res: Response) => {
@@ -160,7 +161,7 @@ export const deleteTask = async (req: Request, res: Response) => {
   try {
     const identifier = (req.params.dId || req.params.id) as string;
     const TaskModel = getTaskModel();
-    const deleted = await TaskModel.findOneAndDelete({
+    const deleted = await softDeleteOne(TaskModel, {
       $or: [{ dId: identifier }, { id: identifier }],
     });
 

@@ -16,7 +16,7 @@ export function ConfirmDeleteDialog({
   onOpenChange,
   onConfirm,
   title = "Are you sure you want to delete this?",
-  description = "This action cannot be undone. The selected data will be permanently removed.",
+  description = "The selected data will be deactivated and hidden from the dashboard. It is not permanently removed.",
   confirmText = "Yes",
   cancelText = "NO",
   type = "delete", // 'delete' | 'reset'
