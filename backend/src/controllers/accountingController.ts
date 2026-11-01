@@ -330,6 +330,72 @@ export const getFinancialSummary = async (_req: Request, res: Response) => {
   }
 };
 
+// Monthly cash position for a year: only received payments and paid bills count, plus investments taken
+export const getMonthlyBalance = async (req: Request, res: Response) => {
+  try {
+    const year = Number(req.query.year) || new Date().getFullYear();
+    const [payments, bills] = await Promise.all([
+      getPaymentModel().find({ status: 'SUCCESS' }).lean(),
+      getBillModel().find({ status: 'PAID' }).lean(),
+    ]);
+
+    const months = Array.from({ length: 12 }, (_, i) => ({
+      month: `${year}-${String(i + 1).padStart(2, '0')}`,
+      received: 0,
+      received_count: 0,
+      bills: 0,
+      bills_count: 0,
+      investment: 0,
+      investment_count: 0,
+      cash_balance: 0,
+      running_cash_balance: 0,
+    }));
+    let openingBalance = 0;
+
+    // Add an amount to its calendar month, or to the opening balance when it falls before the year
+    const book = (dateValue: string | undefined, amount: number, field: 'received' | 'bills' | 'investment') => {
+      const key = String(dateValue || '').slice(0, 7);
+      if (!/^\d{4}-\d{2}$/.test(key)) return;
+      const sign = field === 'bills' ? -1 : 1;
+      if (Number(key.slice(0, 4)) < year) {
+        openingBalance += sign * amount;
+        return;
+      }
+      const row = months.find((m) => m.month === key);
+      if (!row) return;
+      row[field] += amount;
+      row[`${field}_count` as 'received_count' | 'bills_count' | 'investment_count'] += 1;
+    };
+
+    payments.forEach((p: any) => book(p.paid_at || p.created_at, Number(p.amount) || 0, 'received'));
+    bills.forEach((b: any) => book(b.paid_at || b.due_date || b.created_at, Number(b.amount) || 0, 'bills'));
+
+    let running = openingBalance;
+    for (const m of months) {
+      m.cash_balance = m.received + m.investment - m.bills;
+      running += m.cash_balance;
+      m.running_cash_balance = running;
+    }
+
+    const totals = months.reduce(
+      (acc, m) => ({
+        received: acc.received + m.received,
+        bills: acc.bills + m.bills,
+        investment: acc.investment + m.investment,
+        cash_balance: acc.cash_balance + m.cash_balance,
+      }),
+      { received: 0, bills: 0, investment: 0, cash_balance: 0 }
+    );
+
+    return res.json({
+      success: true,
+      data: { year, opening_balance: openingBalance, closing_balance: running, months, totals, investments_tracked: false },
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message || 'Failed to calculate monthly balance' });
+  }
+};
+
 // Generate specialized Plexivia barcode SVG or JSON data
 export const generateBarcode = async (req: Request, res: Response) => {
   try {

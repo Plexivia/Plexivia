@@ -132,6 +132,21 @@ export const NAVIGATION_MENU_GROUPS: MenuGroup[] = [
             activePaths: ['/accounts', '/accounts/balance', '/dashboard/accounts', '/dashboard/accounts/balance'],
           },
           {
+            title: 'Payment Methods',
+            url: '/accounts/payments/methods',
+            icon: CreditCard,
+            iconClass: 'text-emerald-500',
+            exact: true,
+            activePaths: [
+              '/accounts/payments/methods',
+              '/accounts/payments/types',
+              '/accounts/payment-methods',
+              '/dashboard/accounts/payments/methods',
+              '/dashboard/accounts/payments/types',
+              '/dashboard/accounts/payment-methods',
+            ],
+          },
+          {
             title: 'Bills',
             isSectionLabel: true,
           },
@@ -170,21 +185,6 @@ export const NAVIGATION_MENU_GROUPS: MenuGroup[] = [
             iconClass: 'text-emerald-500',
             exact: true,
             activePaths: ['/accounts/payments/new', '/dashboard/accounts/payments/new'],
-          },
-          {
-            title: 'Payment Methods',
-            url: '/accounts/payments/methods',
-            icon: CreditCard,
-            iconClass: 'text-emerald-500',
-            exact: true,
-            activePaths: [
-              '/accounts/payments/methods',
-              '/accounts/payments/types',
-              '/accounts/payment-methods',
-              '/dashboard/accounts/payments/methods',
-              '/dashboard/accounts/payments/types',
-              '/dashboard/accounts/payment-methods',
-            ],
           },
           {
             title: 'All Payments',

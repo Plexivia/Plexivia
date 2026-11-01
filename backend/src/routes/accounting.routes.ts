@@ -28,6 +28,7 @@ router.post('/payroll', accountingController.createPayroll);
 
 // Financial Reports & Summary
 router.get('/summary', accountingController.getFinancialSummary);
+router.get('/balance/monthly', accountingController.getMonthlyBalance);
 
 // Plexivia Custom Barcode & Money Receipt Engine
 router.get('/barcode', accountingController.generateBarcode);
