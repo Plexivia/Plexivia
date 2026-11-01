@@ -156,6 +156,7 @@ export const createBucket = async (req: AuthedRequest, res: Response) => {
       { key: 'default' },
       {
         $set: {
+          is_enabled: true,
           bucket_name: name,
           account_id: accountId,
           ...(req.body?.api_token ? { api_token: encryptText(String(req.body.api_token).trim()) } : {}),
@@ -165,7 +166,11 @@ export const createBucket = async (req: AuthedRequest, res: Response) => {
       },
       { upsert: true }
     );
-    return res.status(201).json({ success: true, message: `Bucket '${name}' created.`, data: result });
+    await scheduleBackupJob();
+    const msg = result?.existed
+      ? `Bucket '${name}' already exists in your account and is now linked for backups.`
+      : `Bucket '${name}' created and linked for backups.`;
+    return res.status(201).json({ success: true, message: msg, data: result });
   } catch (error: any) {
     return res.status(400).json({ success: false, message: error.message || 'Failed to create bucket' });
   }

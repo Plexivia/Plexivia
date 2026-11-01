@@ -123,7 +123,7 @@ export const BackupsPage: React.FC = () => {
       const [s, l] = await Promise.all([apiClient.get(`${BASE}/settings`), apiClient.get(`${BASE}/list`)]);
       const data: BackupSettings = s.data.data;
       setSettings(data);
-      setForm({ ...data, is_enabled: true, secret_access_key: '', api_token: '' });
+      setForm({ ...data, bucket_name: data.bucket_name || 'plexivia-backups', is_enabled: true, secret_access_key: '', api_token: '' });
       setBackups(l.data.data?.backups || []);
     } catch (err) {
       showToast('error', 'Backups', getApiErrorMessage(err, 'Failed to load backup settings.'));

@@ -15,7 +15,7 @@ import {
 } from '@aws-sdk/client-s3';
 import { secureDbConnection, operationsDbConnection } from '../config/database.js';
 import { getBackupSettingsModel } from '../models/BackupSettings.js';
-import { decryptText } from './security.js';
+import { decryptText, encryptText } from './security.js';
 
 export const DEFAULT_BACKUP_CRON = '0 3 * * *';
 export const DEFAULT_BACKUP_TIMEZONE = 'Asia/Dhaka';
@@ -68,6 +68,51 @@ export const getR2Config = async (): Promise<R2Config> => {
   };
 };
 
+// True when a secret is stored but none of the known keys can decrypt it (SETTINGS_ENCRYPTION_KEY / JWT_SECRET changed)
+export const hasUnreadableSecret = async (): Promise<boolean> => {
+  const doc = await getBackupSettingsModel().findOne({ key: 'default' }).lean();
+  return Boolean(doc?.secret_access_key) && !decryptText(doc?.secret_access_key || '');
+};
+
+/**
+ * Before credentials moved into the database, servers read them from R2_* env variables.
+ * A server that still has those variables but no stored credentials would silently stop
+ * backing up, so copy them into the encrypted settings once. Stored values always win.
+ */
+export const importR2SettingsFromEnv = async (): Promise<boolean> => {
+  const env = process.env;
+  if (!env.R2_ACCOUNT_ID || !env.R2_ACCESS_KEY_ID || !env.R2_SECRET_ACCESS_KEY || !env.R2_BUCKET_NAME) return false;
+
+  const Settings = getBackupSettingsModel();
+  const doc = await Settings.findOne({ key: 'default' }).lean();
+  const storedUsable = doc?.account_id && doc?.access_key_id && doc?.bucket_name && decryptText(doc?.secret_access_key || '');
+  if (storedUsable) return false;
+
+  await Settings.updateOne(
+    { key: 'default' },
+    {
+      $set: {
+        is_enabled: true,
+        account_id: env.R2_ACCOUNT_ID.trim(),
+        access_key_id: env.R2_ACCESS_KEY_ID.trim(),
+        secret_access_key: encryptText(env.R2_SECRET_ACCESS_KEY.trim()),
+        ...(env.CLOUDFLARE_API_TOKEN && !decryptText(doc?.api_token || '') ? { api_token: encryptText(env.CLOUDFLARE_API_TOKEN.trim()) } : {}),
+        bucket_name: env.R2_BUCKET_NAME.trim(),
+        ...(doc ? {} : {
+          backup_enabled: env.R2_BACKUP_ENABLED !== 'false',
+          backup_cron: env.R2_BACKUP_CRON || DEFAULT_BACKUP_CRON,
+          backup_timezone: env.R2_BACKUP_TIMEZONE || DEFAULT_BACKUP_TIMEZONE,
+        }),
+        updated_by: 'migration:.env',
+        updated_at: new Date().toISOString(),
+      },
+    },
+    { upsert: true }
+  );
+  console.log('🗄️  [R2Backup] Imported R2 credentials from R2_* environment variables into the encrypted settings');
+  return true;
+};
+
 // Check that the config has everything needed to talk to the bucket
 export const isR2Configured = (cfg?: Partial<R2Config> | null): boolean =>
   Boolean(cfg?.accountId && cfg?.accessKeyId && cfg?.secretAccessKey && cfg?.bucketName);
@@ -112,7 +157,7 @@ export const testBucketAccess = async (cfg: Pick<R2Config, 'accountId' | 'access
   }
 };
 
-// Create an R2 bucket through the Cloudflare API using an account API token
+// Create an R2 bucket through the Cloudflare API using an account API token, or reuse it if already owned
 export const createR2Bucket = async (accountId: string, apiToken: string, name: string, locationHint = 'apac') => {
   const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/r2/buckets`, {
     method: 'POST',
@@ -122,9 +167,12 @@ export const createR2Bucket = async (accountId: string, apiToken: string, name: 
   const body: any = await res.json().catch(() => ({}));
   if (!res.ok || !body?.success) {
     const error = body?.errors?.[0];
+    if (Number(error?.code) === 10004) {
+      return { name, existed: true };
+    }
     throw new Error(error ? `Cloudflare: ${error.message} (code ${error.code})` : `Cloudflare API returned HTTP ${res.status}`);
   }
-  return body.result;
+  return { ...(body.result || {}), name, existed: false };
 };
 
 // Format a byte count as KB or MB
@@ -274,7 +322,11 @@ export const executeR2Backup = async (triggeredBy = 'SCHEDULER') => {
   try {
     const cfg = await getR2Config();
     if (!isR2Configured(cfg)) {
-      throw new Error('R2 storage is not configured. Add credentials on the R2 Backups page.');
+      throw new Error(
+        (await hasUnreadableSecret())
+          ? 'The saved R2 secret cannot be decrypted (SETTINGS_ENCRYPTION_KEY or JWT_SECRET changed). Re-enter the secret on the R2 Backups page.'
+          : 'R2 storage is not configured. Add credentials on the R2 Backups page.'
+      );
     }
     await recordBackupStatus('running', `Started by ${triggeredBy}`);
 

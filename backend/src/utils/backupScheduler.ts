@@ -1,6 +1,14 @@
 import { Cron } from 'croner';
 import { getBackupSettingsModel } from '../models/BackupSettings.js';
-import { executeR2Backup, getR2Config, isR2Configured, recordBackupStatus, DEFAULT_BACKUP_CRON } from './r2Backup.js';
+import {
+  executeR2Backup,
+  getR2Config,
+  hasUnreadableSecret,
+  importR2SettingsFromEnv,
+  isR2Configured,
+  recordBackupStatus,
+  DEFAULT_BACKUP_CRON,
+} from './r2Backup.js';
 
 const CATCH_UP_AFTER_MS = 26 * 60 * 60 * 1000;
 let backupJob: Cron | null = null;
@@ -22,8 +30,12 @@ export const scheduleBackupJob = async (): Promise<Date | null> => {
       ? 'Could not read R2 settings'
       : !cfg.backupEnabled
         ? 'Automatic backup is turned off'
-        : 'R2 is not configured (account ID, keys and bucket are required)';
+        : (await hasUnreadableSecret().catch(() => false))
+          ? 'The saved R2 secret cannot be decrypted (SETTINGS_ENCRYPTION_KEY or JWT_SECRET changed); re-enter it on the R2 Backups page'
+          : 'R2 is not configured (account ID, keys and bucket are required)';
     console.warn(`⚠️ [BackupScheduler] No backup job scheduled: ${reason}`);
+    // Surface the reason on the Backups page instead of only in server logs
+    if (cfg?.backupEnabled !== false) await recordBackupStatus('failed', `No automatic backups: ${reason}`).catch(() => undefined);
     return null;
   }
 
@@ -44,7 +56,9 @@ export const getNextBackupRun = (): Date | null => backupJob?.nextRun() || null;
 
 // Start the cron job and run one catch-up backup if the last success is older than 26 hours
 export const initBackupScheduler = () => {
-  scheduleBackupJob()
+  importR2SettingsFromEnv()
+    .catch((err) => console.error('❌ [BackupScheduler] Importing R2 settings from env failed:', err.message))
+    .then(() => scheduleBackupJob())
     .then(async (nextRun) => {
       if (!nextRun) return;
       const doc = await getBackupSettingsModel().findOne({ key: 'default' }).lean();
