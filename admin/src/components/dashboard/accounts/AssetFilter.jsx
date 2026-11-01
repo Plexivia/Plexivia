@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { apiFetch } from '@/services/api';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import { useData } from '@/context/DataContext';
 
@@ -6,19 +7,46 @@ import { useData } from '@/context/DataContext';
 export const ALL_ASSETS = 'All';
 export const NO_ASSET = '__none__';
 
-// Projects as asset options, labelled with their client so same-named projects stay apart
+// White-label stores live in their own collection; loaded once and shared by every asset dropdown
+let whiteLabelRequest = null;
+const loadWhiteLabelProjects = () => {
+  whiteLabelRequest ||= apiFetch('/agency/whitelabel-ecommerce')
+    .then((res) => (Array.isArray(res?.data) ? res.data : []))
+    .catch(() => {
+      whiteLabelRequest = null;
+      return [];
+    });
+  return whiteLabelRequest;
+};
+
+// Projects and white-label stores as asset options, labelled with their client so same-named ones stay apart
 export const useAssetOptions = () => {
-  const { projects } = useData();
-  return useMemo(
-    () =>
-      (Array.isArray(projects) ? projects : []).map((p) => ({
-        id: p.id,
-        name: p.project_name || p.name || p.project_code || p.id,
-        clientId: p.client_id || '',
-        clientName: p.is_internal ? 'Internal' : p.client_name || '',
-      })),
-    [projects]
-  );
+  const { projects, clients } = useData();
+  const [whiteLabel, setWhiteLabel] = useState([]);
+
+  useEffect(() => {
+    let active = true;
+    loadWhiteLabelProjects().then((list) => active && setWhiteLabel(list));
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  return useMemo(() => {
+    const options = (Array.isArray(projects) ? projects : []).map((p) => ({
+      id: p.id,
+      name: p.project_name || p.name || p.project_code || p.id,
+      clientId: p.client_id || '',
+      clientName: p.is_internal ? 'Internal' : p.client_name || '',
+    }));
+    const seen = new Set(options.map((o) => o.id));
+    for (const w of whiteLabel) {
+      if (!w.dId || seen.has(w.dId)) continue;
+      const client = (Array.isArray(clients) ? clients : []).find((c) => c.id === w.clientDId);
+      options.push({ id: w.dId, name: w.name, clientId: w.clientDId || '', clientName: client?.business_name || 'White-label store' });
+    }
+    return options;
+  }, [projects, clients, whiteLabel]);
 };
 
 // True when a record's projectId passes the selected asset filter

@@ -1,6 +1,7 @@
 import { Cron } from 'croner';
 import { getBillModel } from '../models/Finance.js';
 import { getProjectModel } from '../models/Agency.js';
+import { getWhiteLabelEcommerceModel } from '../models/WhiteLabelEcommerce.js';
 
 // Surokkha store's daily bills arrive as one Plexivia bill on the Surokkha asset
 const IMPORT_CRON = '0 3 * * *';
@@ -36,8 +37,13 @@ export const importSurokkhaDay = async (day: string, { syncPathao = true } = {})
   const summary = body.data;
   if (!summary.bills_count) return { day, status: 'no bills' };
 
-  const project = cfg.projectDId
-    ? await getProjectModel().findOne({ $or: [{ dId: cfg.projectDId }, { id: cfg.projectDId }] }).lean()
+  // The asset is a regular project or, for Surokkha, a white-label store
+  const project: any = cfg.projectDId
+    ? (await getProjectModel().findOne({ $or: [{ dId: cfg.projectDId }, { id: cfg.projectDId }] }).lean()) ||
+      (await getWhiteLabelEcommerceModel()
+        .findOne({ dId: cfg.projectDId })
+        .lean()
+        .then((w) => w && { dId: w.dId, name: w.name, client_dId: w.clientDId || undefined }))
     : null;
   const total = Number(summary.total) || 0;
   const paid = Math.min(total, Number(summary.paid) || 0);
