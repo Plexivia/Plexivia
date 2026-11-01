@@ -98,7 +98,7 @@ export const BillingPage = () => {
                 <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
               </div>
               <h2 className="text-lg font-semibold mb-1">Bills & Invoices</h2>
-              <p className="text-sm text-muted-foreground mb-4">View and manage all customer invoices and billing records</p>
+              <p className="text-sm text-muted-foreground mb-4">View and manage all client invoices and billing records</p>
             </div>
             <div className="flex gap-3 text-xs pt-2 border-t">
               <span className="flex items-center gap-1 text-emerald-600">

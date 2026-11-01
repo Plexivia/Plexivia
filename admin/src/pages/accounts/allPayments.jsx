@@ -34,14 +34,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from '@/components/ui/dialog';
+import { RecordQuickView, QuickViewSection, QuickViewLine } from '@/components/dashboard/accounts/RecordQuickView';
+
+// Amount actually received for a payment row
+const settledAmount = (p) => p.paidAmount || (p.status === 'Completed' ? p.amount : 0);
+
 import { ConfirmDeleteDialog } from '@/components/ui/confirm-delete-dialog';
 import { DateRangeFilter } from '@/components/dashboard/accounts/DateRangeFilter';
 import { toast } from 'sonner';
@@ -235,13 +232,28 @@ export const AllPaymentsPage = () => {
     },
     {
       key: 'customerName',
-      header: 'Customer / Payer',
+      header: 'Payer / Project',
       render: (p) => (
         <>
           <span className="block truncate text-xs font-semibold text-foreground">{p.customerName}</span>
-          {p.notes && <span className="block truncate text-[11px] text-muted-foreground">{p.notes}</span>}
+          {(p.projectName || p.notes) && (
+            <span className="block truncate text-[11px] text-muted-foreground">{p.projectName || p.notes}</span>
+          )}
         </>
       ),
+    },
+    {
+      key: 'paymentSource',
+      header: 'Source',
+      className: 'w-[120px]',
+      render: (p) =>
+        p.paymentSource ? (
+          <Badge variant="outline" className="text-[11px] bg-muted/40">
+            {p.paymentSource}
+          </Badge>
+        ) : (
+          <span className="text-xs text-muted-foreground">—</span>
+        ),
     },
     { key: 'method', header: 'Method', className: 'w-[120px]', render: (p) => getMethodBadge(p.method || p.paymentMethod) },
     {
@@ -284,7 +296,7 @@ export const AllPaymentsPage = () => {
                 {t('accounts.all_payments_title', 'All Payments')}
               </h1>
               <p className="text-xs md:text-sm text-muted-foreground mt-0.5">
-                {t('accounts.all_payments_subtitle', 'Track all incoming customer transactions and payment settlements.')}
+                {t('accounts.all_payments_subtitle', 'Track all incoming client transactions and payment settlements.')}
               </p>
             </div>
           </div>
@@ -338,7 +350,7 @@ export const AllPaymentsPage = () => {
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by customer, invoice, TrxID..."
+              placeholder="Search by client, invoice, TrxID..."
               className="pl-9 h-9 text-xs"
               value={searchQuery}
               onChange={handleSearch}
@@ -443,100 +455,73 @@ export const AllPaymentsPage = () => {
         />
       </div>
 
-      <Dialog open={!!viewPaymentTarget} onOpenChange={(open) => !open && setViewPaymentTarget(null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-base font-bold">
-              <CreditCard className="w-5 h-5 text-emerald-600" />
-              Payment Transaction Details
-            </DialogTitle>
-            <DialogDescription className="text-xs">
-              {viewPaymentTarget?.invoiceId || viewPaymentTarget?.id}
-            </DialogDescription>
-          </DialogHeader>
-
-          {viewPaymentTarget && (
-            <div className="space-y-4 py-2 text-xs">
-              <div className="grid grid-cols-2 gap-3 p-3.5 rounded-xl bg-muted/30 border">
-                <div>
-                  <span className="text-muted-foreground block">Customer:</span>
-                  <span className="font-semibold text-foreground text-sm">{viewPaymentTarget.customerName}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground block">Payment Method:</span>
-                  <div className="mt-0.5">{getMethodBadge(viewPaymentTarget.method || viewPaymentTarget.paymentMethod)}</div>
-                </div>
-                <div>
-                  <span className="text-muted-foreground block">Date:</span>
-                  <span className="font-medium text-foreground">{viewPaymentTarget.date}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground block">Status:</span>
-                  <div className="mt-0.5">{getStatusBadge(viewPaymentTarget.status)}</div>
-                </div>
-                {viewPaymentTarget.trxId && (
-                  <div className="col-span-2">
-                    <span className="text-muted-foreground block">Transaction ID (TrxID):</span>
-                    <span className="font-mono font-semibold text-foreground">{viewPaymentTarget.trxId}</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-muted/50 border space-y-2">
-                <div className="flex justify-between font-medium">
-                  <span className="text-muted-foreground">Total Bill / Order:</span>
-                  <span className="font-bold text-foreground">{formatCurrency(viewPaymentTarget.amount)}</span>
-                </div>
-                <div className="flex justify-between font-medium">
-                  <span className="text-muted-foreground">Settled Amount:</span>
-                  <span className="font-bold text-emerald-600 text-sm">{formatCurrency(viewPaymentTarget.paidAmount || (viewPaymentTarget.status === 'Completed' ? viewPaymentTarget.amount : 0))}</span>
-                </div>
-              </div>
-
-              {viewPaymentTarget.attachments?.length > 0 && (
-                <div className="p-3 rounded-lg bg-muted/30 border space-y-1.5">
-                  <span className="font-semibold text-foreground block">Attachments:</span>
-                  {viewPaymentTarget.attachments.map((file) => (
-                    <a
-                      key={file.url}
-                      href={file.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center gap-1.5 text-primary hover:underline truncate"
-                    >
-                      <FileText className="w-3.5 h-3.5 shrink-0" />
-                      <span className="truncate">{file.name || file.url.split('/').pop()}</span>
-                    </a>
-                  ))}
-                </div>
-              )}
-
-              {viewPaymentTarget.notes && (
-                <div className="p-3 rounded-lg bg-muted/30 border text-muted-foreground">
-                  <span className="font-semibold text-foreground block mb-0.5">Notes:</span>
-                  <p>{viewPaymentTarget.notes}</p>
-                </div>
-              )}
-            </div>
+      <RecordQuickView
+        open={!!viewPaymentTarget}
+        onClose={() => setViewPaymentTarget(null)}
+        title={viewPaymentTarget?.customerName || 'Payment'}
+        description={viewPaymentTarget?.invoiceId || viewPaymentTarget?.id}
+        printLabel="Print Receipt"
+        defaultPhone={viewPaymentTarget?.customerPhone}
+        defaultEmail={viewPaymentTarget?.customerEmail}
+        onEdit={() => {
+          const id = viewPaymentTarget?.id;
+          setViewPaymentTarget(null);
+          navigate(`/accounts/payments/new?edit=${id}`);
+        }}
+        editLabel="Edit Payment"
+        slip={
+          viewPaymentTarget && {
+            heading: 'Money Receipt',
+            reference: viewPaymentTarget.invoiceId || viewPaymentTarget.id,
+            rows: [
+              { label: 'Received From', value: viewPaymentTarget.customerName },
+              { label: 'Payment Source', value: viewPaymentTarget.paymentSource },
+              { label: 'Project', value: viewPaymentTarget.projectName },
+              { label: 'Date', value: viewPaymentTarget.date },
+              { label: 'Payment Method', value: viewPaymentTarget.method || viewPaymentTarget.paymentMethod },
+              { label: 'Transaction ID', value: viewPaymentTarget.trxId },
+              { label: 'Status', value: viewPaymentTarget.status },
+            ],
+            totals: [
+              { label: 'Total Bill / Order', value: formatCurrency(viewPaymentTarget.amount) },
+              { label: 'Amount Received', value: formatCurrency(settledAmount(viewPaymentTarget)) },
+            ],
+            notes: viewPaymentTarget.notes,
+          }
+        }
+      >
+        {viewPaymentTarget && (
+          <>
+          <QuickViewSection title="Details">
+            {viewPaymentTarget.paymentSource && <QuickViewLine label="Payment Source" value={viewPaymentTarget.paymentSource} />}
+            {viewPaymentTarget.projectName && <QuickViewLine label="Project" value={viewPaymentTarget.projectName} />}
+            <QuickViewLine label="Date" value={viewPaymentTarget.date} />
+            <QuickViewLine label="Payment Method" value={getMethodBadge(viewPaymentTarget.method || viewPaymentTarget.paymentMethod)} />
+            <QuickViewLine label="Status" value={getStatusBadge(viewPaymentTarget.status)} />
+            {viewPaymentTarget.trxId && <QuickViewLine label="Transaction ID" value={<span className="font-mono">{viewPaymentTarget.trxId}</span>} />}
+          </QuickViewSection>
+          <QuickViewSection title="Amount">
+            <QuickViewLine label="Total Bill / Order" value={formatCurrency(viewPaymentTarget.amount)} />
+            <QuickViewLine label="Amount Received" value={<span className="text-emerald-600">{formatCurrency(settledAmount(viewPaymentTarget))}</span>} className="border-t pt-2 font-semibold" />
+          </QuickViewSection>
+          {viewPaymentTarget.attachments?.length > 0 && (
+            <QuickViewSection title="Attachments">
+              {viewPaymentTarget.attachments.map((file) => (
+                <a key={file.url} href={file.url} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-primary hover:underline truncate">
+                  <FileText className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">{file.name || file.url.split('/').pop()}</span>
+                </a>
+              ))}
+            </QuickViewSection>
           )}
-
-          <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setViewPaymentTarget(null)}>
-              Close
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => {
-                const id = viewPaymentTarget?.id;
-                setViewPaymentTarget(null);
-                navigate(`/accounts/payments/new?edit=${id}`);
-              }}
-            >
-              Edit Payment
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          {viewPaymentTarget.notes && (
+            <QuickViewSection title="Notes">
+              <p className="whitespace-pre-wrap text-muted-foreground">{viewPaymentTarget.notes}</p>
+            </QuickViewSection>
+          )}
+          </>
+        )}
+      </RecordQuickView>
 
       <ConfirmDeleteDialog
         open={bulkDeleteOpen}

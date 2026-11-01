@@ -88,7 +88,7 @@ export const BillingsPage = () => {
         </span>
       ),
     },
-    { key: 'customerName', header: t('orders.customer', 'Customer') },
+    { key: 'customerName', header: t('accounts.client', 'Client') },
     { key: 'date', header: t('common.date', 'Date'), className: 'w-[130px]' },
     { key: 'dueDate', header: t('common.time', 'Due Date'), className: 'w-[130px]' },
     {

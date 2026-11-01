@@ -30,6 +30,7 @@ import { BillTypesPage } from '@/pages/accounts/billTypes';
 import { AddNewPaymentPage } from '@/pages/accounts/addNewPayment';
 import { AllPaymentsPage } from '@/pages/accounts/allPayments';
 import { PaymentTypesPage, PaymentMethodsPage } from '@/pages/accounts/paymentTypes';
+import { PaymentSourcesPage } from '@/pages/accounts/paymentSources';
 import { InvestorsPage } from '@/pages/accounts/investors';
 import { InvestmentsListPage } from '@/pages/accounts/investmentsList';
 
@@ -262,6 +263,14 @@ export const AppRoutes = () => {
         element={
           <AppShell>
             <PaymentMethodsPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/accounts/payments/sources"
+        element={
+          <AppShell>
+            <PaymentSourcesPage />
           </AppShell>
         }
       />

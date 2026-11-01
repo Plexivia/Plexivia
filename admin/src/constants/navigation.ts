@@ -20,6 +20,7 @@ import {
   Scale,
   PlusCircle,
   Tag,
+  Wallet,
   TrendingUp,
   Server,
   HardDrive,
@@ -185,6 +186,14 @@ export const NAVIGATION_MENU_GROUPS: MenuGroup[] = [
             iconClass: 'text-emerald-500',
             exact: true,
             activePaths: ['/accounts/payments/new', '/dashboard/accounts/payments/new'],
+          },
+          {
+            title: 'Payment Sources',
+            url: '/accounts/payments/sources',
+            icon: Wallet,
+            iconClass: 'text-amber-500',
+            exact: true,
+            activePaths: ['/accounts/payments/sources', '/dashboard/accounts/payments/sources'],
           },
           {
             title: 'All Payments',

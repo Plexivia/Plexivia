@@ -34,14 +34,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from '@/components/ui/dialog';
+import { RecordQuickView, QuickViewSection, QuickViewLine } from '@/components/dashboard/accounts/RecordQuickView';
 import { ConfirmDeleteDialog } from '@/components/ui/confirm-delete-dialog';
 import { DateRangeFilter } from '@/components/dashboard/accounts/DateRangeFilter';
 import { toast } from 'sonner';
@@ -461,135 +454,90 @@ export const AllBillsPage = () => {
         />
       </div>
 
-      <Dialog open={!!viewBillTarget} onOpenChange={(open) => !open && setViewBillTarget(null)}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Receipt className="w-5 h-5 text-red-500" />
-              Bill Details & Breakdown
-            </DialogTitle>
-            <DialogDescription className="text-xs">
-              {viewBillTarget?.did || viewBillTarget?.id}
-            </DialogDescription>
-          </DialogHeader>
-
-          {viewBillTarget && (
-            <div className="space-y-4 py-2 text-xs">
-              <div className="grid grid-cols-2 gap-3 p-3.5 rounded-xl bg-muted/30 border">
-                <div>
-                  <span className="text-muted-foreground block">Title / Payee:</span>
-                  <span className="font-semibold text-foreground text-sm">{viewBillTarget.title}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground block">Bill Category:</span>
-                  <Badge
-                    variant="outline"
-                    className={`mt-0.5 ${
-                      viewBillTarget.billType === 'Investment Return'
-                        ? 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30'
-                        : ''
-                    }`}
-                  >
-                    {viewBillTarget.billType}
-                  </Badge>
-                </div>
-                {viewBillTarget.investorName && (
-                  <div className="col-span-2 p-2 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-between">
-                    <span className="text-purple-700 dark:text-purple-300 font-medium">Repayment to Investor:</span>
-                    <span className="font-bold text-foreground">{viewBillTarget.investorName}</span>
-                  </div>
-                )}
-                <div>
-                  <span className="text-muted-foreground block">Billing Date:</span>
-                  <span className="font-medium text-foreground">{viewBillTarget.billingDate || viewBillTarget.date}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground block">Due Date:</span>
-                  <span className="font-medium text-foreground">{viewBillTarget.dueDate || 'Immediate'}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground block">Payment Method:</span>
-                  <span className="font-medium text-foreground">{viewBillTarget.billingMethod}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground block">Status:</span>
-                  <div className="mt-0.5">{getStatusBadge(viewBillTarget.status)}</div>
-                </div>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-muted/50 border space-y-2">
-                {viewBillTarget.feeAmount > 0 && (
-                  <>
-                    <div className="flex justify-between font-medium">
-                      <span className="text-muted-foreground">Bill Amount (received by payee):</span>
-                      <span className="font-bold text-foreground">{formatCurrency(viewBillTarget.billAmount)}</span>
-                    </div>
-                    <div className="flex justify-between font-medium">
-                      <span className="text-muted-foreground">
-                        Payment Charge{viewBillTarget.paymentFee?.name ? ` (${viewBillTarget.paymentFee.name})` : ''}:
-                      </span>
-                      <span className="font-bold text-foreground">{formatCurrency(viewBillTarget.feeAmount)}</span>
-                    </div>
-                  </>
-                )}
-                <div className={`flex justify-between font-medium ${viewBillTarget.feeAmount > 0 ? 'border-t pt-2' : ''}`}>
-                  <span className="text-muted-foreground">Total Deducted (Bill + Charge):</span>
-                  <span className="font-bold text-foreground text-sm">{formatCurrency(viewBillTarget.totalAmount)}</span>
-                </div>
-                <div className="flex justify-between font-medium">
-                  <span className="text-muted-foreground">Paid So Far:</span>
-                  <span className="font-bold text-emerald-600">{formatCurrency(viewBillTarget.paidAmount)}</span>
-                </div>
-                <div className="flex justify-between font-medium border-t pt-2">
-                  <span className="text-muted-foreground">Outstanding Pending:</span>
-                  <span className="font-bold text-amber-600">{formatCurrency(viewBillTarget.pendingAmount)}</span>
-                </div>
-              </div>
-
-              {viewBillTarget.attachments?.length > 0 && (
-                <div className="p-3 rounded-lg bg-muted/30 border space-y-1.5">
-                  <span className="font-semibold text-foreground block">Attachments:</span>
-                  {viewBillTarget.attachments.map((file) => (
-                    <a
-                      key={file.url}
-                      href={file.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center gap-1.5 text-primary hover:underline truncate"
-                    >
-                      <FileText className="w-3.5 h-3.5 shrink-0" />
-                      <span className="truncate">{file.name || file.url.split('/').pop()}</span>
-                    </a>
-                  ))}
-                </div>
-              )}
-
-              {viewBillTarget.notes && (
-                <div className="p-3 rounded-lg bg-muted/30 border text-muted-foreground">
-                  <span className="font-semibold text-foreground block mb-0.5">Notes:</span>
-                  <p>{viewBillTarget.notes}</p>
-                </div>
-              )}
-            </div>
+      <RecordQuickView
+        open={!!viewBillTarget}
+        onClose={() => setViewBillTarget(null)}
+        title={viewBillTarget?.title || 'Bill'}
+        description={viewBillTarget?.did || viewBillTarget?.id}
+        printLabel="Print Slip"
+        defaultPhone={viewBillTarget?.payeePhone}
+        defaultEmail={viewBillTarget?.payeeEmail}
+        onEdit={() => {
+          const id = viewBillTarget?.id;
+          setViewBillTarget(null);
+          navigate(`/accounts/bills/new?edit=${id}`);
+        }}
+        editLabel="Edit Bill"
+        slip={
+          viewBillTarget && {
+            heading: 'Bill Slip',
+            reference: viewBillTarget.did || viewBillTarget.id,
+            rows: [
+              { label: 'Title / Payee', value: viewBillTarget.title },
+              { label: 'Bill Type', value: viewBillTarget.billType },
+              { label: 'Investor', value: viewBillTarget.investorName },
+              { label: 'Billing Date', value: viewBillTarget.billingDate || viewBillTarget.date },
+              { label: 'Due Date', value: viewBillTarget.dueDate || 'Immediate' },
+              { label: 'Payment Method', value: viewBillTarget.billingMethod },
+              { label: 'Status', value: viewBillTarget.status },
+            ],
+            totals: [
+              ...(viewBillTarget.feeAmount > 0
+                ? [
+                    { label: 'Bill Amount', value: formatCurrency(viewBillTarget.billAmount) },
+                    { label: 'Payment Charge', value: formatCurrency(viewBillTarget.feeAmount) },
+                  ]
+                : []),
+              { label: 'Paid', value: formatCurrency(viewBillTarget.paidAmount) },
+              { label: 'Pending', value: formatCurrency(viewBillTarget.pendingAmount) },
+              { label: 'Total', value: formatCurrency(viewBillTarget.totalAmount) },
+            ],
+            notes: viewBillTarget.notes,
+          }
+        }
+      >
+        {viewBillTarget && (
+          <>
+          <QuickViewSection title="Details">
+            <QuickViewLine label="Bill Type" value={viewBillTarget.billType} />
+            {viewBillTarget.investorName && <QuickViewLine label="Investor" value={viewBillTarget.investorName} />}
+            <QuickViewLine label="Billing Date" value={viewBillTarget.billingDate || viewBillTarget.date} />
+            <QuickViewLine label="Due Date" value={viewBillTarget.dueDate || 'Immediate'} />
+            <QuickViewLine label="Payment Method" value={viewBillTarget.billingMethod} />
+            <QuickViewLine label="Status" value={getStatusBadge(viewBillTarget.status)} />
+          </QuickViewSection>
+          <QuickViewSection title="Amount">
+            {viewBillTarget.feeAmount > 0 && (
+              <>
+                <QuickViewLine label="Bill Amount" value={formatCurrency(viewBillTarget.billAmount)} />
+                <QuickViewLine
+                  label={`Payment Charge${viewBillTarget.paymentFee?.name ? ` (${viewBillTarget.paymentFee.name})` : ''}`}
+                  value={formatCurrency(viewBillTarget.feeAmount)}
+                />
+              </>
+            )}
+            <QuickViewLine label="Total Deducted" value={formatCurrency(viewBillTarget.totalAmount)} className="font-semibold" />
+            <QuickViewLine label="Paid So Far" value={<span className="text-emerald-600">{formatCurrency(viewBillTarget.paidAmount)}</span>} />
+            <QuickViewLine label="Outstanding" value={<span className="text-amber-600">{formatCurrency(viewBillTarget.pendingAmount)}</span>} className="border-t pt-2" />
+          </QuickViewSection>
+          {viewBillTarget.attachments?.length > 0 && (
+            <QuickViewSection title="Attachments">
+              {viewBillTarget.attachments.map((file) => (
+                <a key={file.url} href={file.url} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-primary hover:underline truncate">
+                  <FileText className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">{file.name || file.url.split('/').pop()}</span>
+                </a>
+              ))}
+            </QuickViewSection>
           )}
-
-          <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setViewBillTarget(null)}>
-              Close
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => {
-                const id = viewBillTarget?.id;
-                setViewBillTarget(null);
-                navigate(`/accounts/bills/new?edit=${id}`);
-              }}
-            >
-              Edit Bill
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          {viewBillTarget.notes && (
+            <QuickViewSection title="Notes">
+              <p className="whitespace-pre-wrap text-muted-foreground">{viewBillTarget.notes}</p>
+            </QuickViewSection>
+          )}
+          </>
+        )}
+      </RecordQuickView>
 
       <ConfirmDeleteDialog
         open={bulkDeleteOpen}

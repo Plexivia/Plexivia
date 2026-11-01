@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   CreditCard,
   ArrowLeft,
@@ -21,6 +21,8 @@ import {
 } from '@/components/ui/select';
 import { AttachmentUploader } from '@/components/dashboard/accounts/AttachmentUploader';
 import { toast } from 'sonner';
+import { useData } from '@/context/DataContext';
+import { CLIENT_PAYMENT_SOURCE, getClientName, getClientProjects } from '@/components/dashboard/accounts/paymentSources';
 
 // Formats a numeric value into BDT currency string
 const formatCurrency = (val) => {
@@ -35,14 +37,18 @@ export const AddNewPaymentPage = () => {
   const [searchParams] = useSearchParams();
   const editId = searchParams.get('edit');
 
+  const { clients } = useData();
   const allPayments = useMemo(() => [], []);
   const allPaymentTypes = useMemo(() => [], []);
-  const membersList = useMemo(() => [], []);
-  const usersList = useMemo(() => [], []);
+  // API integration placeholder: GET /api/v1/payment-sources (the built-in Client source is always present)
+  const paymentSources = useMemo(() => [CLIENT_PAYMENT_SOURCE], []);
   const [isSaving, setIsSaving] = useState(false);
 
-  const [customerSelectionType, setCustomerSelectionType] = useState('manual');
   const [formData, setFormData] = useState({
+    paymentSourceId: CLIENT_PAYMENT_SOURCE.id,
+    clientId: '',
+    projectId: '',
+    projectName: '',
     customerName: '',
     invoiceId: '',
     amount: '',
@@ -67,11 +73,24 @@ export const AddNewPaymentPage = () => {
     return combined;
   }, [allPaymentTypes, formData.paymentMethod]);
 
+  const activeSources = useMemo(
+    () => paymentSources.filter((s) => s.status === 'Active' || s.id === formData.paymentSourceId),
+    [paymentSources, formData.paymentSourceId]
+  );
+  const selectedSource = paymentSources.find((s) => s.id === formData.paymentSourceId);
+  const isClientSource = selectedSource?.linkType === 'client';
+  const selectedClient = (clients || []).find((c) => c.id === formData.clientId);
+  const clientProjects = getClientProjects(selectedClient);
+
   useEffect(() => {
     if (editId && allPayments.length > 0) {
       const existing = allPayments.find((p) => p.id === editId || p.invoiceId === editId);
       if (existing) {
         setFormData({
+          paymentSourceId: existing.paymentSourceId || CLIENT_PAYMENT_SOURCE.id,
+          clientId: existing.clientId || '',
+          projectId: existing.projectId || '',
+          projectName: existing.projectName || '',
           customerName: existing.customerName || '',
           invoiceId: existing.invoiceId || '',
           amount: existing.amount !== undefined ? String(existing.amount) : '',
@@ -101,30 +120,39 @@ export const AddNewPaymentPage = () => {
     });
   };
 
-  // Populates customerName when an existing system user or member is selected
-  const handleSelectExistingUser = (userId) => {
-    const selectedUser = usersList.find((u) => u.id === userId);
-    if (selectedUser) {
-      setFormData((prev) => ({
-        ...prev,
-        customerName: selectedUser.name || selectedUser.email,
-      }));
-      return;
-    }
-    const selectedMember = membersList.find((m) => m.id === userId);
-    if (selectedMember) {
-      setFormData((prev) => ({
-        ...prev,
-        customerName: selectedMember.name || selectedMember.phone,
-      }));
-    }
+  // Switching source clears the payer fields, since client and free-text payers don't mix
+  const handleSourceChange = (sourceId) => {
+    setFormData((prev) => ({ ...prev, paymentSourceId: sourceId, clientId: '', projectId: '', projectName: '', customerName: '' }));
+  };
+
+  // Selecting a client fills the payer name and resets the project
+  const handleClientChange = (clientId) => {
+    const client = (clients || []).find((c) => c.id === clientId);
+    setFormData((prev) => ({ ...prev, clientId, projectId: '', projectName: '', customerName: client ? getClientName(client) : '' }));
+  };
+
+  const handleProjectChange = (projectId) => {
+    const project = clientProjects.find((p) => p.dId === projectId);
+    setFormData((prev) => ({ ...prev, projectId, projectName: project?.name || '' }));
   };
 
   // Validates and submits the payment record (API integration placeholder: POST / PUT /api/v1/payments)
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!selectedSource) {
+      toast.error('Please select a payment source');
+      return;
+    }
+    if (isClientSource && !formData.clientId) {
+      toast.error('Please select a client');
+      return;
+    }
+    if (isClientSource && clientProjects.length > 0 && !formData.projectId) {
+      toast.error('Please select the client project this payment is for');
+      return;
+    }
     if (!formData.customerName.trim()) {
-      toast.error('Customer / Payer name is required');
+      toast.error('Payer name is required');
       return;
     }
     if (!formData.amount || Number(formData.amount) <= 0) {
@@ -158,7 +186,7 @@ export const AddNewPaymentPage = () => {
               {editId ? 'Edit Payment Record' : t('accounts.add_new_payment', 'Add New Payment')}
             </h1>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Record manual customer settlements, POS transactions, or gateway collections.
+              Record manual client settlements, POS transactions, or gateway collections.
             </p>
           </div>
         </div>
@@ -170,92 +198,94 @@ export const AddNewPaymentPage = () => {
             <CardHeader className="pb-3 border-b bg-muted/20">
               <CardTitle className="text-sm font-bold flex items-center gap-2">
                 <User className="w-4 h-4 text-primary" />
-                Customer & Reference Information
+                Payment Source & Payer
               </CardTitle>
             </CardHeader>
             <CardContent className="p-5 space-y-4">
-              <div className="flex gap-4 border-b pb-3 text-xs">
-                <button
-                  type="button"
-                  onClick={() => setCustomerSelectionType('manual')}
-                  className={`font-semibold pb-1 border-b-2 transition-all cursor-pointer ${
-                    customerSelectionType === 'manual'
-                      ? 'border-primary text-primary'
-                      : 'border-transparent text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  Manual Customer Entry
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCustomerSelectionType('existing')}
-                  className={`font-semibold pb-1 border-b-2 transition-all cursor-pointer ${
-                    customerSelectionType === 'existing'
-                      ? 'border-primary text-primary'
-                      : 'border-transparent text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  Select Existing Member / User
-                </button>
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-foreground">
+                    Payment Source <span className="text-red-500">*</span>
+                  </label>
+                  <Link to="/accounts/payments/sources" className="text-[11px] font-medium text-primary hover:underline">
+                    Manage sources
+                  </Link>
+                </div>
+                <Select value={formData.paymentSourceId} onValueChange={handleSourceChange}>
+                  <SelectTrigger className="text-xs">
+                    <SelectValue placeholder="Select payment source">{selectedSource?.name}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {activeSources.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
-              {customerSelectionType === 'existing' ? (
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-foreground">
-                    Select Customer / Member / System User
-                  </label>
-                  <Select onValueChange={handleSelectExistingUser}>
-                    <SelectTrigger className="text-xs">
-                      <SelectValue placeholder="Search or select registered customer..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {membersList.length > 0 && (
-                        <>
-                          <SelectItem value="group-members" disabled className="font-bold text-[11px] text-muted-foreground">
-                            -- Customer Directory --
-                          </SelectItem>
-                          {membersList.map((m) => (
-                            <SelectItem key={m.id} value={m.id}>
-                              {m.name || 'Unnamed Member'} ({m.phone || m.email || m.did})
-                            </SelectItem>
-                          ))}
-                        </>
-                      )}
-                      {usersList.length > 0 && (
-                        <>
-                          <SelectItem value="group-users" disabled className="font-bold text-[11px] text-muted-foreground">
-                            -- System Users --
-                          </SelectItem>
-                          {usersList.map((u) => (
-                            <SelectItem key={u.id} value={u.id}>
-                              {u.name} ({u.role} - {u.email})
-                            </SelectItem>
-                          ))}
-                        </>
-                      )}
-                      {membersList.length === 0 && usersList.length === 0 && (
-                        <SelectItem value="none" disabled>
-                          No registered members or users found.
-                        </SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-              ) : null}
-
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-foreground">
-                    Customer / Payer Name <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    placeholder="e.g. Nadia Rahman"
-                    value={formData.customerName}
-                    onChange={(e) => handleInputChange('customerName', e.target.value)}
-                    className="text-xs"
-                    required
-                  />
-                </div>
+                {isClientSource ? (
+                  <>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-foreground">
+                        Client <span className="text-red-500">*</span>
+                      </label>
+                      <Select value={formData.clientId} onValueChange={handleClientChange}>
+                        <SelectTrigger className="text-xs">
+                          <SelectValue placeholder="Select a client">{selectedClient ? getClientName(selectedClient) : undefined}</SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(clients || []).length > 0 ? (
+                            clients.map((c) => (
+                              <SelectItem key={c.id} value={c.id}>
+                                {getClientName(c)}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="none" disabled>
+                              No clients found
+                            </SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-foreground">
+                        Project {clientProjects.length > 0 && <span className="text-red-500">*</span>}
+                      </label>
+                      <Select value={formData.projectId} onValueChange={handleProjectChange} disabled={!selectedClient || clientProjects.length === 0}>
+                        <SelectTrigger className="text-xs">
+                          <SelectValue placeholder={!selectedClient ? 'Select a client first' : clientProjects.length === 0 ? 'This client has no projects' : 'Select a project'}>
+                            {formData.projectName || undefined}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {clientProjects.map((proj) => (
+                            <SelectItem key={proj.dId} value={proj.dId}>
+                              {proj.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </>
+                ) : (
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-foreground">
+                      Payer Name <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      placeholder={selectedSource ? `e.g. ${selectedSource.name}` : 'Who paid'}
+                      value={formData.customerName}
+                      onChange={(e) => handleInputChange('customerName', e.target.value)}
+                      className="text-xs"
+                      required
+                    />
+                  </div>
+                )}
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-foreground">
@@ -410,10 +440,13 @@ export const AddNewPaymentPage = () => {
             </CardHeader>
             <CardContent className="p-5 space-y-4 text-xs">
               <div className="space-y-1">
-                <span className="text-muted-foreground block text-[11px]">Customer / Payer:</span>
+                <span className="text-muted-foreground block text-[11px]">{selectedSource?.name || 'Payer'}:</span>
                 <span className="font-bold text-foreground text-sm line-clamp-1">
-                  {formData.customerName || 'Customer Name'}
+                  {formData.customerName || 'Payer Name'}
                 </span>
+                {formData.projectName && (
+                  <span className="text-[11px] text-muted-foreground block">Project: {formData.projectName}</span>
+                )}
                 <span className="text-muted-foreground font-mono text-[11px] block">
                   {formData.invoiceId || 'INV-AUTO-GENERATED'}
                 </span>

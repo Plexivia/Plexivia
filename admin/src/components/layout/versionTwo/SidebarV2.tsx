@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import type { MenuGroup, MenuItem } from '@/types/index';
 import brandLogoImg from '@/assets/brand-dark.png';
 import brandIconImg from '@/assets/brand-icon-dark.png';
+import { APP_VERSION } from '@/configs/appConfig';
 
 interface SidebarV2Props {
   menuGroups: MenuGroup[];
@@ -217,8 +218,13 @@ export const SidebarV2 = ({
           <img
             src={brandLogoImg}
             alt="Plexivia"
-            className={cn('absolute inset-y-0 start-0 h-9 w-auto max-w-[180px] object-contain transition-opacity duration-200', showFull ? 'opacity-100 delay-100' : 'opacity-0')}
+            className={cn('absolute top-0 start-0 h-7 w-auto max-w-[180px] object-contain transition-opacity duration-200', showFull ? 'opacity-100 delay-100' : 'opacity-0')}
           />
+          <span
+            className={cn('absolute -bottom-1 start-0 font-mono text-[10px] font-medium leading-none tracking-wide text-cyan-400/80 transition-opacity duration-200', showFull ? 'opacity-100 delay-100' : 'opacity-0')}
+          >
+            v{APP_VERSION}
+          </span>
           <img
             src={brandIconImg}
             alt=""

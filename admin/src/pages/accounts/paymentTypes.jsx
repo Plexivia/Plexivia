@@ -772,7 +772,7 @@ export const PaymentTypesPage = () => {
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                   <Info className="w-3.5 h-3.5 text-amber-500" />
-                  Payment Instructions / Notes for Customer & Staff
+                  Payment Instructions / Notes for Client & Staff
                 </label>
                 <Textarea
                   placeholder="e.g. Please Send Money (Personal) to this number and provide your Transaction ID (TrxID) in the reference box."

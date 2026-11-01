@@ -513,7 +513,7 @@ export const InvestorsPage = () => {
             {!editingInvestor && modalOption === 'existing' && (
               <div className="space-y-1.5 p-3 rounded-xl bg-muted/30 border">
                 <label className="font-semibold text-foreground">
-                  Select Registered User or Customer Member
+                  Select Registered User or Client
                 </label>
                 <Select onValueChange={handleSelectUserOrMember}>
                   <SelectTrigger className="text-xs">
@@ -529,7 +529,7 @@ export const InvestorsPage = () => {
                       </SelectItem>
                     ))}
                     <SelectItem value="group-members" disabled className="font-bold text-[11px] text-muted-foreground">
-                      -- Customer Directory --
+                      -- Client Directory --
                     </SelectItem>
                     {membersList.map((m) => (
                       <SelectItem key={m.id} value={m.id}>

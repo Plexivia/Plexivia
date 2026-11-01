@@ -165,7 +165,7 @@ export const PaymentsPage = () => {
       className: 'w-[150px]',
       render: (p) => <span className="block truncate font-mono text-xs text-muted-foreground">{p.invoiceId}</span>,
     },
-    { key: 'customerName', header: 'Customer' },
+    { key: 'customerName', header: 'Client' },
     { key: 'method', header: 'Method', className: 'w-[120px]', render: (p) => getMethodBadge(p.method) },
     { key: 'date', header: 'Date', className: 'w-[130px]' },
     {
@@ -226,7 +226,7 @@ export const PaymentsPage = () => {
           <div className="relative flex-1 w-full max-w-sm">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by customer, payment ID or invoice..."
+              placeholder="Search by client, payment ID or invoice..."
               className="pl-9"
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
