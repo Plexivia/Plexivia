@@ -7,7 +7,7 @@ import { printDocument } from '@/lib/utils';
 import { HeaderTitle } from '@/components/common/HeaderTitle';
 import { StudioFloatingViewSwitcher } from '../common/StudioFloatingViewSwitcher';
 import { toast } from 'sonner';
-import agencyInfoJson from '@/lib/information.json';
+import { getStudioBrand } from '../common/useStudioBrand';
 
 // Generates unique agreement number e.g. "AGR-AB1029"
 export function generateUniqueAgreementId() {
@@ -18,6 +18,7 @@ export function generateUniqueAgreementId() {
 }
 
 export function getDefaultAgreementData() {
+  const agencyInfoJson = getStudioBrand();
   return {
     _id: null,
     agreementId: generateUniqueAgreementId(),

@@ -1,9 +1,10 @@
 import React from 'react';
-import logoImg from '@/assets/logo.png';
-import infoData from '@/lib/information.json';
 import { formatToDdMmYyyy } from '@/lib/utils';
+import { useStudioBrand } from '../common/useStudioBrand';
 
 export function SalarySlipPreview({ data, formData }) {
+  const infoData = useStudioBrand();
+  const logoImg = infoData.logo;
   const activeData = data || formData || {};
 
   const currentDate = new Date().toLocaleDateString('en-GB', {

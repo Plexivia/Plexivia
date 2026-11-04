@@ -1,5 +1,13 @@
 import nodemailer from 'nodemailer';
 
+interface MailAttachment {
+  filename: string;
+  content: Buffer | string;
+  contentType?: string;
+  /** Set to reference the file from the HTML as <img src="cid:..."> */
+  cid?: string;
+}
+
 interface SendMailOptions {
   to: string;
   subject: string;
@@ -9,6 +17,7 @@ interface SendMailOptions {
   replyTo?: string;
   inReplyTo?: string;
   references?: string;
+  attachments?: MailAttachment[];
 }
 
 export interface TeamInviteEmailParams {
@@ -139,6 +148,51 @@ export const renderMfaEmailHtml = (secretKey: string, qrCodeImageUrl: string, re
               </p>`
   );
 
+// Generate HTML template for enrolling an authenticator against the VPS root console.
+// The QR travels as an inline attachment (cid:), so the TOTP secret never reaches a third-party image host.
+export const renderVpsConsoleMfaEmailHtml = (secretKey: string, qrCid: string, recipientEmail: string): string =>
+  renderEmailLayout(
+    'Set up your VPS root console authenticator',
+    'Root console two-factor setup',
+    `              <h1 style="font-size: 20px; font-weight: 700; color: #111827; margin: 0 0 12px 0;">Root console authenticator</h1>
+              <p style="font-size: 15px; line-height: 24px; color: #374151; margin: 0 0 24px 0;">
+                This code is <strong style="color: #111827;">separate from your dashboard sign-in</strong> and protects root access to the Plexivia VPS for <strong style="color: #111827;">${recipientEmail}</strong>. Scan it with Google Authenticator, Microsoft Authenticator, 1Password or Apple Passwords.
+              </p>
+              <div style="text-align: center; margin: 0 0 24px 0;">
+                <img src="cid:${qrCid}" alt="Root console authenticator QR code" width="200" height="200" style="display: inline-block; width: 200px; height: 200px; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px; background-color: #ffffff;" />
+              </div>
+              <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; margin: 0 0 24px 0;">
+                <div style="font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Can't scan? Enter this key</div>
+                <div style="font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; font-size: 16px; font-weight: 700; color: #0c4a6e; letter-spacing: 2px; word-break: break-all;">${secretKey}</div>
+              </div>
+              <p style="font-size: 14px; line-height: 22px; color: #374151; margin: 0 0 8px 0;">
+                Enter the 6-digit code on the cPanel page to finish setup and unlock the console.
+              </p>
+              <p style="font-size: 13px; line-height: 20px; color: #6b7280; margin: 0;">
+                Anyone with this key and your password can run commands as root. If you did not request it, delete this email and tell the owner at once.
+              </p>`
+  );
+
+// Generate HTML template for the one-time code that unlocks the VPS root console
+export const renderVpsConsoleOtpEmailHtml = (otpCode: string, recipientEmail: string): string =>
+  renderEmailLayout(
+    'Root console unlock code',
+    'Root console verification',
+    `              <h1 style="font-size: 20px; font-weight: 700; color: #111827; margin: 0 0 12px 0;">Root console unlock code</h1>
+              <p style="font-size: 15px; line-height: 24px; color: #374151; margin: 0 0 24px 0;">
+                Use this code to unlock root access to the Plexivia VPS for <strong style="color: #111827;">${recipientEmail}</strong>. It expires in 3 minutes.
+              </p>
+              <div style="text-align: center; background-color: #f0f9ff; border: 1px solid #bae6fd; border-radius: 10px; padding: 20px; margin: 0 0 24px 0;">
+                <div style="font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; font-size: 34px; font-weight: 700; color: #0c4a6e; letter-spacing: 8px;">${otpCode}</div>
+              </div>
+              <p style="font-size: 14px; line-height: 22px; color: #374151; margin: 0 0 8px 0;">
+                This code grants root shell access to the server. Never share it with anyone.
+              </p>
+              <p style="font-size: 13px; line-height: 20px; color: #6b7280; margin: 0;">
+                If you did not try to unlock the console, change your dashboard password immediately and tell the owner.
+              </p>`
+  );
+
 // Generate HTML template for new team member invitation and credentials delivery
 export const renderTeamInviteEmailHtml = (params: TeamInviteEmailParams): string => {
   const portalUrl = params.loginUrl || 'https://admin.plexivia.com';
@@ -205,6 +259,7 @@ export const sendMail = async (options: SendMailOptions): Promise<{ success: boo
       replyTo: options.replyTo,
       inReplyTo: options.inReplyTo,
       references: options.references,
+      attachments: options.attachments,
     });
     console.log(`✅ [MAILER] Email sent successfully to ${options.to} (ID: ${info.messageId})`);
     return { success: true, messageId: info.messageId };
@@ -226,6 +281,7 @@ export const sendMail = async (options: SendMailOptions): Promise<{ success: boo
         replyTo: options.replyTo,
         inReplyTo: options.inReplyTo,
         references: options.references,
+        attachments: options.attachments,
       });
       console.log(`✅ [MAILER-FALLBACK] Email sent successfully to ${options.to} (ID: ${info.messageId})`);
       return { success: true, messageId: info.messageId };

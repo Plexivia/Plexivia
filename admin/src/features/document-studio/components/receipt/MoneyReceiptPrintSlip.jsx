@@ -2,12 +2,13 @@ import React from 'react';
 import { PrintablePaper } from '../common/PrintablePaper';
 import { Printer, CheckCircle2, Clock, ShieldCheck, QrCode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import agencyInfo from '@/lib/information.json';
-import logoImg from '@/assets/logo.png';
 import { formatToDdMmYyyy, printDocument } from '@/lib/utils';
+import { useStudioBrand } from '../common/useStudioBrand';
 
 // Helper component for single half-page receipt slip
 function SingleReceiptSlip({ data = {}, copyType = 'Client Copy' }) {
+  const agencyInfo = useStudioBrand();
+  const logoImg = agencyInfo.logo;
   const {
     receiptNo = 'MR-000000-0000',
     clientName = '',

@@ -4,7 +4,7 @@ import { MoneyReceiptPreview } from './MoneyReceiptPreview';
 import { getDefaultMoneyReceiptData, generateReceiptNo, numberToWords } from './sampleData';
 import { Download, RefreshCw, Share2, Printer, Receipt } from 'lucide-react';
 import { toast } from 'sonner';
-import { apiClient } from '@/lib/api-client';
+import { studioDocumentsApi } from '@/services/settingsApi';
 import { printDocument, downloadDocumentDirect } from '@/lib/utils';
 import { HeaderTitle } from '@/components/common/HeaderTitle';
 import { StudioFloatingViewSwitcher } from '../common/StudioFloatingViewSwitcher';
@@ -23,6 +23,8 @@ export function MoneyReceipt({ initialData = null, isLocked = false, onSavedSucc
   const [viewMode, setViewMode] = useState('edit'); // 'edit' | 'split' | 'preview'
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  // Reported by the receipt-number field: 'available' | 'taken' | 'checking' | ...
+  const [numberState, setNumberState] = useState('idle');
 
   useEffect(() => {
     if (initialData) {
@@ -47,68 +49,60 @@ export function MoneyReceipt({ initialData = null, isLocked = false, onSavedSucc
 
   const handleFormSubmit = async () => {
     if (!data.clientName?.trim()) {
-      toast.error('Client / Passenger Name is required!');
+      toast.error('Client name is required.');
       return;
     }
     if (!data.amount || Number(data.amount) <= 0) {
-      toast.error('Valid Total Amount is required!');
+      toast.error('A valid total amount is required.');
+      return;
+    }
+    if (numberState === 'taken') {
+      toast.error('That receipt number is already used. Press the wand to generate a new one.');
       return;
     }
 
-    try {
-      setIsSubmitting(true);
-      const isEdit = Boolean(data._id);
-      const payload = {
+    const finalReceiptNo = data.receiptNo?.trim() || generateReceiptNo();
+    const body = {
+      type: 'money-receipt',
+      number: finalReceiptNo,
+      clientId: data.clientId || data.clientDid || initialData?.clientId || '',
+      clientName: data.clientName,
+      paymentMethod: data.paymentMethod || '',
+      amount: Number(data.amount),
+      status: 'Received',
+      issueDate: data.date || new Date().toISOString().slice(0, 10),
+      payload: {
         ...data,
-        caseDid: initialData?.caseDid || data.caseDid,
-        caseNumber: initialData?.caseNumber || data.caseNumber,
-        taskId: initialData?.taskId || data.taskId,
+        receiptNo: finalReceiptNo,
         amount: Number(data.amount),
         amountInWords: data.amountInWords || numberToWords(Number(data.amount)),
-      };
+      },
+    };
 
-      const res = isEdit
-        ? await apiClient.put(`/api/v1/client/receipts/${data._id}`, payload)
-        : await apiClient.post('/api/v1/client/receipts', payload);
+    try {
+      setIsSubmitting(true);
+      const isEdit = Boolean(data.savedDocId);
+      const saved = isEdit
+        ? await studioDocumentsApi.update(data.savedDocId, body)
+        : await studioDocumentsApi.create(body);
 
-      const saved = res.data?.data;
-      if (res.data?.success || res.data?.status === 'success' || saved) {
-        const returnedNo = saved?.receiptNo || data.receiptNo || generateReceiptNo();
-        setData((prev) => ({
-          ...prev,
-          ...saved,
-          _id: saved?._id || prev._id,
-          receiptNo: returnedNo,
-          qrCode: saved?.qrCode || prev.qrCode,
-          did: saved?.did || prev.did,
-        }));
+      setData((prev) => ({
+        ...prev,
+        savedDocId: saved.id || prev.savedDocId,
+        receiptNo: saved.number || finalReceiptNo,
+        amountInWords: body.payload.amountInWords,
+      }));
 
-        if (initialData?.caseDid) {
-          try {
-            await apiClient.post(`/api/v1/client/cases/${initialData.caseDid}/documents`, {
-              documentName: `Money Receipt #${returnedNo}`,
-              fileName: `Receipt-${returnedNo}.pdf`,
-              fileUrl: saved?.pdfUrl || `/api/v1/client/receipts/${saved?._id}/pdf`,
-              fileType: 'application/pdf',
-              fileSize: '1.0 MB',
-              accessLevel: 'Public',
-            });
-          } catch (_) {}
-        }
-
-        if (onSavedSuccess) onSavedSuccess(saved);
-
-        toast.success(
-          isEdit
-            ? `Money receipt #${returnedNo} updated successfully!`
-            : `Money receipt #${returnedNo} saved to database!`
-        );
-      } else {
-        throw new Error(res.data?.message || 'Failed to save receipt.');
-      }
+      if (onSavedSuccess) onSavedSuccess(saved);
+      toast.success(
+        isEdit
+          ? `Money receipt ${saved.number || finalReceiptNo} updated.`
+          : `Money receipt ${saved.number || finalReceiptNo} saved.`
+      );
     } catch (err) {
-      console.warn('Receipt save warning (preview mode ready):', err);
-      toast.info(`Money receipt voucher preview ready! (#${data.receiptNo})`);
+      toast.error(
+        err?.response?.data?.message || 'Could not save the money receipt. It has not been recorded.'
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -144,8 +138,9 @@ export function MoneyReceipt({ initialData = null, isLocked = false, onSavedSucc
     const clientName = data.clientName || 'Client';
     const amountStr = Number(data.amount || 0).toLocaleString('en-IN');
 
+    const brand = getStudioBrand();
     const msg =
-      `*📄 PLEXIVIA*\n` +
+      `*📄 ${brand.brandTitle || brand.agencyName}*\n` +
       `*INTERNAL MONEY RECEIPT / VOUCHER (${data.receiptNo || 'MR-2026-000'})*\n` +
       `-----------------------------------------\n` +
       `👤 *Client / Passenger:* ${clientName}\n` +
@@ -156,9 +151,9 @@ export function MoneyReceipt({ initialData = null, isLocked = false, onSavedSucc
       `📅 *Date:* ${data.date || 'Today'} (${data.time || '11:30 AM'})\n` +
       `✍️ *Received By:* ${data.receivedBy || 'Accounts Officer'}\n` +
       `-----------------------------------------\n\n` +
-      `🏢 *Plexivia*\n` +
-      `📍 Mominpur Jagannathpur Road, Sunamganj, Post Code 3060\n` +
-      `📞 Helpline: +8801345579534`;
+      `🏢 *${brand.agencyName}*\n` +
+      `📍 ${brand.address.full}\n` +
+      `📞 Helpline: ${brand.phone}`;
 
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
   };
@@ -223,6 +218,7 @@ export function MoneyReceipt({ initialData = null, isLocked = false, onSavedSucc
             onPreview={() => setViewMode('preview')}
             isSubmitting={isSubmitting}
             isLocked={Boolean(isLocked || initialData?.isLocked)}
+            onNumberStateChange={setNumberState}
           />
           {/* Always mount printable canvas for instant print in edit mode */}
           <div className="hidden print:block w-full">

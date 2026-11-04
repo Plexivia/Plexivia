@@ -1,8 +1,7 @@
 import React from 'react';
 import { Scissors, CheckSquare, Square } from 'lucide-react';
-import agencyInfo from '@/lib/information.json';
-import logoImg from '@/assets/logo.png';
 import { formatToDdMmYyyy } from '@/lib/utils';
+import { useStudioBrand } from '../common/useStudioBrand';
 
 const CODE128_PATTERNS = [
   '212222', '222122', '222221', '121223', '121322', '131222', '122213', '122312', '132212', '221213',
@@ -81,6 +80,8 @@ const BarcodeSVG = ({ value = 'PLX-MR-2026' }) => {
 
 // Single Voucher Slip Unit Component
 export function VoucherSlipCard({ data = {}, copyTitle = 'Original Copy', idSuffix = '' }) {
+  const agencyInfo = useStudioBrand();
+  const logoImg = agencyInfo.logo;
   const {
     receiptNo = 'MR-2026-084',
     date = new Date().toISOString().split('T')[0],

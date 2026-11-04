@@ -1,8 +1,9 @@
 import React from 'react';
-import logoImg from '@/assets/logo.png';
 import { formatToDdMmYyyy } from '@/lib/utils';
+import { useStudioBrand } from '../common/useStudioBrand';
 
 export function AgreementPreview({ data = {} }) {
+  const logoImg = useStudioBrand().logo;
   const safeData = data || {};
   const currentDate = formatToDdMmYyyy(safeData.parties?.agreementDate) || new Date().toLocaleDateString('bn-BD', {
     day: 'numeric',

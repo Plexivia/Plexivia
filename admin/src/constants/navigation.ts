@@ -25,6 +25,7 @@ import {
   TrendingUp,
   Server,
   HardDrive,
+  Settings,
 } from 'lucide-react';
 import type { MenuGroup } from '@/types';
 
@@ -283,6 +284,11 @@ export const NAVIGATION_MENU_GROUPS: MenuGroup[] = [
         url: '/cpanel',
         icon: Server,
         roles: ['owner', 'admin', 'super_admin'],
+      },
+      {
+        title: 'Settings',
+        url: '/settings',
+        icon: Settings,
       },
     ],
   },

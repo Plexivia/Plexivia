@@ -9,6 +9,7 @@ import { AutoPageBar } from '@/components/layout/AutoPageBar';
 import { LoginPage } from '@/components/auth/LoginPage';
 import { NAVIGATION_MENU_GROUPS } from '@/constants/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useSettingsStore } from '@/store/useSettingsStore';
 import { LayoutV2 } from '@/components/layout/versionTwo/LayoutV2';
 
 import { OverviewPage } from '@/pages/OverviewPage';
@@ -22,6 +23,7 @@ import { TasksPage } from '@/pages/TasksPage';
 import { ClientsDirectoryPage } from '@/pages/ClientsDirectoryPage';
 import { CpanelPage } from '@/pages/CpanelPage';
 import { ProfilePage } from '@/pages/ProfilePage';
+import { SettingsPage } from '@/pages/SettingsPage';
 import { DocumentStudioPage } from '@/features/document-studio/pages/DocumentStudioPage';
 
 import { BalanceOverview as BalanceOverviewPage } from '@/pages/accounts/balanceOverview';
@@ -77,6 +79,11 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
     return () => disconnectRealtime();
   }, [user]);
 
+  // Brand settings (logo, agency particulars) used by the shell and every document
+  useEffect(() => {
+    useSettingsStore.getState().load();
+  }, []);
+
   return (
     <ProtectedRoute>
       <GlobalErrorBoundary>
@@ -126,6 +133,14 @@ export const AppRoutes = () => {
         element={
           <AppShell>
             <ProfilePage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <AppShell>
+            <SettingsPage />
           </AppShell>
         }
       />

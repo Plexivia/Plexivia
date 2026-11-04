@@ -13,13 +13,15 @@ import {
   FileSpreadsheet,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
+import { SearchableSelect } from '@/components/common/SearchableSelect';
+import { useClientOptions, clientToStudioFields } from '@/features/document-studio/components/common/useStudioLookups';
 
 /**
  * ─────────────────────────────────────────────────────────────────────────────
  * Export 1: ExistingClientSelector
- * Reusable existing client / case selector with search, autofill, and lock support.
+ * Picks a client from this dashboard's own Clients directory and autofills the
+ * document form. Searchable, because the list grows with every onboarding.
  * ─────────────────────────────────────────────────────────────────────────────
  */
 export function ExistingClientSelector({
@@ -29,77 +31,35 @@ export function ExistingClientSelector({
   lockedClient = null,
   className = '',
 }) {
-  const [cases, setCases] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const clientOptions = useClientOptions();
   const [selectedDid, setSelectedDid] = useState(selectedClientDid || '');
 
   useEffect(() => {
-    if (selectedClientDid) {
-      setSelectedDid(selectedClientDid);
-    }
+    setSelectedDid(selectedClientDid || '');
   }, [selectedClientDid]);
 
-  useEffect(() => {
-    let isMounted = true;
-    setLoading(true);
-    apiClient
-      .get('/api/v1/client/cases?limit=100')
-      .then((res) => {
-        if (isMounted && res.data?.data) {
-          setCases(res.data.data);
-        }
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (isMounted) setLoading(false);
-      });
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const handleSelect = (value, option) => {
+    setSelectedDid(value);
+    if (!value || !option?.client) return;
 
-  const handleSelect = (e) => {
-    const val = e.target.value;
-    setSelectedDid(val);
-
-    if (!val) {
-      return;
-    }
-
-    const matched = cases.find((c) => (c.did || c._id) === val);
-    if (!matched) return;
-
-    const applicantName = matched.applicantName || matched.clientInfo?.fullName || matched.clientInfo?.name || '';
-    const phone = matched.phone || matched.clientInfo?.phone || matched.clientInfo?.mobileNumber || '';
-    const email = matched.email || matched.clientInfo?.email || '';
-    const address = matched.clientInfo?.presentAddress || matched.clientInfo?.address || matched.presentAddress || '';
-    const passportNumber = matched.passportNumber || matched.clientInfo?.passportNumber || '';
-    const nidNumber = matched.nidNumber || matched.clientInfo?.nidNumber || '';
-    const caseNumber = matched.caseNumber || matched.fileNumber || '';
-    const destination = matched.destinationCountry || matched.caseType || 'Travel & Visa Processing';
-    const tradeSkill = matched.tradeSkill || 'Standard Service';
-    const agreedAmount = matched.agreedAmount || matched.totalAgreedAmount || matched.initialPaidAmount || '';
-
+    const fields = clientToStudioFields(option.client);
     if (onSelectClient) {
       onSelectClient({
-        did: matched.did || matched._id,
-        caseDid: matched.did || matched._id,
-        caseNumber,
-        name: applicantName,
-        contactPerson: applicantName,
-        phone,
-        email,
-        address,
-        passportNumber,
-        nidNumber,
-        destination,
-        tradeSkill,
-        agreedAmount,
-        rawCase: matched,
+        did: fields.clientId,
+        clientId: fields.clientId,
+        // Kept for the forms that still read the case-file field names
+        caseDid: fields.clientId,
+        caseNumber: fields.clientKey,
+        name: fields.clientName,
+        contactPerson: fields.contactPerson || fields.clientName,
+        phone: fields.phone,
+        email: fields.email,
+        address: fields.address,
+        rawClient: option.client,
       });
     }
 
-    toast.info(`Autofilled client details for ${applicantName || 'Case'}`);
+    toast.info(`Autofilled details for ${fields.clientName}`);
   };
 
   if (isLocked && lockedClient) {
@@ -128,35 +88,25 @@ export function ExistingClientSelector({
   }
 
   return (
-    <div className={`p-3.5 bg-black/[0.02] border border-black/10 rounded-xl space-y-1.5 ${className}`}>
+    <div className={`p-3.5 bg-muted/30 border border-border rounded-xl space-y-1.5 ${className}`}>
       <div className="flex items-center justify-between">
-        <label className="block text-[11px] font-bold uppercase tracking-wider text-black/70 flex items-center gap-1.5">
+        <label className="block text-[11px] font-bold uppercase tracking-wider text-foreground/70 flex items-center gap-1.5">
           <Sparkles className="w-3.5 h-3.5 text-primary" />
-          Select Existing Client / Case Dossier
+          Select Client
         </label>
         <span className="text-[10px] text-muted-foreground font-medium">Autofills all client inputs</span>
       </div>
 
-      <div className="relative">
-        <select
-          value={selectedDid}
-          onChange={handleSelect}
-          disabled={isLocked || loading}
-          className="w-full px-3 py-2 text-xs font-semibold bg-white border border-black/15 rounded-xl text-black focus:outline-none focus:border-primary cursor-pointer disabled:opacity-60"
-        >
-          <option value="">-- Choose an existing client or case file --</option>
-          {cases.map((c) => {
-            const name = c.applicantName || c.clientInfo?.fullName || c.clientInfo?.name || 'Client';
-            const num = c.caseNumber || c.fileNumber || 'No-Ref';
-            const srv = c.destinationCountry || c.caseType || 'General';
-            return (
-              <option key={c.did || c._id} value={c.did || c._id}>
-                {name} (#{num}) • {srv}
-              </option>
-            );
-          })}
-        </select>
-      </div>
+      <SearchableSelect
+        options={clientOptions}
+        value={selectedDid}
+        onChange={handleSelect}
+        disabled={isLocked}
+        placeholder="Search and choose a client"
+        searchPlaceholder="Search by client, business, phone or email…"
+        emptyMessage="No clients found. Onboard one from the Clients page."
+        renderLeading={() => <User className="size-3.5 shrink-0 text-muted-foreground" />}
+      />
     </div>
   );
 }

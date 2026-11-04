@@ -1,17 +1,26 @@
-import { useRef, useCallback } from 'react';
-import { apiClient } from '@/lib/api-client';
+import { useCallback, useRef } from 'react';
+import { useData } from '@/context/DataContext';
 import { validateBdPhone } from './phoneValidator';
+import { clientDisplayName } from './useStudioLookups';
+
+const digitsOnly = (value) => String(value || '').replace(/\D/g, '');
 
 /**
  * useClientLookup
  *
- * Reusable hook for all Document Studio forms.
- * Performs a debounced (1000ms) lookup against the client database
- * when a valid 11-digit BD mobile number is entered.
+ * Watches a phone or email field in a Document Studio form and, once it looks
+ * complete, checks it against the Clients directory already loaded in the
+ * dashboard. A match offers to autofill the form.
+ *
+ * The match is made in the browser against `DataContext`, so typing never fires
+ * a request — and never a stray "record not found" toast either.
  */
 export function useClientLookup({ onClientFound }) {
+  const { clients } = useData();
   const debounceRef = useRef(null);
   const promptedValuesRef = useRef(new Set());
+  const clientsRef = useRef([]);
+  clientsRef.current = Array.isArray(clients) ? clients : [];
 
   const triggerLookup = useCallback(
     (value) => {
@@ -19,77 +28,55 @@ export function useClientLookup({ onClientFound }) {
       const trimmed = value.trim();
 
       const isEmail = trimmed.includes('@') && trimmed.length >= 5;
-      const isPhone = /^[0-9+\-\s()]+$/.test(trimmed) && trimmed.replace(/\D/g, '').length >= 8;
+      const isPhone = /^[0-9+\-\s()]+$/.test(trimmed) && digitsOnly(trimmed).length >= 8;
 
       let queryVal = trimmed;
       if (isPhone) {
         const bdCheck = validateBdPhone(trimmed);
-        if (!bdCheck.isValid) return; // Do not query backend if not a valid BD phone number
-        queryVal = bdCheck.formatted; // Use standardized 11-digit format
+        if (!bdCheck.isValid) return; // Not a complete BD mobile number yet
+        queryVal = bdCheck.formatted; // Standardised 11-digit form
       } else if (!isEmail) {
         return;
       }
 
-      if (promptedValuesRef.current.has(queryVal)) {
-        return; // Already prompted for this value in current session
-      }
+      // Already offered for this value in this session
+      if (promptedValuesRef.current.has(queryVal)) return;
 
       if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        const needle = isEmail ? queryVal.toLowerCase() : digitsOnly(queryVal).slice(-10);
 
-      debounceRef.current = setTimeout(async () => {
-        try {
-          const res = await apiClient.get('/api/v1/client/clients/lookup', {
-            params: { query: queryVal },
-          });
+        const matched = clientsRef.current.find((client) => {
+          if (isEmail) return String(client.contact_email || '').toLowerCase() === needle;
+          const phone = digitsOnly(client.contact_phone).slice(-10);
+          const whatsapp = digitsOnly(client.contact_whatsapp).slice(-10);
+          return Boolean(needle) && (phone === needle || whatsapp === needle);
+        });
 
-          if (res.data?.success && res.data?.data && res.data.data.length > 0) {
-            const matched = res.data.data[0];
+        if (!matched) return;
 
-            // Also fetch active case file for this client if any
-            let activeCaseFile = null;
-            if (matched._id || matched.did) {
-              try {
-                const caseRes = await apiClient.get('/api/v1/client/cases', {
-                  params: {
-                    clientId: matched._id,
-                    status: 'active,processing,new,pending',
-                    limit: 1,
-                    sort: '-createdAt',
-                  },
-                });
-                const cases = caseRes.data?.data || [];
-                if (cases.length > 0) {
-                  const openCase = cases.find(
-                    (c) =>
-                      !['completed', 'deleted', 'inactive', 'cancelled'].includes(
-                        String(c.status || '').toLowerCase()
-                      )
-                  );
-                  activeCaseFile = openCase || null;
-                }
-              } catch (_) {
-                // Ignore optional case query
-              }
-            }
-
-            promptedValuesRef.current.add(queryVal);
-            onClientFound(matched, activeCaseFile);
-          }
-        } catch (err) {
-          console.warn('[useClientLookup] Lookup skipped:', err.message);
-        }
-      }, 1000);
+        promptedValuesRef.current.add(queryVal);
+        onClientFound(
+          {
+            ...matched,
+            _id: matched.id,
+            did: matched.id,
+            name: clientDisplayName(matched),
+            fullName: clientDisplayName(matched),
+            phone: matched.contact_phone || matched.contact_whatsapp || '',
+            email: matched.contact_email || '',
+          },
+          null
+        );
+      }, 600);
     },
     [onClientFound]
   );
 
   const resetLookup = useCallback((valueToReset) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (valueToReset) {
-      promptedValuesRef.current.delete(String(valueToReset).trim());
-    }
+    if (valueToReset) promptedValuesRef.current.delete(String(valueToReset).trim());
   }, []);
 
   return { triggerLookup, resetLookup };
 }
-

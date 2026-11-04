@@ -6,6 +6,8 @@ import accountingRouter from './accounting.routes.js';
 import backupRouter from './backup.routes.js';
 import qrRouter from './qr.routes.js';
 import supportRouter from './support.routes.js';
+import settingsRouter from './settings.routes.js';
+import vpsRouter from './vps.routes.js';
 
 const router = Router();
 
@@ -28,6 +30,14 @@ router.use('/v1/qr', qrRouter);
 // 1d. Support Desk (/api/support/*) — client-key tickets, admin tickets, shared attachment upload
 router.use('/support', supportRouter);
 router.use('/v1/support', supportRouter);
+
+// 1e. Dashboard settings (brand / logo) & Document Studio records
+router.use('/', settingsRouter);
+router.use('/v1', settingsRouter);
+
+// 1f. VPS root console (/api/vps/console/*) — password + console 2FA, then whitelisted SSH commands
+router.use('/vps', vpsRouter);
+router.use('/v1/vps', vpsRouter);
 
 // 2. Master Hub Core Chunk (/api/hub/*)
 router.use('/hub', hubRouter);

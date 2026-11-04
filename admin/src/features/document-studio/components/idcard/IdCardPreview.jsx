@@ -1,9 +1,10 @@
 import React from 'react';
 import { User, MapPin, Phone, Mail, Globe, Plane, ShieldCheck, Award, Calendar, Droplets } from 'lucide-react';
-import logoImg from '@/assets/logo.png';
 import { formatToDdMmYyyy } from '@/lib/utils';
+import { useStudioBrand } from '../common/useStudioBrand';
 
 export function IdCardPreview({ cardData, frontRef, backRef }) {
+  const logoImg = useStudioBrand().logo;
   // Generate QR code URL
   const qrUrl = cardData.qrData || `https://www.plexivia.com/verify?id=${cardData.idNumber || '123'}`;
   const qrSvg = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(qrUrl)}`;

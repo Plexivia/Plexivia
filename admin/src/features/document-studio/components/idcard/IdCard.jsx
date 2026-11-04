@@ -4,11 +4,12 @@ import { IdCardPreview } from './IdCardPreview';
 import { Download, Sparkles, RefreshCw, Contact } from 'lucide-react';
 import { toast } from 'sonner';
 import { toPng } from 'html-to-image';
-import agencyInfo from '@/lib/information.json';
 import { HeaderTitle } from '@/components/common/HeaderTitle';
 import { StudioFloatingViewSwitcher } from '../common/StudioFloatingViewSwitcher';
+import { useStudioBrand } from '../common/useStudioBrand';
 
 export function IdCard({ initialData = null, onSavedSuccess = null, isLocked = false }) {
+  const agencyInfo = useStudioBrand();
   const [viewMode, setViewMode] = useState('edit'); // 'edit' | 'split' | 'preview'
   const [isExporting, setIsExporting] = useState(false);
   const frontCardRef = useRef(null);

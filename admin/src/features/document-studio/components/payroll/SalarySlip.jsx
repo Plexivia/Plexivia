@@ -2,33 +2,41 @@ import React, { useState, useEffect } from 'react';
 import { SalarySlipForm } from './SalarySlipForm';
 import { SalarySlipPreview } from './SalarySlipPreview';
 import { Download, RefreshCw, Share2, Printer, DollarSign } from 'lucide-react';
-import { apiClient } from '@/lib/api-client';
+import { studioDocumentsApi } from '@/services/settingsApi';
 import { printDocument } from '@/lib/utils';
 import { toast } from 'sonner';
-import agencyInfo from '@/lib/information.json';
 import { HeaderTitle } from '@/components/common/HeaderTitle';
 import { StudioFloatingViewSwitcher } from '../common/StudioFloatingViewSwitcher';
+import { getStudioBrand, getDocumentDefaults } from '../common/useStudioBrand';
 
 export function generateUniqueSlipNumber() {
+  const prefix = (getDocumentDefaults().slipPrefix || 'PX-SLIP').replace(/-+$/, '');
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  let prefix = '';
+  let letterPair = '';
   for (let i = 0; i < 2; i++) {
-    prefix += letters.charAt(Math.floor(Math.random() * letters.length));
+    letterPair += letters.charAt(Math.floor(Math.random() * letters.length));
   }
   const midNum = Math.floor(1000 + Math.random() * 9000);
   const midChar = letters.charAt(Math.floor(Math.random() * letters.length));
   const endNum = Math.floor(100 + Math.random() * 900);
-  return `SLIP-${prefix}${midNum}${midChar}${endNum}`;
+  return `${prefix}-${letterPair}${midNum}${midChar}${endNum}`;
 }
 
 export function getDefaultSalarySlipData() {
+  const agencyInfo = getStudioBrand();
+  const today = new Date();
   return {
     _id: null,
     companyName: agencyInfo.agencyName?.toUpperCase() || 'PLEXIVIA',
     companyAddress: agencyInfo.address?.full || 'Mominpur Jagannathpur Road, Sunamganj, Post Code 3060',
+    savedDocId: null,
     slipNo: generateUniqueSlipNumber(),
-    monthYear: new Date().toISOString().slice(0, 7), // YYYY-MM
-    issueDate: new Date().toISOString().split('T')[0],
+    monthYear: today.toISOString().slice(0, 7), // YYYY-MM
+    issueDate: today.toISOString().split('T')[0],
+    // Current month and today, so a fresh slip is ready to fill in
+    salaryMonth: today.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+    payDate: today.toISOString().split('T')[0],
+    employeeRef: '',
 
     // Employee Bio
     employeeName: '',
@@ -71,6 +79,8 @@ export function SalarySlip({ initialData = null, isLocked = false, onSavedSucces
   }));
   const [viewMode, setViewMode] = useState('edit'); // 'edit' | 'split' | 'preview'
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Reported by the slip-number field: 'available' | 'taken' | 'checking' | ...
+  const [numberState, setNumberState] = useState('idle');
 
   useEffect(() => {
     if (initialData) {
@@ -89,45 +99,50 @@ export function SalarySlip({ initialData = null, isLocked = false, onSavedSucces
   };
 
   const handleFormSubmit = async () => {
-    const finalSlipNo = formData.slipNo?.trim() || generateUniqueSlipNumber();
-    const payload = {
-      ...formData,
-      slipNo: finalSlipNo,
-    };
-
-    if (!payload._id) {
-      delete payload._id;
+    if (!formData.employeeName?.trim()) {
+      toast.error('Employee name is required.');
+      return;
     }
+    if (numberState === 'taken') {
+      toast.error('That slip number is already used. Press the wand to generate a new one.');
+      return;
+    }
+
+    const finalSlipNo = formData.slipNo?.trim() || generateUniqueSlipNumber();
+    const body = {
+      type: 'salary-slip',
+      number: finalSlipNo,
+      clientName: formData.employeeName || '',
+      paymentMethod: formData.paymentMode || '',
+      amount: Number(formData.netSalaryPayable) || 0,
+      status: formData.paymentStatus || 'Paid',
+      issueDate: formData.payDate || formData.issueDate || new Date().toISOString().slice(0, 10),
+      payload: { ...formData, slipNo: finalSlipNo },
+    };
 
     try {
       setIsSubmitting(true);
-      const isEdit = Boolean(formData._id);
-      const res = isEdit
-        ? await apiClient.put(`/api/v1/client/docs/salary-slips/${formData._id}`, payload)
-        : await apiClient.post('/api/v1/client/docs/salary-slips', payload);
+      const isEdit = Boolean(formData.savedDocId);
+      const saved = isEdit
+        ? await studioDocumentsApi.update(formData.savedDocId, body)
+        : await studioDocumentsApi.create(body);
 
-      const savedDoc = res.data?.data;
-      if ((res.data?.status === 'success' || res.data?.success) && savedDoc) {
-        setFormData((prev) => ({
-          ...prev,
-          _id: savedDoc._id,
-          slipNo: savedDoc.slipNo || finalSlipNo,
-        }));
-        toast.success(
-          isEdit
-            ? `Salary slip updated successfully in database! (Slip No: ${savedDoc.slipNo || finalSlipNo})`
-            : `Salary slip saved successfully in database! (Slip No: ${savedDoc.slipNo || finalSlipNo})`
-        );
-      } else {
-        throw new Error(res.data?.message || 'Failed to save salary slip to database.');
-      }
-    } catch (err) {
-      console.warn('Backend API save warning (preview mode ready):', err);
       setFormData((prev) => ({
         ...prev,
-        slipNo: finalSlipNo,
+        savedDocId: saved.id || prev.savedDocId,
+        slipNo: saved.number || finalSlipNo,
       }));
-      toast.success(`Salary slip generated successfully! (Slip No: ${finalSlipNo})`);
+
+      if (onSavedSuccess) onSavedSuccess(saved);
+      toast.success(
+        isEdit
+          ? `Salary slip ${saved.number || finalSlipNo} updated.`
+          : `Salary slip ${saved.number || finalSlipNo} saved.`
+      );
+    } catch (err) {
+      toast.error(
+        err?.response?.data?.message || 'Could not save the salary slip. It has not been recorded.'
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -147,8 +162,9 @@ export function SalarySlip({ initialData = null, isLocked = false, onSavedSucces
     const id = formData.employeeId || 'N/A';
     const month = formData.salaryMonth || 'Current Month';
 
+    const brand = getStudioBrand();
     const msg =
-      `*📄 PLEXIVIA*\n` +
+      `*📄 ${brand.brandTitle || brand.agencyName}*\n` +
       `*Monthly Salary Slip Summary (${formData.slipNo || 'Official Slip'})*\n` +
       `-----------------------------------------\n` +
       `👤 *Employee Name:* ${employee} (ID: ${id})\n` +
@@ -160,9 +176,9 @@ export function SalarySlip({ initialData = null, isLocked = false, onSavedSucces
       `🔻 *Total Deduction:* ${formData.totalDeduction} BDT \n` +
       `✅ *Net Payable Salary:* ${formData.netSalaryPayable} BDT  (${formData.netSalaryInWords || ''})\n\n` +
       `📌 *Slip & Payment Status:* Paid (Paid via ${formData.paymentMode || 'Cash'})\n\n` +
-      `🏢 *Plexivia*\n` +
-      `📍 ${formData.companyAddress}\n` +
-      `📞 Helpline: +8801345579534`;
+      `🏢 *${brand.agencyName}*\n` +
+      `📍 ${formData.companyAddress || brand.address.full}\n` +
+      `📞 Helpline: ${brand.phone}`;
 
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
   };
@@ -215,6 +231,7 @@ export function SalarySlip({ initialData = null, isLocked = false, onSavedSucces
             onSubmit={handleFormSubmit}
             onReset={handleReset}
             isSubmitting={isSubmitting}
+            onNumberStateChange={setNumberState}
           />
           <div className="hidden print:block w-full">
             <SalarySlipPreview data={formData} formData={formData} />

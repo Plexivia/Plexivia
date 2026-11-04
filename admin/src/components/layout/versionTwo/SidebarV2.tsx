@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import type { MenuGroup, MenuItem } from '@/types/index';
 import brandLogoImg from '@/assets/brand-dark.png';
 import brandIconImg from '@/assets/brand-icon-dark.png';
+import { useBrand } from '@/store/useSettingsStore';
 import { APP_VERSION } from '@/configs/appConfig';
 
 interface SidebarV2Props {
@@ -66,6 +67,10 @@ export const SidebarV2 = ({
   onLogout,
 }: SidebarV2Props) => {
   const location = useLocation();
+  const brand = useBrand();
+  // A logo set on the Settings page replaces the bundled wordmark everywhere
+  const sidebarLogo = brand.hasCustomLogo ? brand.logoUrl : brandLogoImg;
+  const sidebarIcon = brand.hasCustomLogo ? brand.iconUrl || brand.logoUrl : brandIconImg;
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
   const showFull = isExpanded || isHovered || isMobileOpen;
   // Labels stay mounted and fade with the width animation instead of popping in and out
@@ -216,8 +221,8 @@ export const SidebarV2 = ({
       <div className="flex h-16 shrink-0 items-center ps-2">
         <Link to={brandPath} onClick={onNavigate} className="relative block h-9 w-[180px]">
           <img
-            src={brandLogoImg}
-            alt="Plexivia"
+            src={sidebarLogo}
+            alt={brand.name}
             className={cn('absolute top-0 start-0 h-7 w-auto max-w-[180px] object-contain transition-opacity duration-200', showFull ? 'opacity-100 delay-100' : 'opacity-0')}
           />
           <span
@@ -226,7 +231,7 @@ export const SidebarV2 = ({
             v{APP_VERSION}
           </span>
           <img
-            src={brandIconImg}
+            src={sidebarIcon}
             alt=""
             className={cn('absolute top-0.5 start-0 size-8 object-contain transition-opacity duration-200', showFull ? 'opacity-0' : 'opacity-100')}
           />

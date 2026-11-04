@@ -13,6 +13,7 @@ import {
   Server,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
+import VpsRootConsole from '@/components/vps/VpsRootConsole';
 import { HeaderTitle } from '@/components/common/HeaderTitle';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
@@ -265,6 +266,9 @@ export const CpanelPage = () => {
           Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-[132px] rounded-xl" />)
         )}
       </div>
+
+      {/* Root console: password + console 2FA, then whitelisted commands and SSH */}
+      <VpsRootConsole />
 
       {/* Docker containers by client */}
       <Card

@@ -23,6 +23,8 @@ import { AttachmentUploader } from '@/components/dashboard/accounts/AttachmentUp
 import { toast } from 'sonner';
 import { useData } from '@/context/DataContext';
 import { getClientName, getClientProjects } from '@/components/dashboard/accounts/paymentSources';
+import { SearchableSelect } from '@/components/common/SearchableSelect';
+import { useClientOptions } from '@/features/document-studio/components/common/useStudioLookups';
 import { apiErrorMessage, businessesApi, paymentMethodsApi, paymentSourcesApi, paymentsApi } from '@/services/paymentsApi';
 import { ChargesEditor, EMPTY_CHARGES, buildCharges, chargesToEditorValue } from '@/components/dashboard/accounts/ChargesEditor';
 
@@ -38,8 +40,11 @@ export const AddNewPaymentPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const editId = searchParams.get('edit');
+  // Set when the form is opened from a client row's "Add Payment" action
+  const prefillClientId = searchParams.get('clientId') || '';
 
   const { clients } = useData();
+  const clientOptions = useClientOptions();
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [businesses, setBusinesses] = useState([]);
   const [paymentSources, setPaymentSources] = useState([]);
@@ -107,6 +112,14 @@ export const AddNewPaymentPage = () => {
       .then(setBusinesses)
       .catch((error) => toast.error(apiErrorMessage(error, 'Failed to load businesses')));
   }, [editId]);
+
+  // Opened from a client row: select that client as soon as the directory is loaded
+  useEffect(() => {
+    if (!prefillClientId || editId) return;
+    const client = (clients || []).find((c) => c.id === prefillClientId);
+    if (!client) return;
+    setFormData((prev) => (prev.clientId ? prev : { ...prev, clientId: client.id, customerName: getClientName(client) }));
+  }, [prefillClientId, clients, editId]);
 
   useEffect(() => {
     if (!editId) return;
@@ -291,44 +304,31 @@ export const AddNewPaymentPage = () => {
                       <label className="text-xs font-semibold text-foreground">
                         Client <span className="text-red-500">*</span>
                       </label>
-                      <Select value={formData.clientId} onValueChange={handleClientChange}>
-                        <SelectTrigger className="text-xs">
-                          <SelectValue placeholder="Select a client">{selectedClient ? getClientName(selectedClient) : undefined}</SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {(clients || []).length > 0 ? (
-                            clients.map((c) => (
-                              <SelectItem key={c.id} value={c.id}>
-                                {getClientName(c)}
-                              </SelectItem>
-                            ))
-                          ) : (
-                            <SelectItem value="none" disabled>
-                              No clients found
-                            </SelectItem>
-                          )}
-                        </SelectContent>
-                      </Select>
+                      <SearchableSelect
+                        options={clientOptions}
+                        value={formData.clientId}
+                        onChange={handleClientChange}
+                        placeholder="Search and choose a client"
+                        searchPlaceholder="Search by client, business, phone or email…"
+                        emptyMessage="No clients found. Onboard one from the Clients page."
+                        buttonClassName="h-9 rounded-md"
+                      />
                     </div>
 
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-foreground">
                         Project {clientProjects.length > 0 && <span className="text-red-500">*</span>}
                       </label>
-                      <Select value={formData.projectId} onValueChange={handleProjectChange} disabled={!selectedClient || clientProjects.length === 0}>
-                        <SelectTrigger className="text-xs">
-                          <SelectValue placeholder={!selectedClient ? 'Select a client first' : clientProjects.length === 0 ? 'This client has no projects' : 'Select a project'}>
-                            {formData.projectName || undefined}
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {clientProjects.map((proj) => (
-                            <SelectItem key={proj.dId} value={proj.dId}>
-                              {proj.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <SearchableSelect
+                        options={clientProjects.map((proj) => ({ value: proj.dId, label: proj.name }))}
+                        value={formData.projectId}
+                        onChange={handleProjectChange}
+                        disabled={!selectedClient || clientProjects.length === 0}
+                        placeholder={!selectedClient ? 'Select a client first' : clientProjects.length === 0 ? 'This client has no projects' : 'Select a project'}
+                        searchPlaceholder="Search projects…"
+                        emptyMessage="No projects for this client"
+                        buttonClassName="h-9 rounded-md"
+                      />
                     </div>
                   </>
                 ) : isBusinessSource ? (

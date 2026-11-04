@@ -27,8 +27,10 @@ import { useClientLookup } from '../common/useClientLookup';
 import { ExistingClientAlertModal } from '../common/ExistingClientAlertModal';
 import { validateBdPhone } from '../common/phoneValidator';
 import { ExistingClientSelector } from '@/components/common/ClientSelectorAndLineItems';
+import { DocumentNumberField } from '../common/DocumentNumberField';
+import { StudioSectionHeader } from '../common/StudioSectionHeader';
 
-export function InvoiceForm({ data, onChange, onSubmit, onReset, isSubmitting = false, isLocked = false }) {
+export function InvoiceForm({ data, onChange, onSubmit, onReset, isSubmitting = false, isLocked = false, onNumberStateChange = null }) {
   const [detectedMatch, setDetectedMatch] = useState(null);
   const [phoneTouched, setPhoneTouched] = useState(false);
 
@@ -137,21 +139,14 @@ export function InvoiceForm({ data, onChange, onSubmit, onReset, isSubmitting = 
       {/* Meta Bar: Invoice No, Dates & Payment Status */}
       <div className="bg-muted/30 border border-border p-4 rounded-xl space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="block font-bold text-foreground">Invoice No.</label>
-              <span className="text-[10px] font-semibold text-muted-foreground bg-muted px-1.5 py-0.5 rounded border border-border">
-                Auto-generated
-              </span>
-            </div>
-            <input
-              type="text"
-              value={data.invoiceNo || 'Auto-generated'}
-              readOnly
-              disabled
-              className="w-full px-3 py-2 bg-muted/60 border border-border rounded-xl text-muted-foreground font-mono font-bold text-xs cursor-not-allowed select-none outline-none"
-            />
-          </div>
+          <DocumentNumberField
+            label="Invoice No."
+            docType="invoice"
+            value={data.invoiceNo || ''}
+            excludeId={data.savedDocId || ''}
+            onChange={(next) => onChange((prev) => ({ ...prev, invoiceNo: next }))}
+            onAvailabilityChange={onNumberStateChange}
+          />
 
           <div>
             <label className="block font-bold text-foreground mb-1">Issue Date</label>
@@ -200,10 +195,7 @@ export function InvoiceForm({ data, onChange, onSubmit, onReset, isSubmitting = 
 
       {/* Section 1: Client & Organization Details */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2 bg-sky-600 hover:bg-sky-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
-          <User className="w-4 h-4 text-sky-200" />
-          <span>1. Billed To (Client &amp; Organization Details)</span>
-        </div>
+        <StudioSectionHeader icon={User} title="1. Billed To (Client & Organization Details)" />
 
         {/* Existing Client Selector */}
         <ExistingClientSelector
@@ -237,7 +229,7 @@ export function InvoiceForm({ data, onChange, onSubmit, onReset, isSubmitting = 
               value={data.client?.name || ''}
               placeholder="Enter recipient / client name"
               onChange={(e) => handleClientChange('name', e.target.value)}
-              className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-semibold text-xs focus:ring-2 focus:ring-sky-400/40 outline-none disabled:opacity-70 disabled:bg-muted/40"
+              className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-semibold text-xs focus:ring-2 focus:ring-primary/20 outline-none disabled:opacity-70 disabled:bg-muted/40"
             />
           </div>
 
@@ -249,7 +241,7 @@ export function InvoiceForm({ data, onChange, onSubmit, onReset, isSubmitting = 
               value={data.client?.contactPerson || ''}
               placeholder="Enter designation / company name"
               onChange={(e) => handleClientChange('contactPerson', e.target.value)}
-              className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground text-xs focus:ring-2 focus:ring-sky-400/40 outline-none disabled:opacity-70 disabled:bg-muted/40"
+              className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground text-xs focus:ring-2 focus:ring-primary/20 outline-none disabled:opacity-70 disabled:bg-muted/40"
             />
           </div>
 
@@ -282,7 +274,7 @@ export function InvoiceForm({ data, onChange, onSubmit, onReset, isSubmitting = 
               value={data.client?.email || ''}
               placeholder="Enter client email address"
               onChange={(e) => handleClientChange('email', e.target.value)}
-              className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground text-xs focus:ring-2 focus:ring-sky-400/40 outline-none disabled:opacity-70 disabled:bg-muted/40"
+              className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground text-xs focus:ring-2 focus:ring-primary/20 outline-none disabled:opacity-70 disabled:bg-muted/40"
             />
           </div>
 
@@ -294,7 +286,7 @@ export function InvoiceForm({ data, onChange, onSubmit, onReset, isSubmitting = 
               value={data.client?.address || ''}
               placeholder="Enter client billing address"
               onChange={(e) => handleClientChange('address', e.target.value)}
-              className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground text-xs focus:ring-2 focus:ring-sky-400/40 outline-none disabled:opacity-70 disabled:bg-muted/40"
+              className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground text-xs focus:ring-2 focus:ring-primary/20 outline-none disabled:opacity-70 disabled:bg-muted/40"
             />
           </div>
         </div>
@@ -302,30 +294,26 @@ export function InvoiceForm({ data, onChange, onSubmit, onReset, isSubmitting = 
 
       {/* Section 2: Invoice Line Items */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between bg-sky-600 hover:bg-sky-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
-          <div className="flex items-center gap-2">
-            <Layers className="w-4 h-4 text-sky-200" />
-            <span>2. Invoice Line Items &amp; Charges</span>
-          </div>
+        <StudioSectionHeader icon={Layers} title="2. Invoice Line Items & Charges">
           <button
             type="button"
             onClick={handleAddItem}
-            className="flex items-center gap-1 bg-white/20 hover:bg-white/30 text-white font-bold text-[11px] px-3 py-1 rounded-lg transition-all cursor-pointer shadow-xs"
+            className="flex shrink-0 items-center gap-1 rounded-lg border border-border bg-background px-3 py-1 text-[11px] font-bold text-foreground transition-colors hover:bg-muted cursor-pointer"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-3.5 h-3.5 text-primary" />
             <span>Add Item</span>
           </button>
-        </div>
+        </StudioSectionHeader>
 
         <div className="space-y-2.5">
           {items.map((item, idx) => (
             <div
               key={item.id || idx}
-              className="bg-muted/20 border border-border p-3.5 rounded-xl space-y-2.5 text-xs transition-all hover:border-sky-400/50"
+              className="bg-muted/20 border border-border p-3.5 rounded-xl space-y-2.5 text-xs transition-all hover:border-primary/50"
             >
               <div className="flex items-center justify-between border-b border-border/40 pb-1.5">
                 <span className="font-bold text-foreground text-xs flex items-center gap-1.5">
-                  <span className="size-5 rounded-full bg-sky-500/20 text-sky-700 flex items-center justify-center font-mono text-[10px]">
+                  <span className="size-5 rounded-full bg-primary/10 text-primary flex items-center justify-center font-mono text-[10px]">
                     {idx + 1}
                   </span>
                   Item #{idx + 1}
@@ -352,7 +340,7 @@ export function InvoiceForm({ data, onChange, onSubmit, onReset, isSubmitting = 
                     value={item.title || ''}
                     placeholder="Enter item description"
                     onChange={(e) => handleUpdateItem(item.id, 'title', e.target.value)}
-                    className="w-full bg-background border border-border rounded-lg px-3 py-1.5 text-foreground font-semibold text-xs focus:ring-2 focus:ring-sky-400/40 outline-none"
+                    className="w-full bg-background border border-border rounded-lg px-3 py-1.5 text-foreground font-semibold text-xs focus:ring-2 focus:ring-primary/20 outline-none"
                   />
                 </div>
 
@@ -363,7 +351,7 @@ export function InvoiceForm({ data, onChange, onSubmit, onReset, isSubmitting = 
                     value={item.description || ''}
                     placeholder="Enter item notes / specifications"
                     onChange={(e) => handleUpdateItem(item.id, 'description', e.target.value)}
-                    className="w-full bg-background border border-border rounded-lg px-3 py-1.5 text-foreground text-xs focus:ring-2 focus:ring-sky-400/40 outline-none"
+                    className="w-full bg-background border border-border rounded-lg px-3 py-1.5 text-foreground text-xs focus:ring-2 focus:ring-primary/20 outline-none"
                   />
                 </div>
 
@@ -374,7 +362,7 @@ export function InvoiceForm({ data, onChange, onSubmit, onReset, isSubmitting = 
                     min="1"
                     value={item.quantity !== undefined && item.quantity !== null ? item.quantity : 1}
                     onChange={(e) => handleUpdateItem(item.id, 'quantity', e.target.value !== '' ? parseFloat(e.target.value) : 1)}
-                    className="w-full bg-background border border-border rounded-lg px-3 py-1.5 text-foreground font-mono text-xs focus:ring-2 focus:ring-sky-400/40 outline-none"
+                    className="w-full bg-background border border-border rounded-lg px-3 py-1.5 text-foreground font-mono text-xs focus:ring-2 focus:ring-primary/20 outline-none"
                   />
                 </div>
 
@@ -387,7 +375,7 @@ export function InvoiceForm({ data, onChange, onSubmit, onReset, isSubmitting = 
                     value={item.unitPrice || ''}
                     placeholder="0"
                     onChange={(e) => handleUpdateItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
-                    className="w-full bg-background border border-border rounded-lg px-3 py-1.5 text-foreground font-mono font-bold text-xs focus:ring-2 focus:ring-sky-400/40 outline-none"
+                    className="w-full bg-background border border-border rounded-lg px-3 py-1.5 text-foreground font-mono font-bold text-xs focus:ring-2 focus:ring-primary/20 outline-none"
                   />
                 </div>
               </div>
@@ -398,10 +386,7 @@ export function InvoiceForm({ data, onChange, onSubmit, onReset, isSubmitting = 
 
       {/* Section 3: Tax, Terms & Financial Totals */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2 bg-sky-600 hover:bg-sky-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
-          <DollarSign className="w-4 h-4 text-sky-200" />
-          <span>3. VAT, Payment Terms &amp; Grand Total</span>
-        </div>
+        <StudioSectionHeader icon={DollarSign} title="3. VAT, Payment Terms & Grand Total" />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
           <div className="space-y-3">
@@ -414,7 +399,7 @@ export function InvoiceForm({ data, onChange, onSubmit, onReset, isSubmitting = 
                 value={data.taxRate || ''}
                 placeholder="0"
                 onChange={(e) => onChange({ ...data, taxRate: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-mono text-xs focus:ring-2 focus:ring-sky-400/40 outline-none"
+                className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-mono text-xs focus:ring-2 focus:ring-primary/20 outline-none"
               />
             </div>
 
@@ -425,7 +410,7 @@ export function InvoiceForm({ data, onChange, onSubmit, onReset, isSubmitting = 
                 value={data.paymentTerms || ''}
                 placeholder="Enter payment terms & instructions..."
                 onChange={(e) => onChange({ ...data, paymentTerms: e.target.value })}
-                className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground text-xs focus:ring-2 focus:ring-sky-400/40 outline-none resize-none"
+                className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground text-xs focus:ring-2 focus:ring-primary/20 outline-none resize-none"
               />
             </div>
           </div>
@@ -475,14 +460,10 @@ export function InvoiceForm({ data, onChange, onSubmit, onReset, isSubmitting = 
 
       {/* Action Footer Controls */}
       <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-4 border-t border-border">
-        <button
-          type="button"
-          onClick={handleSubmit}
-          className="w-full sm:w-auto flex items-center justify-center gap-2 bg-muted hover:bg-muted/80 text-foreground px-5 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer shadow-xs"
-        >
-          <Eye className="w-4 h-4 text-primary" />
-          <span>Preview Invoice</span>
-        </button>
+        <span className="mr-auto hidden items-center gap-1.5 text-[11px] font-medium text-muted-foreground sm:flex">
+          <Eye className="w-3.5 h-3.5" />
+          Use the View switcher at the bottom to preview without saving.
+        </span>
 
         <button
           type="button"

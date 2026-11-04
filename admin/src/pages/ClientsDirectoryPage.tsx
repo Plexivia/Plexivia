@@ -7,8 +7,9 @@ import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import * as MenuUi from '@/components/ui/dropdown-menu';
 import { CreateClientModal } from '../components/modals/CreateClientModal';
 import { CreateProjectModal } from '../components/modals/CreateProjectModal';
+import { ClientPaymentActionModal } from '../components/modals/ClientPaymentActionModal';
 import { Client } from '../types';
-import { Building2, Plus, Trash2, Pencil, Eye, MoreHorizontal, MessageCircle, Copy, Check } from 'lucide-react';
+import { Building2, Plus, Trash2, Pencil, Eye, MoreHorizontal, MessageCircle, Copy, Check, BanknoteArrowUp } from 'lucide-react';
 
 // The JSX dropdown primitives carry no prop types, so treat them as loosely typed components
 const DropdownMenu = MenuUi.DropdownMenu as React.FC<any>;
@@ -73,6 +74,7 @@ export const ClientsDirectoryPage: React.FC = () => {
   const [viewTarget, setViewTarget] = useState<Client | null>(null);
   const [editTarget, setEditTarget] = useState<Client | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Client | null>(null);
+  const [paymentTarget, setPaymentTarget] = useState<Client | null>(null);
 
   const safeClients = Array.isArray(clients) ? clients : [];
   const safeProjects = Array.isArray(projects) ? projects : [];
@@ -136,6 +138,10 @@ export const ClientsDirectoryPage: React.FC = () => {
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setEditTarget(c)} className="cursor-pointer">
                   <Pencil className="text-muted-foreground" /> Edit
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setPaymentTarget(c)} className="cursor-pointer">
+                  <BanknoteArrowUp className="text-muted-foreground" /> Add Payment
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem variant="destructive" onClick={() => setDeleteTarget(c)} className="cursor-pointer">
@@ -234,6 +240,9 @@ export const ClientsDirectoryPage: React.FC = () => {
         isOpen={isCreateProjectOpen}
         onClose={() => setIsCreateProjectOpen(false)}
       />
+
+      {/* Asks whether to issue a receipt (money in hand) or an invoice (not yet paid) */}
+      <ClientPaymentActionModal client={paymentTarget} onClose={() => setPaymentTarget(null)} />
     </div>
   );
 };

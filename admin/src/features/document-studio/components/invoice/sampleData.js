@@ -1,6 +1,8 @@
-import agencyInfo from '@/lib/information.json';
+import { getStudioBrand } from '../common/useStudioBrand';
+import { getDocumentDefaults } from '../common/useStudioBrand';
 
 export function generateUniqueInvoiceNo() {
+  const prefix = (getDocumentDefaults().invoicePrefix || 'PX-INV').replace(/-+$/, '');
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const getChar = () => letters.charAt(Math.floor(Math.random() * letters.length));
   const getDigits = (len) => {
@@ -14,18 +16,21 @@ export function generateUniqueInvoiceNo() {
   const midLetter = getChar();
   const lastDigits = getDigits(3);
 
-  return `I-${prefixLetters}${firstDigits}${midLetter}${lastDigits}`;
+  return `${prefix}-${prefixLetters}${firstDigits}${midLetter}${lastDigits}`;
 }
 
 export function getDefaultInvoiceData() {
+  const agencyInfo = getStudioBrand();
+  const defaults = getDocumentDefaults();
   return {
     _id: null,
+    savedDocId: null,
     invoiceNo: generateUniqueInvoiceNo(),
     issueDate: new Date().toISOString().split('T')[0],
-    dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    paymentStatus: "Paid", // 'Paid' | 'Pending' | 'Overdue'
-    currency: "BDT",
-    taxRate: 0,
+    dueDate: new Date(Date.now() + (defaults.invoiceDueDays || 15) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    paymentStatus: "Pending", // 'Paid' | 'Pending' | 'Overdue'
+    currency: defaults.currency || "BDT",
+    taxRate: defaults.defaultTaxRate || 0,
 
     biller: {
       name: agencyInfo.agencyName?.toUpperCase() || "PLEXIVIA",
@@ -54,7 +59,7 @@ export function getDefaultInvoiceData() {
       }
     ],
 
-    paymentTerms: "Payment due within 15 days of invoice date. Bank Wire Transfer to Islami Bank Bangladesh."
+    paymentTerms: defaults.paymentTerms || `Payment due within ${defaults.invoiceDueDays || 15} days of the invoice date.`
   };
 }
 

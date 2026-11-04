@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import QRCode from 'qrcode';
-import agencyInfo from '@/lib/information.json';
-import logoImg from '@/assets/logo.png';
 import { PrintablePaper } from '../common/PrintablePaper';
 import { Globe, MapPin, Phone } from 'lucide-react';
+import { useStudioBrand } from '../common/useStudioBrand';
 
 /**
  * CashVoucherPreview
@@ -11,6 +10,8 @@ import { Globe, MapPin, Phone } from 'lucide-react';
  * Matches design from physical sample: bilingual header, QR, table, totals, 3-signature footer
  */
 export function CashVoucherPreview({ data = {} }) {
+  const agencyInfo = useStudioBrand();
+  const logoImg = agencyInfo.logo;
   const [liveQr, setLiveQr] = useState('');
 
   const voucherNo = data?.voucherNo || 'MAT-KV-000000';

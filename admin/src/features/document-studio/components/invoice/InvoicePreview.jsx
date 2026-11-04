@@ -2,12 +2,14 @@ import React from 'react';
 import { PrintablePaper } from '../common/PrintablePaper';
 import { Printer, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import logoImg from '@/assets/logo.png';
 import { formatToDdMmYyyy, printDocument } from '@/lib/utils';
-import agencyInfo from '@/lib/information.json';
+
 import { API_BASE_URL } from '@/lib/api-client';
+import { useStudioBrand } from '../common/useStudioBrand';
 
 export function InvoicePreview({ data = {}, onPrint }) {
+  const agencyInfo = useStudioBrand();
+  const logoImg = agencyInfo.logo;
   const {
     invoiceNo = 'INV-0000',
     issueDate = new Date().toISOString(),

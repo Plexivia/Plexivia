@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Receipt,
   User,
@@ -17,7 +17,8 @@ import {
 } from 'lucide-react';
 import { BdPhoneInput } from '@/components/common/BdPhoneInput';
 import { DatePicker } from '@/components/ui/date-picker';
-import { PAYMENT_METHODS, SERVICE_PURPOSES, numberToWords } from './sampleData';
+import { SERVICE_PURPOSES, numberToWords } from './sampleData';
+import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
@@ -25,16 +26,27 @@ import { useClientLookup } from '../common/useClientLookup';
 import { ExistingClientAlertModal } from '../common/ExistingClientAlertModal';
 import { validateBdPhone } from '../common/phoneValidator';
 import { ExistingClientSelector } from '@/components/common/ClientSelectorAndLineItems';
+import { DocumentNumberField } from '../common/DocumentNumberField';
+import { StudioSectionHeader } from '../common/StudioSectionHeader';
+import { usePaymentMethodOptions } from '../common/useStudioLookups';
 
-export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, isSubmitting, isLocked = false }) {
+export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, isSubmitting, isLocked = false, onNumberStateChange = null }) {
   const { t } = useTranslation();
   const [detectedMatch, setDetectedMatch] = useState(null);
   const [phoneTouched, setPhoneTouched] = useState(false);
   const [dateMode, setDateMode] = useState('auto'); // 'auto' | 'custom'
+  // Payment methods exactly as configured under Accounts -> Payment Methods
+  const { options: methodOptions, defaultMethod, loading: methodsLoading } = usePaymentMethodOptions();
 
   const { triggerLookup, resetLookup } = useClientLookup({
     onClientFound: (client, caseFile) => setDetectedMatch({ client, caseFile }),
   });
+
+  // Start on the method marked default in Accounts, once the list has loaded
+  useEffect(() => {
+    if (!defaultMethod) return;
+    onChange((prev) => (prev.paymentMethod ? prev : { ...prev, paymentMethod: defaultMethod.name }));
+  }, [defaultMethod]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleFieldChange = (field, value) => {
     onChange((prev) => ({ ...prev, [field]: value }));
@@ -122,9 +134,9 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
 
       {/* Meta Bar: Date, Time & Print Layout */}
       <div className="bg-muted/30 border border-border p-4 rounded-xl space-y-3">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center text-xs">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:items-end text-xs">
           {/* Date & Time Selection with Radio Options */}
-          <div className="md:col-span-8 flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="md:col-span-12 lg:col-span-4 flex flex-col sm:flex-row sm:items-center gap-3">
             <div className="flex items-center gap-3 bg-background/90 p-2 rounded-xl border border-border shrink-0">
               <label className="flex items-center gap-1.5 cursor-pointer font-bold text-foreground">
                 <input
@@ -180,8 +192,20 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
             )}
           </div>
 
+          {/* Receipt number - type one or press the wand for a fresh one */}
+          <div className="md:col-span-6 lg:col-span-4">
+            <DocumentNumberField
+              label="Receipt No."
+              docType="money-receipt"
+              value={data.receiptNo || ''}
+              excludeId={data.savedDocId || ''}
+              onChange={(next) => onChange((prev) => ({ ...prev, receiptNo: next }))}
+              onAvailabilityChange={onNumberStateChange}
+            />
+          </div>
+
           {/* Print Layout Format */}
-          <div className="md:col-span-4">
+          <div className="md:col-span-6 lg:col-span-4">
             <label className="block font-bold text-foreground mb-1">Print Layout Format</label>
             <select
               value={data.dualPrint !== false ? 'dual' : 'single'}
@@ -197,10 +221,7 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
 
       {/* Section 1: Passenger / Client Details */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2 bg-[#0B3A60] text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
-          <User className="w-4 h-4 text-sky-200" />
-          <span>1. Client &amp; Passenger Information</span>
-        </div>
+        <StudioSectionHeader icon={User} title="1. Client Information" />
 
         {/* Existing Client Selector */}
         <ExistingClientSelector
@@ -233,7 +254,7 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
               value={data.clientName || ''}
               placeholder="Enter recipient / client name"
               onChange={(e) => handleFieldChange('clientName', e.target.value)}
-              className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-semibold text-xs focus:ring-2 focus:ring-sky-400/40 outline-none disabled:opacity-70 disabled:bg-muted/40"
+              className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-semibold text-xs focus:ring-2 focus:ring-primary/20 outline-none disabled:opacity-70 disabled:bg-muted/40"
             />
           </div>
 
@@ -245,7 +266,7 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
               value={data.passportNumber || ''}
               placeholder="Enter passport number"
               onChange={(e) => handleFieldChange('passportNumber', e.target.value)}
-              className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-mono font-medium text-xs focus:ring-2 focus:ring-sky-400/40 outline-none disabled:opacity-70 disabled:bg-muted/40"
+              className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-mono font-medium text-xs focus:ring-2 focus:ring-primary/20 outline-none disabled:opacity-70 disabled:bg-muted/40"
             />
           </div>
 
@@ -274,10 +295,7 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
 
       {/* Section 2: Service Purpose & Authorizer */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2 bg-[#0B3A60] text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
-          <Layers className="w-4 h-4 text-sky-200" />
-          <span>2. Purpose, Service Head &amp; Officer</span>
-        </div>
+        <StudioSectionHeader icon={Layers} title="2. Purpose, Service Head & Officer" />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
           <div>
@@ -288,7 +306,7 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
               value={data.purpose || ''}
               placeholder="Enter payment purpose / description"
               onChange={(e) => handleFieldChange('purpose', e.target.value)}
-              className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-medium text-xs focus:ring-2 focus:ring-sky-400/40 outline-none"
+              className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-medium text-xs focus:ring-2 focus:ring-primary/20 outline-none"
             />
             <datalist id="service-purpose-options">
               {SERVICE_PURPOSES.map((sp, idx) => (
@@ -305,14 +323,14 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
                 value={data.receivedBy || ''}
                 placeholder="Enter recipient officer name"
                 onChange={(e) => handleFieldChange('receivedBy', e.target.value)}
-                className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-medium text-xs focus:ring-2 focus:ring-sky-400/40 outline-none"
+                className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-medium text-xs focus:ring-2 focus:ring-primary/20 outline-none"
               />
               <input
                 type="text"
                 value={data.receivedByRole || ''}
                 placeholder="Enter officer designation / role"
                 onChange={(e) => handleFieldChange('receivedByRole', e.target.value)}
-                className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground text-xs focus:ring-2 focus:ring-sky-400/40 outline-none"
+                className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground text-xs focus:ring-2 focus:ring-primary/20 outline-none"
               />
             </div>
           </div>
@@ -321,36 +339,47 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
 
       {/* Section 3: Payment & Amount */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2 bg-[#0B3A60] text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
-          <DollarSign className="w-4 h-4 text-sky-200" />
-          <span>3. Payment Method &amp; Amount Breakdown</span>
-        </div>
+        <StudioSectionHeader icon={DollarSign} title="3. Payment Method & Amount Breakdown" />
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs bg-muted/20 p-4 rounded-xl border border-border">
           <div>
-            <label className="block font-bold text-foreground mb-1.5">Payment Method</label>
-            <div className="space-y-1.5">
-              {PAYMENT_METHODS.map((pm) => (
-                <label
-                  key={pm.id}
-                  className={`flex items-center gap-2 p-2 rounded-xl border text-xs cursor-pointer transition-all ${
-                    data.paymentMethod === pm.id
-                      ? 'bg-primary/10 border-primary text-primary font-bold'
-                      : 'bg-background border-border text-foreground hover:bg-muted'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value={pm.id}
-                    checked={data.paymentMethod === pm.id}
-                    onChange={(e) => handleFieldChange('paymentMethod', e.target.value)}
-                    className="accent-primary"
-                  />
-                  <span>{pm.label}</span>
-                </label>
-              ))}
+            <div className="mb-1.5 flex items-center justify-between">
+              <label className="block font-bold text-foreground">Payment Method</label>
+              <Link to="/accounts/payments/methods" className="text-[10px] font-semibold text-primary hover:underline">
+                Manage
+              </Link>
             </div>
+            {methodOptions.length > 0 ? (
+              <div className="space-y-1.5">
+                {methodOptions.map((pm) => (
+                  <label
+                    key={pm.value}
+                    className={`flex items-center gap-2 p-2 rounded-xl border text-xs cursor-pointer transition-all ${
+                      data.paymentMethod === pm.value
+                        ? 'bg-primary/10 border-primary text-primary font-bold'
+                        : 'bg-background border-border text-foreground hover:bg-muted'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value={pm.value}
+                      checked={data.paymentMethod === pm.value}
+                      onChange={(e) => handleFieldChange('paymentMethod', e.target.value)}
+                      className="accent-primary"
+                    />
+                    <span className="min-w-0 flex-1 truncate">{pm.label}</span>
+                    {pm.badge && <span className="shrink-0 text-[9px] font-bold text-muted-foreground">{pm.badge}</span>}
+                  </label>
+                ))}
+              </div>
+            ) : (
+              <p className="rounded-xl border border-dashed border-border bg-muted/30 p-3 text-[11px] text-muted-foreground">
+                {methodsLoading
+                  ? 'Loading payment methods...'
+                  : 'No payment methods yet. Add them under Accounts, Payment Methods, and they show up here.'}
+              </p>
+            )}
           </div>
 
           <div className="sm:col-span-2 space-y-3">
@@ -363,7 +392,7 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
                   value={data.amount || ''}
                   placeholder="0.00"
                   onChange={(e) => handleFieldChange('amount', e.target.value)}
-                  className="w-full pl-14 pr-3 py-2 bg-background border border-border rounded-xl text-foreground font-mono font-bold text-sm focus:ring-2 focus:ring-sky-400/40 outline-none"
+                  className="w-full pl-14 pr-3 py-2 bg-background border border-border rounded-xl text-foreground font-mono font-bold text-sm focus:ring-2 focus:ring-primary/20 outline-none"
                 />
               </div>
             </div>
@@ -375,7 +404,7 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
                 value={data.amountInWords || ''}
                 placeholder="Enter amount in words"
                 onChange={(e) => handleFieldChange('amountInWords', e.target.value)}
-                className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-medium text-xs italic focus:ring-2 focus:ring-sky-400/40 outline-none"
+                className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-medium text-xs italic focus:ring-2 focus:ring-primary/20 outline-none"
               />
             </div>
           </div>
@@ -384,10 +413,7 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
 
       {/* Section 4: Signatures & Authorizations */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2 bg-[#0B3A60] text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs">
-          <FileText className="w-4 h-4 text-sky-200" />
-          <span>4. Signatures &amp; Approvals</span>
-        </div>
+        <StudioSectionHeader icon={FileText} title="4. Signatures & Approvals" />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
           <div>
@@ -438,14 +464,10 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
 
       {/* Form Action Controls */}
       <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-4 border-t border-border">
-        <button
-          type="button"
-          onClick={handlePreviewAction}
-          className="w-full sm:w-auto flex items-center justify-center gap-2 bg-muted hover:bg-muted/80 text-foreground px-5 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer shadow-xs"
-        >
-          <Eye className="w-4 h-4 text-primary" />
-          <span>Preview Voucher</span>
-        </button>
+        <span className="mr-auto hidden items-center gap-1.5 text-[11px] font-medium text-muted-foreground sm:flex">
+          <Eye className="w-3.5 h-3.5" />
+          Use the View switcher at the bottom to preview without saving.
+        </span>
 
         <button
           type="button"

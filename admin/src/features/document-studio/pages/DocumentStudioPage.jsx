@@ -12,6 +12,26 @@ import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
 import { ShieldCheck, ArrowLeft, Lock, FileText, CheckCircle2, Loader2 } from 'lucide-react';
 
+/**
+ * A client record from the Clients directory uses `business_name` /
+ * `contact_phone`; the case-file forms below read `fullName` / `phone`. This
+ * exposes both names on one object so either source prefills the same fields.
+ */
+const normalizeClient = (client) => {
+  if (!client || typeof client !== 'object') return {};
+  const displayName = client.fullName || client.business_name || client.client_name || client.name || '';
+  return {
+    ...client,
+    fullName: displayName,
+    name: displayName,
+    contactPerson: client.contactPerson || client.client_name || displayName,
+    phone: client.phone || client.contact_phone || client.contact_whatsapp || client.mobileNumber || '',
+    email: client.email || client.contact_email || '',
+    address: client.address || client.presentAddress || client.primary_domain || '',
+    clientCode: client.clientCode || client.client_key || '',
+  };
+};
+
 // Main Document Studio routing and dossier wrapper page
 export const DocumentStudioPage = ({
   activeSubmodule: propSubmodule = undefined,
@@ -94,27 +114,21 @@ export const DocumentStudioPage = ({
         const resolvedClientRef = (clientData && typeof clientData === 'string' ? clientData : null) || clientDid || caseData?.clientDid;
         if (!clientData && resolvedClientRef) {
           try {
-            const clientRes = await apiClient.get(`/api/v1/client/clients/${resolvedClientRef}`);
+            const clientRes = await apiClient.get(`/api/agency/clients/${resolvedClientRef}`);
             if (clientRes.data?.data) {
               clientData = clientRes.data.data;
             }
-          } catch (_) {
-            try {
-              const fallbackClientRes = await apiClient.get(`/api/v1/admin/clients/${resolvedClientRef}`);
-              if (fallbackClientRes.data?.data) {
-                clientData = fallbackClientRes.data.data;
-              }
-            } catch (e) {
-              console.warn('Client fetch fallback:', e);
-            }
+          } catch (e) {
+            console.warn('Client fetch failed:', e);
           }
         }
 
         if (isMounted) {
           setDossierContext({
-            client: clientData || {},
+            client: normalizeClient(clientData),
             caseFile: caseData || {},
-            isLocked: Boolean(caseDid || clientDid || isLockedParam === 'true'),
+            // A linked client only prefills the form; only a case dossier locks the bio fields
+            isLocked: Boolean(caseDid || isLockedParam === 'true'),
           });
         }
       } catch (err) {
@@ -228,23 +242,27 @@ export const DocumentStudioPage = ({
           caseFile.initialPaidAmount ||
           '';
 
+        const hasCaseFile = Boolean(caseFile.caseNumber || caseFile.did || caseFile._id);
+
         return {
-          caseDid: caseFile.did || caseFile._id,
-          caseNumber: caseFile.caseNumber || caseNumberParam || '',
+          clientId: client.id || client._id || client.did || clientDid || '',
+          caseDid: caseFile.did || caseFile._id || client.id || clientDid || '',
+          caseNumber: caseFile.caseNumber || caseNumberParam || client.clientCode || '',
           taskId: taskIdParam || null,
           clientName: applicantFullName,
+          issueDate: new Date().toISOString().split('T')[0],
           client: {
             name: applicantFullName,
-            contactPerson: applicantFullName,
+            contactPerson: client.contactPerson || applicantFullName,
             phone: phone,
             email: client.email || caseFile.email || '',
-            address: client.presentAddress || client.address || client.permanentAddress || '',
+            address: client.address || client.presentAddress || client.permanentAddress || '',
           },
           items: [
             {
               id: 'item-1',
-              title: `${destination} - Processing & Service Charge`,
-              description: `Case File #${caseFile.caseNumber || caseNumberParam || ''} • Trade: ${trade}`,
+              title: hasCaseFile ? `${destination} - Processing & Service Charge` : '',
+              description: hasCaseFile ? `Case File #${caseFile.caseNumber || caseNumberParam || ''} • Trade: ${trade}` : '',
               quantity: 1,
               unitPrice: resolvedUnitPrice,
             },
@@ -264,16 +282,25 @@ export const DocumentStudioPage = ({
           caseFile.agreedAmount ||
           '';
 
+        const hasCaseFile = Boolean(caseFile.caseNumber || caseFile.did || caseFile._id);
+        const now = new Date();
+
         return {
-          caseDid: caseFile.did || caseFile._id,
-          caseNumber: caseFile.caseNumber || caseNumberParam || '',
+          clientId: client.id || client._id || client.did || clientDid || '',
+          caseDid: caseFile.did || caseFile._id || client.id || clientDid || '',
+          caseNumber: caseFile.caseNumber || caseNumberParam || client.clientCode || '',
           taskId: taskIdParam || null,
           clientName: applicantFullName,
+          clientDid: client.id || client._id || clientDid || '',
           phone: phone,
+          email: client.email || '',
           passportNumber: passportNumber,
-          purpose: `Visa & Case Processing Fee - ${destination} (File #${caseFile.caseNumber || caseNumberParam || ''})`,
+          purpose: hasCaseFile
+            ? `Visa & Case Processing Fee - ${destination} (File #${caseFile.caseNumber || caseNumberParam || ''})`
+            : '',
           amount: resolvedAmount,
-          date: new Date().toISOString().split('T')[0],
+          date: now.toISOString().split('T')[0],
+          time: now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
           isLocked: Boolean(dossierContext?.isLocked),
         };
       }
@@ -363,18 +390,27 @@ export const DocumentStudioPage = ({
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-sky-700 uppercase tracking-wider">
-                  Linked Case File #{dossierContext.caseFile?.caseNumber || caseNumberParam || 'CASE-DOSSIER'}
+                  {dossierContext.caseFile?.caseNumber || caseNumberParam
+                    ? `Linked Case File #${dossierContext.caseFile?.caseNumber || caseNumberParam}`
+                    : 'Linked Client'}
                 </span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.2 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-800 border border-amber-500/30">
-                  <Lock className="size-2.5" />
-                  Client Bio Locked
-                </span>
+                {dossierContext.isLocked ? (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.2 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-800 border border-amber-500/30">
+                    <Lock className="size-2.5" />
+                    Client Bio Locked
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.2 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-800 border border-emerald-500/30">
+                    <CheckCircle2 className="size-2.5" />
+                    Prefilled — editable
+                  </span>
+                )}
               </div>
               <p className="text-xs text-foreground font-semibold mt-0.5">
-                Applicant: <strong className="text-primary">{dossierContext.client?.fullName || dossierContext.caseFile?.applicantName || 'Client'}</strong>
+                Client: <strong className="text-primary">{dossierContext.client?.fullName || dossierContext.caseFile?.applicantName || 'Client'}</strong>
                 {' • '}Phone: {dossierContext.client?.phone || dossierContext.caseFile?.phone || '—'}
-                {' • '}Passport: <span className="font-mono font-bold text-sky-600">{dossierContext.caseFile?.passportNumber || dossierContext.client?.passportNumber || '—'}</span>
-                {' • '}NID: <span className="font-mono">{dossierContext.client?.nidNumber || dossierContext.caseFile?.nidNumber || '—'}</span>
+                {' • '}Email: {dossierContext.client?.email || '—'}
+                {dossierContext.client?.clientCode ? <> {' • '}Code: <span className="font-mono font-bold text-sky-600">@{dossierContext.client.clientCode}</span></> : null}
               </p>
             </div>
           </div>

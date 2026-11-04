@@ -1,16 +1,20 @@
+import { getStudioBrand, getDocumentDefaults } from '../common/useStudioBrand';
+
 // Generate unique sequential receipt number with Plexivia prefix
 export const generateReceiptNo = () => {
+  const prefix = (getDocumentDefaults().receiptPrefix || 'PX-MR').replace(/-+$/, '');
   const date = new Date();
   const yy = String(date.getFullYear()).slice(-2);
   const mm = String(date.getMonth() + 1).padStart(2, '0');
   const dd = String(date.getDate()).padStart(2, '0');
   const hex = Math.floor(0x1000 + Math.random() * 0xefff).toString(16).toUpperCase();
-  return `PLX-MR-${yy}${mm}${dd}-${hex}`;
+  return `${prefix}-${yy}${mm}${dd}-${hex}`;
 };
 
 // Generate QR code text for receipt authentication
 export const generateReceiptQrText = (receiptNo) => {
-  return `https://plexivia.com/verify/receipt/${receiptNo}`;
+  const domain = getStudioBrand().domain || 'plexivia.com';
+  return `https://${domain}/verify/receipt/${receiptNo}`;
 };
 
 // Convert numeric amount into formal currency words representation
@@ -75,8 +79,11 @@ export const SERVICE_PURPOSES = [
 
 // Return default money receipt initial dataset
 export const getDefaultMoneyReceiptData = () => {
+  const brand = getStudioBrand();
+  const defaults = getDocumentDefaults();
   return {
     _id: null,
+    savedDocId: null,
     receiptNo: generateReceiptNo(),
     date: new Date().toISOString().split('T')[0],
     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -84,9 +91,10 @@ export const getDefaultMoneyReceiptData = () => {
     passportNumber: '',
     phone: '',
     purpose: '',
-    receivedBy: 'accounts@plexivia.com',
-    receivedByRole: 'Accounts Officer',
-    paymentMethod: 'bKash',
+    receivedBy: brand.email || '',
+    receivedByRole: defaults.receiptSignatory || 'Accounts Officer',
+    // Filled from the default method configured under Accounts once it loads
+    paymentMethod: '',
     amount: '',
     amountInWords: '',
     preparedBy: 'Paid By',

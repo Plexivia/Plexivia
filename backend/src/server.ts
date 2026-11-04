@@ -4,8 +4,10 @@ import cors from 'cors';
 import apiRoutes from './routes/index.js';
 import { AVATAR_DIR } from './controllers/authController.js';
 import { ATTACHMENT_DIR } from './controllers/supportController.js';
+import { BRAND_DIR } from './controllers/settingsController.js';
 import { initDatabases, operationsDbConnection, secureDbConnection } from './config/database.js';
 import { initRealtime } from './utils/realtime.js';
+import { initVpsTerminal } from './utils/vpsTerminal.js';
 import { startImapListener } from './utils/imapSync.js';
 import { initBackupScheduler } from './utils/backupScheduler.js';
 import { initSurokkhaImportScheduler } from './utils/surokkhaBillImport.js';
@@ -34,7 +36,16 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'X-Two-Factor-Token'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Requested-With',
+    'Accept',
+    'Origin',
+    'X-Two-Factor-Token',
+    'X-Vps-Token',
+    'X-Vps-Pending',
+  ],
 }));
 
 app.use(express.json({ limit: '1mb' }));
@@ -44,6 +55,9 @@ app.use('/api/uploads/avatars', express.static(AVATAR_DIR, { index: false, fallt
 
 // Support ticket attachments (saved by POST /api/support/attachments)
 app.use('/api/uploads/support', express.static(ATTACHMENT_DIR, { index: false, fallthrough: false, setHeaders: (res) => res.setHeader('X-Content-Type-Options', 'nosniff') }));
+
+// Brand logo and app icon (saved by POST /api/settings/brand-image)
+app.use('/api/uploads/brand', express.static(BRAND_DIR, { index: false, fallthrough: false, setHeaders: (res) => res.setHeader('X-Content-Type-Options', 'nosniff') }));
 
 // API health endpoint
 app.get('/api/health', (_req, res) => {
@@ -77,6 +91,9 @@ const startServer = async () => {
 
   // Live notifications and real-time inbox
   initRealtime(server);
+
+  // Interactive root SSH terminal for the cPanel page (needs an unlocked console)
+  initVpsTerminal(server);
   if (operationsDbConnection.readyState === 1) startImapListener();
   else operationsDbConnection.once('connected', () => startImapListener());
 

@@ -4,7 +4,7 @@ import { InvoiceForm } from './InvoiceForm';
 import { InvoicePreview } from './InvoicePreview';
 import { getDefaultInvoiceData, generateUniqueInvoiceNo } from './sampleData';
 import { Download, RefreshCw, Share2, Printer, FileSpreadsheet } from 'lucide-react';
-import { apiClient } from '@/lib/api-client';
+import { studioDocumentsApi } from '@/services/settingsApi';
 import { printDocument, downloadDocumentDirect } from '@/lib/utils';
 import { toast } from 'sonner';
 import { HeaderTitle } from '@/components/common/HeaderTitle';
@@ -48,6 +48,8 @@ export function InvoiceBuilder({ initialData = null, isLocked = false, onSavedSu
 
   const [viewMode, setViewMode] = useState('edit'); // 'edit' | 'split' | 'preview'
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Reported by the invoice-number field: 'available' | 'taken' | 'checking' | ...
+  const [numberState, setNumberState] = useState('idle');
 
   useEffect(() => {
     if (initialData) {
@@ -78,78 +80,61 @@ export function InvoiceBuilder({ initialData = null, isLocked = false, onSavedSu
   };
 
   const handleFormSubmit = async () => {
+    if (!data.client?.name?.trim()) {
+      toast.error('Client name is required.');
+      return;
+    }
+    if (numberState === 'taken') {
+      toast.error('That invoice number is already used. Press the wand to generate a new one.');
+      return;
+    }
+
     const items = data.items || [];
     const subtotal = items.reduce((acc, item) => {
       const qtyNum = parseFloat(item.quantity);
       const hasQty = !isNaN(qtyNum) && qtyNum > 0;
       const priceNum = parseFloat(item.unitPrice) || 0;
-      const lineTotal = hasQty ? (qtyNum * priceNum) : priceNum;
-      return acc + lineTotal;
+      return acc + (hasQty ? qtyNum * priceNum : priceNum);
     }, 0);
     const taxAmount = (subtotal * (parseFloat(data.taxRate) || 0)) / 100;
     const grandTotal = subtotal + taxAmount;
 
-    const payload = {
-      ...data,
-      caseDid: initialData?.caseDid || incomingInvoiceData?.caseDid,
-      caseNumber: initialData?.caseNumber || incomingInvoiceData?.caseNumber,
-      subtotal,
-      taxAmount,
-      grandTotal,
+    const finalInvoiceNo = data.invoiceNo?.trim() || generateUniqueInvoiceNo();
+    const body = {
+      type: 'invoice',
+      number: finalInvoiceNo,
+      clientId: data.clientId || initialData?.clientId || '',
+      clientName: data.client?.name || '',
+      amount: grandTotal,
+      currency: data.currency || 'BDT',
+      status: data.paymentStatus || 'Pending',
+      issueDate: data.issueDate || new Date().toISOString().slice(0, 10),
+      payload: { ...data, invoiceNo: finalInvoiceNo, subtotal, taxAmount, grandTotal },
     };
-
-    if (!payload.invoiceNo) {
-      delete payload.invoiceNo;
-    }
 
     try {
       setIsSubmitting(true);
-      const isEdit = Boolean(data._id);
-      const res = isEdit
-        ? await apiClient.put(`/api/v1/client/docs/invoices/${data._id}`, payload)
-        : await apiClient.post('/api/v1/client/docs/invoices', payload);
+      const isEdit = Boolean(data.savedDocId);
+      const saved = isEdit
+        ? await studioDocumentsApi.update(data.savedDocId, body)
+        : await studioDocumentsApi.create(body);
 
-      const savedDoc = res.data?.data;
-      if ((res.data?.status === 'success' || res.data?.success) && savedDoc) {
-        const returnedInvoiceNo = savedDoc.invoiceNo || generateUniqueInvoiceNo();
-        setData((prev) => ({
-          ...prev,
-          _id: savedDoc._id,
-          invoiceNo: returnedInvoiceNo,
-          qrCode: savedDoc.qrCode || prev.qrCode || '',
-        }));
-
-        if (initialData?.caseDid) {
-          try {
-            await apiClient.post(`/api/v1/client/cases/${initialData.caseDid}/documents`, {
-              documentName: `Invoice #${returnedInvoiceNo}`,
-              fileName: `Invoice-${returnedInvoiceNo}.pdf`,
-              fileUrl: savedDoc.pdfUrl || `/api/v1/client/docs/invoices/${savedDoc._id}/pdf`,
-              fileType: 'application/pdf',
-              fileSize: '1.2 MB',
-              accessLevel: 'Public',
-            });
-          } catch (_) {}
-        }
-
-        if (onSavedSuccess) onSavedSuccess(savedDoc);
-
-        toast.success(
-          isEdit
-            ? `Invoice successfully updated! (Invoice No: ${returnedInvoiceNo})`
-            : `Invoice successfully saved to database! (Invoice No: ${returnedInvoiceNo})`
-        );
-      } else {
-        throw new Error(res.data?.message || 'Failed to save invoice to database.');
-      }
-    } catch (err) {
-      console.warn('Backend API save warning (falling back to offline preview):', err);
-      const fallbackInvoiceNo = data.invoiceNo || generateUniqueInvoiceNo();
       setData((prev) => ({
         ...prev,
-        invoiceNo: fallbackInvoiceNo,
+        savedDocId: saved.id || prev.savedDocId,
+        invoiceNo: saved.number || finalInvoiceNo,
       }));
-      toast.info(`Invoice preview ready! (Invoice No: ${fallbackInvoiceNo})`);
+
+      if (onSavedSuccess) onSavedSuccess(saved);
+      toast.success(
+        isEdit
+          ? `Invoice ${saved.number || finalInvoiceNo} updated.`
+          : `Invoice ${saved.number || finalInvoiceNo} saved.`
+      );
+    } catch (err) {
+      toast.error(
+        err?.response?.data?.message || 'Could not save the invoice. It has not been recorded.'
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -188,8 +173,9 @@ export function InvoiceBuilder({ initialData = null, isLocked = false, onSavedSu
     const taxAmount = (subtotal * (parseFloat(data.taxRate) || 0)) / 100;
     const grandTotal = subtotal + taxAmount;
 
+    const brand = getStudioBrand();
     const msg =
-      `*📄 PLEXIVIA*\n` +
+      `*📄 ${brand.brandTitle || brand.agencyName}*\n` +
       `*Invoice & Billing Details (${data.invoiceNo || 'Official Invoice'})*\n` +
       `-----------------------------------------\n` +
       `👤 *Billed To:* ${clientName}\n` +
@@ -197,9 +183,9 @@ export function InvoiceBuilder({ initialData = null, isLocked = false, onSavedSu
       `💰 *Total Amount:* BDT  ${Number(grandTotal).toLocaleString('en-IN')}\n` +
       `📌 *Status:* ${data.paymentStatus || 'Paid'}\n` +
       `📅 *Date:* ${data.issueDate || 'Today'}\n\n` +
-      `🏢 *PLEXIVIA*\n` +
-      `📍 Mominpur Jagannathpur Road, Sunamganj, Post Code 3060\n` +
-      `📞 Contact Helpline: +8801345579534`;
+      `🏢 *${brand.agencyName}*\n` +
+      `📍 ${brand.address.full}\n` +
+      `📞 Contact Helpline: ${brand.phone}`;
 
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
   };
@@ -263,6 +249,7 @@ export function InvoiceBuilder({ initialData = null, isLocked = false, onSavedSu
             onReset={handleReset}
             isSubmitting={isSubmitting}
             isLocked={isLocked}
+            onNumberStateChange={setNumberState}
           />
           <div className="hidden print:block w-full">
             <InvoicePreview data={data} />

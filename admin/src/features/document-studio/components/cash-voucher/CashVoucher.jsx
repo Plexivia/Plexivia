@@ -4,7 +4,7 @@ import { CashVoucherPreview } from './CashVoucherPreview';
 import { getDefaultCashVoucherData, generateVoucherNo } from './sampleData';
 import { Download, RefreshCw, Share2, Printer, Receipt } from 'lucide-react';
 import { toast } from 'sonner';
-import { apiClient } from '@/lib/api-client';
+import { studioDocumentsApi } from '@/services/settingsApi';
 import { printDocument, downloadDocumentDirect } from '@/lib/utils';
 import { HeaderTitle } from '@/components/common/HeaderTitle';
 import { StudioFloatingViewSwitcher } from '../common/StudioFloatingViewSwitcher';
@@ -36,53 +36,55 @@ export function CashVoucher({ initialData = null, isLocked = false, onSavedSucce
 
   const handleFormSubmit = async () => {
     if (!data.items || data.items.length === 0) {
-      toast.error('Please add at least one expense item!');
+      toast.error('Add at least one expense item.');
       return;
     }
     if (!data.grandTotal || Number(data.grandTotal) <= 0) {
-      toast.error('Grand Total must be greater than zero!');
+      toast.error('The grand total must be greater than zero.');
       return;
     }
 
+    const finalVoucherNo = data.voucherNo?.trim() || generateVoucherNo();
+    const body = {
+      type: 'cash-voucher',
+      number: finalVoucherNo,
+      clientName: data.paidTo || data.receivedBy || '',
+      paymentMethod: data.paymentMethod || '',
+      amount: Number(data.grandTotal || 0),
+      status: 'Paid',
+      issueDate: data.date || new Date().toISOString().slice(0, 10),
+      payload: {
+        ...data,
+        voucherNo: finalVoucherNo,
+        subtotal: Number(data.subtotal || 0),
+        taxVat: Number(data.taxVat || 0),
+        grandTotal: Number(data.grandTotal || 0),
+      },
+    };
+
     try {
       setIsSubmitting(true);
-      const isEdit = Boolean(data._id);
-      const payload = {
-        ...data,
-        subtotal:   Number(data.subtotal   || 0),
-        taxVat:     Number(data.taxVat     || 0),
-        grandTotal: Number(data.grandTotal || 0),
-      };
+      const isEdit = Boolean(data.savedDocId);
+      const saved = isEdit
+        ? await studioDocumentsApi.update(data.savedDocId, body)
+        : await studioDocumentsApi.create(body);
 
-      const res = isEdit
-        ? await apiClient.put(`/api/v1/client/cash-vouchers/${data._id}`, payload)
-        : await apiClient.post('/api/v1/client/cash-vouchers', payload);
+      setData((prev) => ({
+        ...prev,
+        savedDocId: saved.id || prev.savedDocId,
+        voucherNo: saved.number || finalVoucherNo,
+      }));
 
-      const saved = res.data?.data;
-      if (res.data?.success || res.data?.status === 'success' || saved) {
-        const returnedNo = saved?.voucherNo || data.voucherNo || generateVoucherNo();
-        setData((prev) => ({
-          ...prev,
-          ...saved,
-          _id:       saved?._id       || prev._id,
-          voucherNo: returnedNo,
-          qrCode:    saved?.qrCode    || prev.qrCode,
-          did:       saved?.did       || prev.did,
-        }));
-        toast.success(
-          isEdit
-            ? `Cash voucher #${returnedNo} updated successfully!`
-            : `Cash voucher #${returnedNo} saved to database!`
-        );
-        if (onSavedSuccess) {
-          onSavedSuccess(saved);
-        }
-      } else {
-        throw new Error(res.data?.message || 'Failed to save cash voucher.');
-      }
+      if (onSavedSuccess) onSavedSuccess(saved);
+      toast.success(
+        isEdit
+          ? `Cash voucher ${saved.number || finalVoucherNo} updated.`
+          : `Cash voucher ${saved.number || finalVoucherNo} saved.`
+      );
     } catch (err) {
-      console.error('Cash voucher save error:', err);
-      toast.error(err.response?.data?.message || err.message || 'Failed to save cash voucher.');
+      toast.error(
+        err?.response?.data?.message || 'Could not save the cash voucher. It has not been recorded.'
+      );
     } finally {
       setIsSubmitting(false);
     }
