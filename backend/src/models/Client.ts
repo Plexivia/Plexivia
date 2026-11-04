@@ -23,6 +23,10 @@ export interface IClient extends Document {
   services: string[];
   projects: IClientProjectRef[];
   status: 'ACTIVE' | 'PENDING' | 'SUSPENDED';
+  // Support Desk API key: "<dId>.<secret>" is issued once; only its scrypt hash is kept
+  support_key_hash?: string;
+  support_key_prefix?: string;
+  support_key_created_at?: string;
   created_at: string;
   updated_at: string;
 }
@@ -59,6 +63,9 @@ const ClientSchema = new Schema<IClient>(
     services: { type: [String], default: [] },
     projects: { type: [ClientProjectRefSchema], default: [] },
     status: { type: String, enum: ['ACTIVE', 'PENDING', 'SUSPENDED'], default: 'ACTIVE' },
+    support_key_hash: { type: String },
+    support_key_prefix: { type: String },
+    support_key_created_at: { type: String },
     created_at: { type: String, default: () => new Date().toISOString() },
     updated_at: { type: String, default: () => new Date().toISOString() },
   },

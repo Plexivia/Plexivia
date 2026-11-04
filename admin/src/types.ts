@@ -60,6 +60,8 @@ export interface Client {
   contact_phone?: string;
   contact_whatsapp?: string;
   projects_count?: number;
+  support_key_prefix?: string;
+  support_key_created_at?: string;
   created_at?: string;
 }
 

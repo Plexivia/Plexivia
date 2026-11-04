@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Modal } from '../common/Modal';
 import { useData } from '../../context/DataContext';
 import { Client, ClientStatus } from '../../types';
-import { Building2, Globe, Mail, Phone, MessageCircle, User } from 'lucide-react';
+import { Building2, Globe, Mail, Phone, MessageCircle, User, KeyRound, Copy, Check, ShieldOff } from 'lucide-react';
+import { clientSupportKeyApi, apiErrorMessage } from '../../services/supportApi';
+import { toast } from 'sonner';
 
 interface CreateClientModalProps {
   isOpen: boolean;
@@ -23,6 +25,48 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
   const [contactPhone, setContactPhone] = useState('');
   const [contactWhatsapp, setContactWhatsapp] = useState('');
   const [loading, setLoading] = useState(false);
+  const [keyBusy, setKeyBusy] = useState(false);
+  const [newRawKey, setNewRawKey] = useState('');
+  const [copied, setCopied] = useState(false);
+  const [keyPrefix, setKeyPrefix] = useState('');
+
+  // Issues a new Support Desk API key for this client; the raw value is shown once, then discarded
+  const handleGenerateKey = async () => {
+    if (!client) return;
+    setKeyBusy(true);
+    try {
+      const data = await clientSupportKeyApi.generate(client.id || (client as any).dId);
+      setNewRawKey(data.key);
+      setKeyPrefix(data.prefix);
+      setCopied(false);
+    } catch (err) {
+      toast.error(apiErrorMessage(err, 'Failed to generate support key'));
+    } finally {
+      setKeyBusy(false);
+    }
+  };
+
+  // Revokes the client's support key; their dashboard can't reach the ticket API again until a new one is issued
+  const handleRevokeKey = async () => {
+    if (!client) return;
+    setKeyBusy(true);
+    try {
+      await clientSupportKeyApi.revoke(client.id || (client as any).dId);
+      setNewRawKey('');
+      setKeyPrefix('');
+      toast.success('Support API key revoked');
+    } catch (err) {
+      toast.error(apiErrorMessage(err, 'Failed to revoke support key'));
+    } finally {
+      setKeyBusy(false);
+    }
+  };
+
+  const handleCopyKey = () => {
+    navigator.clipboard.writeText(newRawKey);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   // Fill the form from the client being edited, or reset it for a new client
   useEffect(() => {
@@ -34,6 +78,8 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
     setContactEmail(client?.contact_email || '');
     setContactPhone(client?.contact_phone || '');
     setContactWhatsapp(client?.contact_whatsapp || '');
+    setNewRawKey('');
+    setKeyPrefix(client?.support_key_prefix || '');
   }, [isOpen, client]);
 
   // Auto-generate client slug from business name
@@ -213,6 +259,56 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({ isOpen, on
           </div>
         </div>
         </fieldset>
+
+        {isEdit && !readOnly && (
+          <div className="rounded-lg border border-slate-200 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-950 p-4 space-y-2.5">
+            <div className="flex items-center gap-2">
+              <KeyRound className="w-4 h-4 text-cyan-500" />
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Support Desk Access</span>
+            </div>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              This key lets {businessName || 'this client'}&apos;s own dashboard submit and read its own support tickets. Give it to their developer to store
+              server-side — never ship it in client-side JS.
+            </p>
+
+            {newRawKey ? (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 p-2.5 rounded-md bg-amber-500/10 border border-amber-500/30">
+                  <code className="flex-1 min-w-0 truncate text-[11px] font-mono text-amber-700 dark:text-amber-400">{newRawKey}</code>
+                  <button type="button" onClick={handleCopyKey} className="shrink-0 p-1 text-amber-600 hover:text-amber-500 cursor-pointer" title="Copy">
+                    {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+                <p className="text-[11px] text-amber-600 dark:text-amber-400 font-medium">Copy this now — it will not be shown again.</p>
+              </div>
+            ) : keyPrefix ? (
+              <p className="text-[11px] font-mono text-slate-500">Active key: ••••••••{keyPrefix}••••••••</p>
+            ) : (
+              <p className="text-[11px] text-slate-500">No support key issued yet.</p>
+            )}
+
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                disabled={keyBusy}
+                onClick={handleGenerateKey}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold text-cyan-700 dark:text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/20 rounded-md cursor-pointer disabled:opacity-50"
+              >
+                <KeyRound className="w-3.5 h-3.5" /> {keyPrefix || newRawKey ? 'Regenerate Key' : 'Generate Key'}
+              </button>
+              {(keyPrefix || newRawKey) && (
+                <button
+                  type="button"
+                  disabled={keyBusy}
+                  onClick={handleRevokeKey}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold text-rose-600 dark:text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 rounded-md cursor-pointer disabled:opacity-50"
+                >
+                  <ShieldOff className="w-3.5 h-3.5" /> Revoke
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
           <button

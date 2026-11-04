@@ -5,6 +5,7 @@ import agencyRouter from './agency.routes.js';
 import accountingRouter from './accounting.routes.js';
 import backupRouter from './backup.routes.js';
 import qrRouter from './qr.routes.js';
+import supportRouter from './support.routes.js';
 
 const router = Router();
 
@@ -23,6 +24,10 @@ router.use('/v1/r2-backups', backupRouter);
 // 1c. QR Codes (/api/qr/*) — /api/qr/public/:slug is unauthenticated
 router.use('/qr', qrRouter);
 router.use('/v1/qr', qrRouter);
+
+// 1d. Support Desk (/api/support/*) — client-key tickets, admin tickets, shared attachment upload
+router.use('/support', supportRouter);
+router.use('/v1/support', supportRouter);
 
 // 2. Master Hub Core Chunk (/api/hub/*)
 router.use('/hub', hubRouter);

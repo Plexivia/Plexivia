@@ -6,6 +6,8 @@ import { getSupportTicketModel, getProjectDocModel } from '../models/Hub.js';
 import { getClientVaultModel } from '../models/ClientVault.js';
 import { generateDId } from '../utils/dId.js';
 import { softDeleteOne } from '../plugins/softDelete.js';
+import { hashPassword } from '../utils/security.js';
+import crypto from 'crypto';
 
 // Retrieve all clients with optional filtering by status, keyword search, or service
 export const getClients = async (req: Request, res: Response) => {
@@ -191,6 +193,54 @@ export const deleteClient = async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message || 'Failed to delete client' });
+  }
+};
+
+// Issue (or replace) this client's Support Desk API key. The raw key is returned once and never stored —
+// only its scrypt hash is kept, so a lost key means issuing a new one, not recovering the old one.
+export const generateClientSupportKey = async (req: Request, res: Response) => {
+  try {
+    const identifier = (req.params.dId || req.params.id) as string;
+    const ClientModel = getClientModel();
+    const client = await ClientModel.findOne({ $or: [{ dId: identifier }, { id: identifier }] });
+    if (!client) {
+      return res.status(404).json({ success: false, message: `Client '${identifier}' not found` });
+    }
+
+    const secret = crypto.randomBytes(24).toString('hex');
+    const rawKey = `${client.dId}.${secret}`;
+    client.support_key_hash = hashPassword(secret);
+    client.support_key_prefix = secret.slice(0, 8);
+    client.support_key_created_at = new Date().toISOString();
+    client.updated_at = new Date().toISOString();
+    await client.save();
+
+    return res.json({
+      success: true,
+      status: 'success',
+      message: 'Support API key generated. Copy it now — it will not be shown again.',
+      data: { key: rawKey, prefix: client.support_key_prefix, created_at: client.support_key_created_at },
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message || 'Failed to generate support key' });
+  }
+};
+
+// Revoke this client's Support Desk API key; their dashboard can no longer reach the ticket API until a new one is issued
+export const revokeClientSupportKey = async (req: Request, res: Response) => {
+  try {
+    const identifier = (req.params.dId || req.params.id) as string;
+    const client = await getClientModel().findOneAndUpdate(
+      { $or: [{ dId: identifier }, { id: identifier }] },
+      { $set: { updated_at: new Date().toISOString() }, $unset: { support_key_hash: '', support_key_prefix: '', support_key_created_at: '' } },
+      { new: true }
+    );
+    if (!client) {
+      return res.status(404).json({ success: false, message: `Client '${identifier}' not found` });
+    }
+    return res.json({ success: true, status: 'success', message: 'Support API key revoked' });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message || 'Failed to revoke support key' });
   }
 };
 

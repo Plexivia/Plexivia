@@ -56,11 +56,8 @@ router.post('/activities', hubController.logActivity);
 router.get('/timelogs', hubController.getTimeLogs);
 router.post('/timelogs', hubController.createTimeLog);
 
-// Client Support & Messages
-router.get('/support/tickets', hubController.getSupportTickets);
-router.post('/support/tickets', hubController.createSupportTicket);
-router.post('/support/tickets/:ticketId/messages', hubController.addSupportTicketMessage);
-router.patch('/support/tickets/:ticketId/status', hubController.updateSupportTicketStatus);
+// Client Support & Messages: moved to routes/support.routes.ts (/api/support/*), which also
+// serves client-key-authenticated endpoints these admin-only routes never could.
 
 // Client Project Documentation
 router.get('/docs', hubController.getProjectDocs);

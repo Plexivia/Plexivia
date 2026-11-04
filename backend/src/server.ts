@@ -3,11 +3,13 @@ import express from 'express';
 import cors from 'cors';
 import apiRoutes from './routes/index.js';
 import { AVATAR_DIR } from './controllers/authController.js';
+import { ATTACHMENT_DIR } from './controllers/supportController.js';
 import { initDatabases, operationsDbConnection, secureDbConnection } from './config/database.js';
 import { initRealtime } from './utils/realtime.js';
 import { startImapListener } from './utils/imapSync.js';
 import { initBackupScheduler } from './utils/backupScheduler.js';
 import { initSurokkhaImportScheduler } from './utils/surokkhaBillImport.js';
+import { initTicketReminderScheduler } from './utils/ticketReminderScheduler.js';
 
 const app = express();
 const PORT = process.env.PORT || 5095;
@@ -39,6 +41,9 @@ app.use(express.json({ limit: '1mb' }));
 
 // Uploaded profile photos (saved by /auth/me/avatar)
 app.use('/api/uploads/avatars', express.static(AVATAR_DIR, { index: false, fallthrough: false, setHeaders: (res) => res.setHeader('X-Content-Type-Options', 'nosniff') }));
+
+// Support ticket attachments (saved by POST /api/support/attachments)
+app.use('/api/uploads/support', express.static(ATTACHMENT_DIR, { index: false, fallthrough: false, setHeaders: (res) => res.setHeader('X-Content-Type-Options', 'nosniff') }));
 
 // API health endpoint
 app.get('/api/health', (_req, res) => {
@@ -81,6 +86,9 @@ const startServer = async () => {
 
   // Nightly Surokkha store bill summary (3 AM Dhaka)
   initSurokkhaImportScheduler();
+
+  // Support Desk SLA / follow-up digest (9am & 3pm Dhaka)
+  initTicketReminderScheduler();
 };
 
 startServer();

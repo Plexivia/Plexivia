@@ -34,6 +34,8 @@ router.put('/clients/:id/domains', clientController.updateClientDomains);
 router.patch('/clients/:id/domains', clientController.updateClientDomains);
 router.get('/clients/:id/360', clientController.getClient360);
 router.get('/clients/:id/overview', clientController.getClient360);
+router.post('/clients/:id/support-key', clientController.generateClientSupportKey);
+router.delete('/clients/:id/support-key', clientController.revokeClientSupportKey);
 
 // Project Types Architecture (WhiteLabel Ecommerce, Custom, ERP)
 router.get('/project-types', projectController.getProjectTypes);
