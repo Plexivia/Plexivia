@@ -44,7 +44,7 @@ export const OverviewPage: React.FC = () => {
     setMailError('');
     const [mailRes, ticketRes] = await Promise.allSettled([
       apiClient.get('/api/v1/hub/webmail/messages', { params: { folder: 'inbox', limit: 20 } }),
-      apiClient.get('/api/v1/hub/support/tickets'),
+      apiClient.get('/api/support/tickets'),
     ]);
     if (mailRes.status === 'fulfilled') {
       setInbox(mailRes.value.data?.data || []);
@@ -134,16 +134,18 @@ export const OverviewPage: React.FC = () => {
           <ul className="divide-y divide-slate-100 dark:divide-slate-800">
             {openTickets.length === 0 && <li className="px-4 py-6 text-xs text-slate-500">No open tickets.</li>}
             {openTickets.slice(0, 6).map((t) => (
-              <li key={t.dId} className="px-4 py-2.5 flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="text-xs font-semibold text-slate-900 dark:text-white truncate">{t.subject}</div>
-                  <div className="text-[11px] text-slate-500 truncate">
-                    {t.ticket_number} · {t.client_name}
+              <li key={t.dId}>
+                <Link to={`/support/${t.dId}`} className="px-4 py-2.5 flex items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                  <div className="min-w-0">
+                    <div className="text-xs font-semibold text-slate-900 dark:text-white truncate">{t.subject}</div>
+                    <div className="text-[11px] text-slate-500 truncate">
+                      {t.ticket_number} · {t.client_name}
+                    </div>
                   </div>
-                </div>
-                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-600 dark:text-amber-400 shrink-0">
-                  {t.status.replace('_', ' ')}
-                </span>
+                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-600 dark:text-amber-400 shrink-0">
+                    {t.status.replace('_', ' ')}
+                  </span>
+                </Link>
               </li>
             ))}
           </ul>

@@ -73,3 +73,14 @@ export const clientSupportKeyApi = {
   generate: async (clientId) => (await send(`/clients/${clientId}/support-key`, 'POST')).data,
   revoke: (clientId) => send(`/clients/${clientId}/support-key`, 'DELETE'),
 };
+
+// Active admins, for the ticket assignee picker
+export const supportAdminsApi = {
+  list: async () => {
+    const res = await apiFetch('/users?status=active');
+    const rows = Array.isArray(res?.data) ? res.data : [];
+    return rows
+      .map((a) => ({ id: a.dId || '', name: a.full_name || a.email || 'Admin', role: a.role || '' }))
+      .filter((a) => a.id);
+  },
+};

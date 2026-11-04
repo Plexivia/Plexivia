@@ -153,6 +153,15 @@ export const AppRoutes = () => {
           </AppShell>
         }
       />
+      {/* Deep link from the support notification bell — opens that ticket's thread */}
+      <Route
+        path="/support/:ticketId"
+        element={
+          <AppShell>
+            <SupportDeskPage />
+          </AppShell>
+        }
+      />
       <Route
         path="/users"
         element={
