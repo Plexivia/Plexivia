@@ -4,6 +4,7 @@ import hubRouter from './hub.routes.js';
 import agencyRouter from './agency.routes.js';
 import accountingRouter from './accounting.routes.js';
 import backupRouter from './backup.routes.js';
+import qrRouter from './qr.routes.js';
 
 const router = Router();
 
@@ -18,6 +19,10 @@ router.use('/v1/auth', authRouter);
 // 1b. Cloudflare R2 Database Backups (/api/r2-backups/*)
 router.use('/r2-backups', backupRouter);
 router.use('/v1/r2-backups', backupRouter);
+
+// 1c. QR Codes (/api/qr/*) — /api/qr/public/:slug is unauthenticated
+router.use('/qr', qrRouter);
+router.use('/v1/qr', qrRouter);
 
 // 2. Master Hub Core Chunk (/api/hub/*)
 router.use('/hub', hubRouter);

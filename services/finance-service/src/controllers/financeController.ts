@@ -101,6 +101,12 @@ export const generateMoneyReceipt = async (req: Request, res: Response): Promise
       return;
     }
 
+    const clientName = String(body.clientName || body.client_name || '').trim();
+    if (!clientName) {
+      res.status(400).json({ success: false, message: 'Client name is required' });
+      return;
+    }
+
     const dateObj = new Date();
     const yy = String(dateObj.getFullYear()).slice(-2);
     const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
@@ -118,17 +124,17 @@ export const generateMoneyReceipt = async (req: Request, res: Response): Promise
       token,
       date: body.date || dateObj.toISOString().split('T')[0],
       time: body.time || dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      client_name: body.clientName || body.client_name || 'Mashruf Ahmed',
-      address: body.address || 'Manda khalpar, Dhaka-1214',
-      purpose: body.purpose || 'Received investment amount via bKash',
-      payment_method: body.paymentMethod || body.payment_method || 'bKash',
+      client_name: clientName,
+      address: body.address || '',
+      purpose: body.purpose || '',
+      payment_method: body.paymentMethod || body.payment_method || '',
       amount,
       currency: body.currency || 'BDT',
       amount_in_words: amountInWords,
       received_by: body.receivedBy || body.received_by || 'accounts@plexivia.com',
       received_by_role: 'Accounts & Finance',
       status: 'CONFIRMED',
-      transaction_reference: body.transactionRef || `BKASH-TXN-${yy}${mm}${dd}-${randomHex}`,
+      transaction_reference: body.transactionRef || body.transaction_reference || '',
       barcode: {
         code: receiptNo,
         svg: barcodeSvg,

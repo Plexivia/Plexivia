@@ -15,7 +15,10 @@ import {
 } from '@aws-sdk/client-s3';
 import { secureDbConnection, operationsDbConnection } from '../config/database.js';
 import { getBackupSettingsModel } from '../models/BackupSettings.js';
+import { getAdminModel } from '../models/Admin.js';
 import { decryptText, encryptText } from './security.js';
+import { sendMail } from './mailer.js';
+import { notify } from './realtime.js';
 
 export const DEFAULT_BACKUP_CRON = '0 3 * * *';
 export const DEFAULT_BACKUP_TIMEZONE = 'Asia/Dhaka';
@@ -311,7 +314,106 @@ export const getBackupObject = async (cfg: R2Config, key: string) => {
   return r2ClientFor(cfg).send(new GetObjectCommand({ Bucket: cfg.bucketName, Key: key }));
 };
 
+// Check whether a backup job is currently running
 export const isBackupRunning = () => isRunning;
+
+// Escape special HTML characters in dynamic strings for email rendering
+const escapeHtml = (value: unknown): string =>
+  String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] || c);
+
+// Resolve active admin email recipients who should receive backup alerts
+const resolveBackupRecipients = async (): Promise<string[]> => {
+  const recipients = new Set<string>();
+  if (process.env.ADMIN_NOTIFY_EMAIL) {
+    recipients.add(process.env.ADMIN_NOTIFY_EMAIL.trim().toLowerCase());
+  }
+  try {
+    const admins = await getAdminModel()
+      .find({ is_active: true, $or: [{ receive_email_notifications: true }, { role: 'OWNER' }] }, { email: 1 })
+      .lean();
+    admins.forEach((a) => {
+      if (a?.email) recipients.add(String(a.email).trim().toLowerCase());
+    });
+  } catch (err: any) {
+    console.warn('⚠️ [R2Backup] Could not load admin email recipients:', err.message);
+  }
+  return [...recipients].filter(Boolean);
+};
+
+// Build clean HTML email body summarizing a completed or failed backup run
+const buildBackupEmailHtml = (params: { ok: boolean; rows: [string, string][]; errorMessage?: string }): string => {
+  const accent = params.ok ? '#059669' : '#dc2626';
+  const heading = params.ok ? 'Backup completed' : 'Backup failed';
+  const tableRows = params.rows
+    .map(
+      ([label, value]) =>
+        `<tr><td style="padding:8px 12px;color:#6b7280;border-bottom:1px solid #e5e7eb;white-space:nowrap">${escapeHtml(label)}</td><td style="padding:8px 12px;color:#111827;border-bottom:1px solid #e5e7eb">${escapeHtml(value)}</td></tr>`
+    )
+    .join('');
+  const errorBlock = params.errorMessage
+    ? `<p style="margin:16px 0 0;padding:12px;background:#fef2f2;border:1px solid #fecaca;border-radius:6px;color:#991b1b;font-size:13px">${escapeHtml(params.errorMessage)}</p>`
+    : '';
+
+  return `<div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:560px;margin:0 auto;padding:24px">
+  <div style="border:1px solid #e5e7eb;border-top:4px solid ${accent};border-radius:8px;padding:20px;background:#ffffff">
+    <h2 style="margin:0 0 4px;color:${accent};font-size:20px">${heading}</h2>
+    <p style="margin:0 0 16px;color:#6b7280;font-size:13px">Plexivia · Cloudflare R2 backup</p>
+    <table style="width:100%;border-collapse:collapse;font-size:13px">${tableRows}</table>
+    ${errorBlock}
+  </div>
+</div>`;
+};
+
+// Dispatch live dashboard bell notification and email alert after a backup run
+const notifyBackupResult = async (result: {
+  ok: boolean;
+  triggeredBy: string;
+  bucket?: string;
+  sizeFormatted?: string;
+  key?: string;
+  pruned?: number;
+  error?: string;
+}) => {
+  const title = result.ok ? 'Cloudflare R2 backup completed' : 'Cloudflare R2 backup failed';
+  const description = result.ok
+    ? `Database (${result.sizeFormatted}) saved to bucket '${result.bucket}' (${result.triggeredBy})${result.pruned ? `, ${result.pruned} old backup(s) removed` : ''}.`
+    : `Backup failed (${result.triggeredBy}): ${result.error}`;
+
+  await notify({
+    type: 'backup',
+    title,
+    description,
+    link: '/backups',
+  });
+
+  try {
+    const recipients = await resolveBackupRecipients();
+    if (!recipients.length) return;
+    const when = new Intl.DateTimeFormat('en-GB', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+      timeZone: DEFAULT_BACKUP_TIMEZONE,
+    }).format(new Date());
+
+    const rows: [string, string][] = [
+      ['Status', result.ok ? 'Completed successfully' : 'Failed'],
+      ['When', when],
+      ['Started by', result.triggeredBy],
+    ];
+    if (result.ok) {
+      rows.push(['Database size', result.sizeFormatted || ''], ['Bucket', result.bucket || ''], ['Object key', result.key || '']);
+      if (result.pruned) rows.push(['Old backups removed', String(result.pruned)]);
+    }
+
+    await sendMail({
+      to: recipients.join(', '),
+      subject: result.ok ? '✅ Plexivia: Backup completed' : '❌ Plexivia: Backup FAILED',
+      html: buildBackupEmailHtml({ ok: result.ok, rows, errorMessage: result.error }),
+    });
+  } catch (err: any) {
+    console.warn('⚠️ [R2Backup] Backup email notification failed:', err.message);
+  }
+};
 
 // Dump both databases, upload the archive and manifest to R2, apply retention and record the result
 export const executeR2Backup = async (triggeredBy = 'SCHEDULER') => {
@@ -361,10 +463,23 @@ export const executeR2Backup = async (triggeredBy = 'SCHEDULER') => {
     });
 
     await recordBackupStatus('success', `Saved to bucket '${cfg.bucketName}' (${triggeredBy}); ${pruned} old backup(s) removed`, manifest.sizeFormatted);
+    await notifyBackupResult({
+      ok: true,
+      triggeredBy,
+      bucket: cfg.bucketName,
+      sizeFormatted: manifest.sizeFormatted,
+      key,
+      pruned,
+    });
     console.log(`✅ [R2Backup] ${key} (${manifest.sizeFormatted}) uploaded to '${cfg.bucketName}'`);
     return manifest;
   } catch (error: any) {
     await recordBackupStatus('failed', error.message).catch(() => undefined);
+    await notifyBackupResult({
+      ok: false,
+      triggeredBy,
+      error: error.message,
+    });
     console.error('❌ [R2Backup] Backup failed:', error.message);
     throw error;
   } finally {
