@@ -76,6 +76,7 @@ coverage/
 **/.turbo/
 .parcel-cache/
 .eslintcache
+.claude/ 
 
 # User uploads
 backend/uploads/
