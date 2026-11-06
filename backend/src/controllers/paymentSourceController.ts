@@ -239,7 +239,7 @@ const pickPaymentFields = (body: any) => {
   if (body.total_amount !== undefined) fields.total_amount = Number(body.total_amount);
   if (body.payment_method !== undefined) fields.payment_method = body.payment_method;
   if (body.transaction_ref !== undefined) fields.transaction_reference = body.transaction_ref;
-  if (body.invoice_id !== undefined) fields.invoice_id = body.invoice_id;
+  // invoice_id is assigned by the server only (serial like 02IN26001) — never taken from the request
   if (body.notes !== undefined) fields.notes = body.notes;
   if (Array.isArray(body.attachments)) fields.attachments = body.attachments;
   if (body.paid_at) fields.paid_at = new Date(body.paid_at).toISOString();
@@ -296,8 +296,8 @@ export const recordPayment = async (req: Request, res: Response) => {
     if (methodError) return res.status(400).json({ success: false, message: methodError });
     applyCharges(fields, body);
     if (fields.charge_total > fields.amount) return res.status(400).json({ success: false, message: 'Charges cannot be more than the received amount' });
-    // Every payment gets a PX invoice number unless one was typed in
-    if (!fields.invoice_id) fields.invoice_id = await nextInvoiceNumber();
+    // Every payment gets the next invoice serial, e.g. 02IN26001
+    fields.invoice_id = await nextInvoiceNumber();
 
     const created = await getPaymentModel().create({
       payment_number: body.payment_number || `PX-PAY-${Date.now().toString().slice(-8)}`,
@@ -349,8 +349,8 @@ export const updatePayment = async (req: Request, res: Response) => {
     if ((fields.charge_total ?? 0) > (fields.amount ?? payment.amount)) {
       return res.status(400).json({ success: false, message: 'Charges cannot be more than the received amount' });
     }
-    // Clearing the invoice field keeps the existing number instead of leaving the payment without one
-    if (fields.invoice_id === '' || fields.invoice_id === null) delete fields.invoice_id;
+    // The invoice number never changes once issued
+    delete fields.invoice_id;
 
     payment.set({ ...fields, ...partyFields, updated_at: nowIso() });
     await payment.save();

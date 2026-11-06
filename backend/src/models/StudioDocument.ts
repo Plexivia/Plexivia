@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { secureDbConnection } from '../config/database.js';
 import { generateDId } from '../utils/dId.js';
-import { nextSequence, getCounterModel } from './Accounts.js';
+import { nextSequence, getCounterModel, nextInvoiceNumber, peekInvoiceNumber } from './Accounts.js';
 
 /**
  * Every document generated in Document Studio — invoice, money receipt, salary
@@ -83,6 +83,7 @@ const formatDocNumber = (docType: StudioDocType, year: number, seq: number) =>
 
 // Next number, consumed — called only when a document is actually saved
 export const nextStudioDocNumber = async (docType: StudioDocType, _prefixOverride?: string, date = new Date()): Promise<string> => {
+  if (docType === 'invoice') return nextInvoiceNumber(date); // 02IN26001, shared with payments
   const Model = getStudioDocumentModel();
   const year = date.getFullYear();
 
@@ -99,6 +100,7 @@ export const nextStudioDocNumber = async (docType: StudioDocType, _prefixOverrid
 
 // The number the next save will most likely get — read-only, does not consume the serial
 export const peekStudioDocNumber = async (docType: StudioDocType, date = new Date()): Promise<string> => {
+  if (docType === 'invoice') return peekInvoiceNumber(date);
   const year = date.getFullYear();
   const counter: any = await getCounterModel().findOne({ key: counterKey(docType, year) }).lean();
   return formatDocNumber(docType, year, (counter?.seq || 0) + 1);

@@ -30,7 +30,7 @@ import { getClientName, getClientProjects } from '@/components/dashboard/account
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { useClientOptions } from '@/features/document-studio/components/common/useStudioLookups';
 import { apiErrorMessage, businessesApi, paymentMethodsApi, paymentSourcesApi, paymentsApi } from '@/services/paymentsApi';
-import { ChargesEditor, EMPTY_CHARGES, buildCharges, chargesToEditorValue } from '@/components/dashboard/accounts/ChargesEditor';
+import { EMPTY_CHARGES, chargesToEditorValue } from '@/components/dashboard/accounts/ChargesEditor';
 
 // Formats a numeric value into BDT currency string
 const formatCurrency = (val) => {
@@ -156,7 +156,8 @@ export const AddNewPaymentPage = () => {
   const amountNum = Number(formData.amount) || 0;
   const paidAmountNum = Number(formData.paidAmount !== '' ? formData.paidAmount : formData.amount) || 0;
   // Charges are a share of the money received and come out of it
-  const charges = buildCharges(selectedMethod, chargesValue, paidAmountNum);
+  // No charge calculation on payment transactions
+  const charges = [];
   const chargeTotal = Math.round(charges.reduce((sum, c) => sum + c.amount, 0) * 100) / 100;
   const netReceived = Math.round((paidAmountNum - chargeTotal) * 100) / 100;
 
@@ -369,13 +370,16 @@ export const AddNewPaymentPage = () => {
                   <label className="text-xs font-semibold text-foreground">
                     Invoice ID
                   </label>
+                  {/* Server-assigned serial (e.g. 02IN26001) — never typed or edited */}
                   <Input
-                    placeholder="Auto: PX-INV-2026-00001"
-                    value={formData.invoiceId}
-                    onChange={(e) => handleInputChange('invoiceId', e.target.value)}
-                    className="text-xs font-mono"
+                    readOnly
+                    disabled
+                    value={formData.invoiceId || 'Assigned on save'}
+                    className="text-xs font-mono bg-muted/40 cursor-not-allowed"
                   />
-                  {!editId && <p className="text-[11px] text-muted-foreground">Leave empty and a PX invoice number is generated on save.</p>}
+                  <p className="text-[11px] text-muted-foreground">
+                    {editId ? 'Issued invoice number, cannot be changed.' : 'Auto serial, assigned when you save.'}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -459,11 +463,6 @@ export const AddNewPaymentPage = () => {
                   <label className="text-xs font-semibold text-foreground">Payment Date</label>
                   <DatePicker value={formData.date} onChange={(val) => handleInputChange('date', val)} />
                 </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground">Charges</label>
-                <ChargesEditor method={selectedMethod} baseAmount={paidAmountNum} value={chargesValue} onChange={setChargesValue} mode="deduct" />
               </div>
 
               <div className="space-y-1.5">

@@ -149,11 +149,19 @@ export const nextSequence = async (key: string): Promise<number> => {
   return doc!.seq;
 };
 
-// Invoice numbers like PX-INV-2026-00001, numbered per year
+// Invoice numbers like 02IN26001: "02" + "IN" + 2-digit year + 3-digit serial, numbered per year.
+// Shared by payment records and Document Studio invoices so the two never collide.
 export const nextInvoiceNumber = async (date = new Date()): Promise<string> => {
   const year = date.getFullYear();
-  const seq = await nextSequence(`invoice:${year}`);
-  return `PX-INV-${year}-${String(seq).padStart(5, '0')}`;
+  const seq = await nextSequence(`invoice-serial:${year}`);
+  return `02IN${String(year).slice(-2)}${String(seq).padStart(3, '0')}`;
+};
+
+// The next invoice number without consuming it (form preview only)
+export const peekInvoiceNumber = async (date = new Date()): Promise<string> => {
+  const year = date.getFullYear();
+  const counter: any = await getCounterModel().findOne({ key: `invoice-serial:${year}` }).lean();
+  return `02IN${String(year).slice(-2)}${String((counter?.seq || 0) + 1).padStart(3, '0')}`;
 };
 
 export const roundMoney = (n: number) => Math.round((Number(n) || 0) * 100) / 100;

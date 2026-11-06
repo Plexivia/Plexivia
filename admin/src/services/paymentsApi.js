@@ -60,7 +60,7 @@ export const fromPaymentForm = (f) => {
     project_id: f.projectId || undefined,
     business_id: f.businessId || undefined,
     payer_name: f.customerName,
-    invoice_id: f.invoiceId || undefined,
+    // invoice_id is assigned by the server; never sent
     total_amount: total,
     amount: received,
     payment_method: f.paymentMethod || undefined,

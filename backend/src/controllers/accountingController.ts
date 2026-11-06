@@ -67,7 +67,7 @@ export const createInvoice = async (req: Request, res: Response) => {
     const client = await ClientModel.findOne({ $or: [{ id: data.client_id }, { client_key: data.client_id }] });
 
     const created = await InvoiceModel.create({
-      invoice_number: data.invoice_number || (await nextInvoiceNumber()),
+      invoice_number: await nextInvoiceNumber(), // server serial only
       client_id: data.client_id,
       client_name: client?.name || data.client_name || 'Client',
       amount: Number(data.amount),
