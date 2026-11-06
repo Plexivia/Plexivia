@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { connectRealtime, disconnectRealtime, setRealtimeNavigate } from '@/store/useNotificationStore';
-import { ToastContainer } from '@/components/common/ToastContainer';
 import { GlobalSearchModal } from '@/components/common/GlobalSearchModal';
 import { GlobalErrorBoundary } from '@/components/common/GlobalErrorBoundary';
 import { NotificationDrawer } from '@/components/layout/NotificationDrawer';
@@ -92,7 +91,6 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
           user={user}
           onLogout={logout}
           onOpenNotifications={() => setIsNotificationsOpen(true)}
-          toasts={<ToastContainer />}
           modals={
             <>
               <GlobalSearchModal />

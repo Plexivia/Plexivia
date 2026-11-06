@@ -1,9 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { HeaderTitle } from '@/components/common/HeaderTitle';
+import { DatePicker } from '@/components/ui/date-picker';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   CreditCard,
   ArrowLeft,
+  Pencil,
+  PlusCircle,
   Save,
   User,
 } from 'lucide-react';
@@ -243,26 +247,12 @@ export const AddNewPaymentPage = () => {
 
   return (
     <div className="page-container flex-1 space-y-6 p-4 md:p-8 pt-6">
-      <div className="flex items-center justify-between border-b pb-4">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => navigate('/accounts/payments')}
-            className="h-9 w-9"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
-              {editId ? 'Edit Payment Record' : t('accounts.add_new_payment', 'Add New Payment')}
-            </h1>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Record manual client settlements, POS transactions, or gateway collections.
-            </p>
-          </div>
-        </div>
-      </div>
+      {/* Top page bar: title follows add / edit mode */}
+      <HeaderTitle
+        title={editId ? 'Edit Payment Record' : t('accounts.add_new_payment', 'Add New Payment')}
+        subtitle="Record manual client settlements, POS transactions, or gateway collections."
+        icon={editId ? Pencil : PlusCircle}
+      />
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-8 space-y-5">
@@ -284,7 +274,7 @@ export const AddNewPaymentPage = () => {
                   </Link>
                 </div>
                 <Select value={formData.paymentSourceId} onValueChange={handleSourceChange}>
-                  <SelectTrigger className="text-xs">
+                  <SelectTrigger className="w-full text-xs">
                     <SelectValue placeholder="Select payment source">{selectedSource?.name}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
@@ -342,7 +332,7 @@ export const AddNewPaymentPage = () => {
                       </Link>
                     </div>
                     <Select value={formData.businessId} onValueChange={handleBusinessChange}>
-                      <SelectTrigger className="text-xs">
+                      <SelectTrigger className="w-full text-xs">
                         <SelectValue placeholder="Select a business">{selectedBusiness?.name}</SelectValue>
                       </SelectTrigger>
                       <SelectContent>
@@ -385,7 +375,7 @@ export const AddNewPaymentPage = () => {
                     onChange={(e) => handleInputChange('invoiceId', e.target.value)}
                     className="text-xs font-mono"
                   />
-                  <p className="text-[11px] text-muted-foreground">Leave empty and a PX invoice number is generated on save.</p>
+                  {!editId && <p className="text-[11px] text-muted-foreground">Leave empty and a PX invoice number is generated on save.</p>}
                 </div>
               </div>
             </CardContent>
@@ -436,7 +426,7 @@ export const AddNewPaymentPage = () => {
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-foreground">Payment Method</label>
                   <Select value={formData.paymentMethodId} onValueChange={handleMethodChange}>
-                    <SelectTrigger className="text-xs">
+                    <SelectTrigger className="w-full text-xs">
                       <SelectValue placeholder="Payment Method">{selectedMethod?.name || formData.paymentMethod || undefined}</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
@@ -467,12 +457,7 @@ export const AddNewPaymentPage = () => {
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-foreground">Payment Date</label>
-                  <Input
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => handleInputChange('date', e.target.value)}
-                    className="text-xs"
-                  />
+                  <DatePicker value={formData.date} onChange={(val) => handleInputChange('date', val)} />
                 </div>
               </div>
 
@@ -487,7 +472,7 @@ export const AddNewPaymentPage = () => {
                   value={formData.status}
                   onValueChange={(v) => handleInputChange('status', v)}
                 >
-                  <SelectTrigger className="text-xs">
+                  <SelectTrigger className="w-full text-xs">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>

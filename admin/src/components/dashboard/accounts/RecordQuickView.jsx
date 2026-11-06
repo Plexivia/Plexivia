@@ -30,8 +30,14 @@ const WhatsAppIcon = ({ className }) => (
 
 // Opens an official branded printable receipt slip in a new print preview window
 const printSlip = ({ heading = 'Money Receipt', reference = '', rows = [], totals = [], notes = '' }) => {
-  const win = window.open('', '_blank', 'width=800,height=960');
+  // Print through a hidden iframe: works even where pop-ups are blocked
+  const frame = document.createElement('iframe');
+  frame.setAttribute('aria-hidden', 'true');
+  frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
+  document.body.appendChild(frame);
+  const win = frame.contentWindow;
   if (!win) return;
+  setTimeout(() => frame.remove(), 60000);
 
   const brand = getStudioBrand();
   const brandName = brand.brandTitle || brand.agencyName || 'PLEXIVIA';
@@ -428,8 +434,19 @@ export const RecordQuickView = ({
   }, [open]);
 
   const openShare = (mode) => {
+    if (!slip) return;
+    const known = mode === 'whatsapp' ? defaultPhone : defaultEmail;
+    // Client's number / email is known: go straight to WhatsApp or the mail app
+    if (known) {
+      const text = toText(slip);
+      if (mode === 'whatsapp') window.open(getWhatsAppLink(known, text), '_blank', 'noopener');
+      else
+        window.location.href = `mailto:${encodeURIComponent(known.trim())}?subject=${encodeURIComponent(`${slip.heading} ${slip.reference}`)}&body=${encodeURIComponent(text)}`;
+      setShareMode(null);
+      return;
+    }
     setShareMode(shareMode === mode ? null : mode);
-    setRecipient(mode === 'whatsapp' ? defaultPhone || '' : defaultEmail || '');
+    setRecipient('');
   };
 
   const send = () => {
@@ -499,17 +516,26 @@ export const RecordQuickView = ({
 
 // Groups related details into a titled section inside the drawer
 export const QuickViewSection = ({ title, children }) => (
-  <section className="space-y-2">
-    <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
-    {children}
+  <section className="overflow-hidden rounded-xl border border-border">
+    <h3 className="border-b border-border bg-muted/50 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+      {title}
+    </h3>
+    <div className="divide-y divide-border">{children}</div>
   </section>
 );
 
-// Displays a single key-value label pair inside a quick view section
+// One table row inside a quick view section: label cell on the left, value on the right
 export const QuickViewLine = ({ label, value, className }) => (
-  <div className={cn('flex justify-between gap-3', className)}>
-    <span className="text-muted-foreground">{label}</span>
-    <span className="text-right tabular-nums">{value}</span>
+  <div className={cn('grid grid-cols-[40%_1fr] text-sm', className)}>
+    <span className="border-r border-border bg-muted/20 px-3 py-2 text-muted-foreground">{label}</span>
+    <span className="flex items-center justify-end px-3 py-2 text-right font-medium tabular-nums break-all">{value}</span>
   </div>
 );
 
+// "2026-11-07" -> "7 November 2026"
+export const formatLongDate = (value) => {
+  if (!value) return '—';
+  const [y, m, d] = String(value).slice(0, 10).split('-').map(Number);
+  if (!y || !m || !d) return String(value);
+  return new Date(y, m - 1, d).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+};

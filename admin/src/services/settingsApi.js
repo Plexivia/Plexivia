@@ -134,6 +134,9 @@ export const studioDocumentsApi = {
   create: async (body) => toStudioDoc((await apiClient.post('/api/studio-documents', body)).data?.data || {}),
   update: async (id, body) => toStudioDoc((await apiClient.put(`/api/studio-documents/${id}`, body)).data?.data || {}),
   remove: (id) => apiClient.delete(`/api/studio-documents/${id}`),
+  // QR image (data URL) linking to the saved document's public view page, rendered by the backend
+  qr: async (id) =>
+    (await apiClient.get('/api/studio-documents/qr', { params: { id } })).data?.data?.dataUrl || '',
   // A fresh, unused number for the given document type
   nextNumber: async (type) =>
     (await apiClient.get('/api/studio-documents/next-number', { params: { type } })).data?.data?.number || '',

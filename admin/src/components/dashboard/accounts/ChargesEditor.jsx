@@ -54,7 +54,7 @@ export const ChargesEditor = ({ method, baseAmount, value, onChange, mode = 'ded
       <div className="space-y-1.5">
         <label className="font-semibold text-foreground">Regular Charge</label>
         <Select value={value?.regular || 'none'} onValueChange={(v) => onChange({ ...value, regular: v })} disabled={!method}>
-          <SelectTrigger className="text-xs">
+          <SelectTrigger className="w-full text-xs">
             <SelectValue placeholder="No charge">{regularLabel}</SelectValue>
           </SelectTrigger>
           <SelectContent>

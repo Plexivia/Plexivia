@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { BdPhoneInput } from '@/components/common/BdPhoneInput';
 import { DatePicker } from '@/components/ui/date-picker';
-import { SERVICE_PURPOSES, numberToWords } from './sampleData';
+import { SERVICE_PURPOSES, numberToWords, localToday } from './sampleData';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -31,6 +31,7 @@ import { useClientLookup } from '../common/useClientLookup';
 import { ExistingClientAlertModal } from '../common/ExistingClientAlertModal';
 import { validateBdPhone, toPhoneString } from '../common/phoneValidator';
 import { useAuthStore } from '@/store/useAuthStore';
+import { Switch } from '@/components/ui/switch';
 import { uploadTicketAttachment } from '@/services/supportApi';
 import { ExistingClientSelector } from '@/components/common/ClientSelectorAndLineItems';
 import { DocumentNumberField } from '../common/DocumentNumberField';
@@ -59,9 +60,6 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
     }));
   }, [currentUser]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const selectedMethod = methodOptions.find((o) => o.value === data.paymentMethod)?.method || null;
-  const isCashMethod = /cash/i.test(`${data.paymentMethod || ''} ${selectedMethod?.category || ''}`);
-
   // Payment proof / signature images: PDF or any image, max 5 MB
   const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
   const handleFileUpload = async (field, file) => {
@@ -88,6 +86,8 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
   };
   // Payment methods exactly as configured under Accounts -> Payment Methods
   const { options: methodOptions, defaultMethod, loading: methodsLoading } = usePaymentMethodOptions();
+  const selectedMethod = methodOptions.find((o) => o.value === data.paymentMethod)?.method || null;
+  const isCashMethod = /cash/i.test(`${data.paymentMethod || ''} ${selectedMethod?.category || ''}`);
 
   const { triggerLookup, resetLookup } = useClientLookup({
     onClientFound: (client, caseFile) => setDetectedMatch({ client, caseFile }),
@@ -168,7 +168,7 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
     setDateMode(mode);
     if (mode === 'auto') {
       const now = new Date();
-      const todayStr = now.toISOString().split('T')[0];
+      const todayStr = localToday(now);
       const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
       onChange((prev) => ({
         ...prev,
@@ -216,7 +216,7 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
             {dateMode === 'auto' ? (
               <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground bg-primary/5 border border-primary/20 px-3 py-2 rounded-xl">
                 <Calendar className="w-3.5 h-3.5 text-primary shrink-0" />
-                <span>{data.date || new Date().toISOString().split('T')[0]}</span>
+                <span>{data.date || localToday()}</span>
                 <span className="text-muted-foreground/40">•</span>
                 <Clock className="w-3.5 h-3.5 text-primary shrink-0" />
                 <span>{data.time || '11:30 AM'}</span>
@@ -258,7 +258,7 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
           <div className="md:col-span-6 lg:col-span-4">
             <label className="block font-bold text-foreground mb-1">Print Layout Format</label>
             <select
-              value={data.dualPrint !== false ? 'dual' : 'single'}
+              value={data.dualPrint === true ? 'dual' : 'single'}
               onChange={(e) => handleFieldChange('dualPrint', e.target.value === 'dual')}
               className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-semibold text-xs focus:ring-1 focus:ring-primary cursor-pointer outline-none"
             >
@@ -532,7 +532,7 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
       <div className="space-y-3">
         <StudioSectionHeader icon={FileText} title="4. Signatures & Approvals" />
 
-        <label className="flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/20 px-4 py-3 text-xs cursor-pointer">
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/20 px-4 py-3 text-xs">
           <span>
             <span className="block font-bold text-foreground">Show signatures on the receipt</span>
             <span className="block text-muted-foreground">
@@ -541,64 +541,21 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
                 : 'Off: no signature lines. The receipt prints a system-generated confirmation instead.'}
             </span>
           </span>
-          <input
-            type="checkbox"
+          <Switch
             checked={Boolean(data.showSignatures)}
-            onChange={(e) => handleFieldChange('showSignatures', e.target.checked)}
-            className="h-4 w-4 accent-primary cursor-pointer"
+            onCheckedChange={(checked) => handleFieldChange('showSignatures', checked)}
+            aria-label="Show signatures on the receipt"
           />
-        </label>
+        </div>
 
         {data.showSignatures && (
         <>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-          <div>
-            <label className="block font-medium text-foreground mb-1">Prepared / Paid By</label>
-            <input
-              type="text"
-              value={data.preparedBy || ''}
-              placeholder="Paid by name / title"
-              onChange={(e) => handleFieldChange('preparedBy', e.target.value)}
-              className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-foreground text-xs"
-            />
-          </div>
-
-          <div>
-            <label className="block font-medium text-foreground mb-1">Received By</label>
-            <input
-              type="text"
-              value={data.receivedBySignature || ''}
-              placeholder="Received by name / title"
-              onChange={(e) => handleFieldChange('receivedBySignature', e.target.value)}
-              className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-foreground text-xs"
-            />
-          </div>
-
-          <div>
-            <label className="block font-medium text-foreground mb-1">Accounts Officer</label>
-            <input
-              type="text"
-              value={data.accountsSignature || ''}
-              placeholder="Accountant designation"
-              onChange={(e) => handleFieldChange('accountsSignature', e.target.value)}
-              className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-foreground text-xs"
-            />
-          </div>
-
-          <div>
-            <label className="block font-medium text-foreground mb-1">Approved By</label>
-            <input
-              type="text"
-              value={data.approvedBySignature || ''}
-              placeholder="Authorized signatory title"
-              onChange={(e) => handleFieldChange('approvedBySignature', e.target.value)}
-              className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-foreground text-xs"
-            />
-          </div>
-        </div>
-
+        <p className="text-xs text-muted-foreground">
+          Signed by <span className="font-bold text-foreground">{data.receivedBy || currentUser?.name || '—'}</span>
+          {(data.receivedByRole || currentUser?.designation) && <> · {data.receivedByRole || currentUser?.designation}</>}
+        </p>
         <div className="text-xs">
-          <label className="block font-medium text-foreground mb-1">Signature Image (optional)</label>
+          <label className="block font-medium text-foreground mb-1">Signature</label>
           {data.signatureImage?.url ? (
             <div className="flex items-center gap-3 rounded-xl border border-border bg-background p-2">
               <img src={data.signatureImage.url} alt="Signature" className="h-10 max-w-[160px] object-contain" />

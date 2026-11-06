@@ -11,6 +11,7 @@ import { ResumeBuilder } from '../components/resume/ResumeBuilder';
 import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
 import { toPhoneString } from '../components/common/phoneValidator';
+import { localToday } from '../components/receipt/sampleData';
 import { ShieldCheck, ArrowLeft, Lock, FileText, CheckCircle2, Loader2 } from 'lucide-react';
 
 /**
@@ -247,7 +248,7 @@ export const DocumentStudioPage = ({
         const hasCaseFile = Boolean(caseFile.caseNumber || caseFile.did || caseFile._id);
 
         return {
-          clientId: client.id || client._id || client.did || clientDid || '',
+          clientId: client.dId || client.did || client.id || client._id || clientDid || '',
           caseDid: caseFile.did || caseFile._id || client.id || clientDid || '',
           caseNumber: caseFile.caseNumber || caseNumberParam || client.clientCode || '',
           taskId: taskIdParam || null,
@@ -288,12 +289,12 @@ export const DocumentStudioPage = ({
         const now = new Date();
 
         return {
-          clientId: client.id || client._id || client.did || clientDid || '',
+          clientId: client.dId || client.did || client.id || client._id || clientDid || '',
           caseDid: caseFile.did || caseFile._id || client.id || clientDid || '',
           caseNumber: caseFile.caseNumber || caseNumberParam || client.clientCode || '',
           taskId: taskIdParam || null,
           clientName: applicantFullName,
-          clientDid: client.id || client._id || clientDid || '',
+          clientDid: client.dId || client.did || client.id || client._id || clientDid || '',
           phone: phone,
           email: client.email || '',
           passportNumber: passportNumber,
@@ -301,7 +302,7 @@ export const DocumentStudioPage = ({
             ? `Visa & Case Processing Fee - ${destination} (File #${caseFile.caseNumber || caseNumberParam || ''})`
             : '',
           amount: resolvedAmount,
-          date: now.toISOString().split('T')[0],
+          date: localToday(now),
           time: now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
           isLocked: Boolean(dossierContext?.isLocked),
         };

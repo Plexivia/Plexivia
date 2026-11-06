@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import QRCode from 'qrcode';
 import { getStudioDocumentModel, nextStudioDocNumber, peekStudioDocNumber, STUDIO_DOC_TYPES, StudioDocType } from '../models/StudioDocument.js';
 import { softDeleteOne } from '../plugins/softDelete.js';
 import { AuthedRequest } from '../middleware/auth.js';
@@ -63,6 +64,48 @@ export const getNextDocumentNumber = async (req: AuthedRequest, res: Response) =
     return ok(res, { type: docType, number, preview: true });
   } catch (error: any) {
     return fail(res, 500, error.message || 'Failed to generate a document number');
+  }
+};
+
+// Public page the receipt QR opens (website), keyed by the document's random dId
+const PUBLIC_SITE_URL = (process.env.PUBLIC_SITE_URL || 'https://plexivia.com').replace(/\/+$/, '');
+const QR_THEME = { dark: '#0e7490', light: '#ffffff' }; // Plexivia teal
+
+// GET /documents/qr?id=<dId> — QR (data URL) that opens the public receipt view
+export const getDocumentQr = async (req: AuthedRequest, res: Response) => {
+  try {
+    const id = String(req.query.id || '').trim();
+    if (!id) return fail(res, 400, 'id is required (save the document first)');
+    const url = `${PUBLIC_SITE_URL}/receipt/${encodeURIComponent(id)}`;
+    const dataUrl = await QRCode.toDataURL(url, { width: 512, margin: 1, errorCorrectionLevel: 'M', color: QR_THEME });
+    return ok(res, { url, dataUrl });
+  } catch (error: any) {
+    return fail(res, 500, error.message || 'Failed to generate the QR code');
+  }
+};
+
+// PUBLIC (no auth): GET /public/receipts/:id — view-only summary for the QR page
+export const getPublicReceipt = async (req: AuthedRequest, res: Response) => {
+  try {
+    const id = String(req.params.id || '').trim();
+    if (!/^[A-Za-z0-9_-]{8,64}$/.test(id)) return fail(res, 404, 'Receipt not found');
+    const doc: any = await getStudioDocumentModel().findOne({ dId: id, doc_type: 'money-receipt' }).lean();
+    if (!doc) return fail(res, 404, 'Receipt not found');
+    const p = doc.payload || {};
+    return ok(res, {
+      receiptNo: doc.doc_number,
+      issueDate: doc.issue_date,
+      time: p.time || '',
+      clientName: doc.client_name,
+      service: p.purpose || '',
+      amount: doc.amount,
+      currency: doc.currency || 'BDT',
+      amountInWords: p.amountInWords || '',
+      paymentMethod: doc.payment_method,
+      status: doc.status || 'Received',
+    });
+  } catch (error: any) {
+    return fail(res, 500, error.message || 'Failed to load the receipt');
   }
 };
 

@@ -7,7 +7,7 @@ const Toaster = ({ ...props }) => {
     <Sonner
       theme="light"
       className="toaster group"
-      position="bottom-right"
+      position="top-right"
       closeButton
       visibleToasts={4}
       duration={4000}
@@ -49,21 +49,21 @@ const Toaster = ({ ...props }) => {
       toastOptions={{
         classNames: {
           toast:
-            "!bg-white !text-slate-900 !rounded-2xl !p-4 !border-2 !border-slate-200 !shadow-[0_12px_30px_rgba(0,0,0,0.12),0_4px_10px_rgba(0,0,0,0.06)] flex items-start gap-3 select-none",
-          title: "!text-slate-900 !font-bold !text-[13px] !tracking-tight",
-          description: "!text-slate-600 !text-xs !leading-relaxed !mt-0.5",
+            "!rounded-2xl !p-4 !border-2 !shadow-[0_12px_30px_rgba(0,0,0,0.12),0_4px_10px_rgba(0,0,0,0.06)] flex items-start gap-3 select-none",
+          title: "!text-inherit !font-bold !text-[13px] !tracking-tight",
+          description: "!text-inherit !opacity-90 !text-xs !leading-relaxed !mt-0.5",
           actionButton: "!bg-sky-600 !text-white !font-bold !text-xs !rounded-xl !px-3 !py-1.5 shadow-xs",
           cancelButton: "!bg-red-500/10 !text-red-600 !border !border-red-500/30 hover:!bg-red-500/20 !font-semibold !text-xs !rounded-xl !px-3 !py-1.5",
           closeButton:
             "!left-auto !right-0 !top-0 !translate-x-[35%] !-translate-y-[35%] !opacity-100 !bg-white !text-red-500 !border !border-red-300 hover:!bg-red-50 hover:!text-red-600 !shadow-md !size-6 !rounded-full !flex !items-center !justify-center transition-all",
           info:
-            "!bg-white !border-sky-500 !shadow-[0_12px_32px_rgba(14,165,233,0.22),0_4px_12px_rgba(14,165,233,0.12)] [&>svg]:!text-sky-600",
+            "!bg-sky-600 !text-white !border-sky-700 [&_svg]:!text-white",
           success:
-            "!bg-white !border-emerald-500 !shadow-[0_12px_32px_rgba(16,185,129,0.22),0_4px_12px_rgba(16,185,129,0.12)] [&>svg]:!text-emerald-600",
+            "!bg-emerald-600 !text-white !border-emerald-700 [&_svg]:!text-white",
           warning:
-            "!bg-white !border-amber-500 !shadow-[0_12px_32px_rgba(245,158,11,0.22),0_4px_12px_rgba(245,158,11,0.12)] [&>svg]:!text-amber-600",
+            "!bg-amber-600 !text-white !border-amber-700 [&_svg]:!text-white",
           error:
-            "!bg-white !border-rose-500 !shadow-[0_12px_32px_rgba(244,63,94,0.22),0_4px_12px_rgba(244,63,94,0.12)] [&>svg]:!text-rose-600",
+            "!bg-rose-600 !text-white !border-rose-700 [&_svg]:!text-white",
         },
       }}
       {...props}

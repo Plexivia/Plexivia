@@ -24,6 +24,7 @@ router.post(
 // Generated documents (invoice, money receipt, salary slip, cash voucher)
 router.get('/studio-documents', studioDocs.listDocuments);
 router.get('/studio-documents/next-number', studioDocs.getNextDocumentNumber);
+router.get('/studio-documents/qr', studioDocs.getDocumentQr);
 router.get('/studio-documents/check-number', studioDocs.checkDocumentNumber);
 router.post('/studio-documents', studioDocs.createDocument);
 router.get('/studio-documents/:id', studioDocs.getDocumentById);

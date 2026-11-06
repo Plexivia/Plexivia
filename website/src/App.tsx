@@ -11,19 +11,25 @@ import ContactSection from './components/ContactSection';
 import Footer from './components/Footer';
 import ProjectEstimatorModal from './components/ProjectEstimatorModal';
 import ProjectDetailPage from './pages/ProjectDetailPage';
+import ReceiptViewPage from './pages/ReceiptViewPage';
 import EcommerceWhitelabel from './pages/EcommerceWhitelabel';
 import { ThemeProvider } from './context/ThemeContext';
 
 type ViewRoute = 
   | { type: 'home' }
   | { type: 'project'; id: string }
-  | { type: 'whitelabel' };
+  | { type: 'whitelabel' }
+  | { type: 'receipt'; id: string };
 
 function parseRoute(): ViewRoute {
   const path = window.location.pathname;
   if (path.startsWith('/project/')) {
     const id = path.replace('/project/', '').replace(/\/$/, '');
     if (id) return { type: 'project', id };
+  }
+  if (path.startsWith('/receipt/')) {
+    const id = path.replace('/receipt/', '').replace(/\/$/, '');
+    if (id) return { type: 'receipt', id };
   }
   if (path === '/ecommerce-whitelabel' || path === '/whitelabel') {
     return { type: 'whitelabel' };
@@ -73,6 +79,11 @@ function MainContent() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
+
+  // Public money receipt opened from a receipt QR code
+  if (currentRoute.type === 'receipt') {
+    return <ReceiptViewPage receiptId={currentRoute.id} />;
+  }
 
   // Render Project Detail Case Study Page
   if (currentRoute.type === 'project') {

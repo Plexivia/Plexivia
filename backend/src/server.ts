@@ -26,6 +26,7 @@ const allowedOrigins = [
   'https://admin.plexivia.com',
   'https://hub.plexivia.com',
   'https://plexivia.com',
+  'https://www.plexivia.com',
   ...CORS_ORIGINS,
 ];
 

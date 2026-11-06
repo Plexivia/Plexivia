@@ -77,6 +77,10 @@ export const SERVICE_PURPOSES = [
   'Other Corporate Service & Consultancy Fee',
 ];
 
+// Today as YYYY-MM-DD in the browser's local time (toISOString is UTC and is a day behind after midnight in Dhaka)
+export const localToday = (d = new Date()) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
 // Return default money receipt initial dataset
 export const getDefaultMoneyReceiptData = () => {
   const brand = getStudioBrand();
@@ -85,14 +89,15 @@ export const getDefaultMoneyReceiptData = () => {
     _id: null,
     savedDocId: null,
     receiptNo: '', // server serial, assigned on save
-    date: new Date().toISOString().split('T')[0],
+    date: localToday(),
     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     clientName: '',
     passportNumber: '',
     phone: '',
     purpose: '',
-    receivedBy: brand.email || '',
-    receivedByRole: defaults.receiptSignatory || 'Accounts Officer',
+    // Filled with the logged-in user's name and designation by the form
+    receivedBy: '',
+    receivedByRole: '',
     // Filled from the default method configured under Accounts once it loads
     paymentMethod: '',
     amount: '',
@@ -102,7 +107,7 @@ export const getDefaultMoneyReceiptData = () => {
     accountsSignature: 'Accountant',
     approvedBySignature: 'General Manager / Director',
     copyType: 'Original Copy (Original Copy)',
-    dualPrint: true,
+    dualPrint: false, // single voucher by default
     notes: '',
   };
 };
