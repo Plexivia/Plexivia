@@ -1,3 +1,7 @@
+import { normalizeBdPhone } from '@/lib/phone';
+
+export { normalizeBdPhone };
+
 /**
  * Utility to validate and normalize Bangladeshi phone numbers.
  * Supports:
@@ -10,14 +14,8 @@ export function validateBdPhone(phone) {
     return { isValid: false, formatted: '', error: 'Phone number is required' };
   }
 
-  const clean = phone.replace(/\D/g, '');
-
-  let normalized = clean;
-  if (clean.length === 13 && clean.startsWith('8801')) {
-    normalized = '0' + clean.slice(2);
-  } else if (clean.length === 14 && clean.startsWith('88001')) {
-    normalized = '0' + clean.slice(3);
-  }
+  // Any format (+880…, 880…, 00880…, spaces, dashes) becomes 11 digits first
+  const normalized = normalizeBdPhone(phone);
 
   // BD standard: 11 digits starting with 013, 014, 015, 016, 017, 018, 019
   const bdRegex = /^01[3-9]\d{8}$/;
@@ -55,6 +53,9 @@ export function validateBdPhone(phone) {
  * Returns the first non-empty number, or '' if none.
  */
 export function toPhoneString(phone) {
-  if (Array.isArray(phone)) return String(phone.find((p) => String(p || '').trim()) || '').trim();
-  return phone == null ? '' : String(phone).trim();
+  const raw = Array.isArray(phone) ? phone.find((p) => String(p || '').trim()) : phone;
+  if (raw == null || !String(raw).trim()) return '';
+  // Store the 11-digit local form (01XXXXXXXXX) whenever the number is a BD mobile
+  const local = normalizeBdPhone(raw);
+  return /^01[3-9]\d{8}$/.test(local) ? local : String(raw).trim();
 }

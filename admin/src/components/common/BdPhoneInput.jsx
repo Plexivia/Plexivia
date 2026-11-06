@@ -1,5 +1,6 @@
 import React from 'react';
 import { Phone } from 'lucide-react';
+import { normalizeBdPhone } from '@/lib/phone';
 
 /**
  * Universal Phone Input component without fixed country code or BD restrictions.
@@ -19,6 +20,13 @@ export function BdPhoneInput({
   const handleChange = (e) => {
     const raw = e.target.value;
     onChange && onChange(raw);
+  };
+
+  // On leaving the field, a BD mobile number in any format becomes 11 digits (01XXXXXXXXX)
+  const handleBlur = (e) => {
+    const local = normalizeBdPhone(e.target.value);
+    if (/^01[3-9]\d{8}$/.test(local) && local !== e.target.value && onChange) onChange(local);
+    if (props.onBlur) props.onBlur(e);
   };
 
   return (
@@ -41,6 +49,7 @@ export function BdPhoneInput({
         placeholder={placeholder}
         className="w-full px-2 py-2 bg-transparent text-foreground text-xs font-mono font-medium outline-none placeholder:text-muted-foreground/40"
         {...props}
+        onBlur={handleBlur}
       />
     </div>
   );
