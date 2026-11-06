@@ -3,12 +3,16 @@ import * as accountingController from '../controllers/accountingController.js';
 import * as paymentSourceController from '../controllers/paymentSourceController.js';
 import * as accountsSetupController from '../controllers/accountsSetupController.js';
 import { requireAuth } from '../middleware/auth.js';
+import { emailReceipt } from '../controllers/receiptMailController.js';
 import { importSurokkhaDay } from '../utils/surokkhaBillImport.js';
 
 const router = Router();
 
 // All routes in this router require a valid access token
 router.use(requireAuth);
+
+// Email a payment receipt / slip to the client over SMTP
+router.post('/receipts/email', emailReceipt);
 
 // Invoices
 router.get('/invoices', accountingController.getInvoices);

@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { apiClient } from '@/lib/api-client';
 import { Mail, Pencil, Printer } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -428,6 +430,7 @@ export const RecordQuickView = ({
 }) => {
   const [shareMode, setShareMode] = useState(null);
   const [recipient, setRecipient] = useState('');
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     if (!open) setShareMode(null);
@@ -437,16 +440,14 @@ export const RecordQuickView = ({
     if (!slip) return;
     const known = mode === 'whatsapp' ? defaultPhone : defaultEmail;
     // Client's number / email is known: go straight to WhatsApp or the mail app
-    if (known) {
-      const text = toText(slip);
-      if (mode === 'whatsapp') window.open(getWhatsAppLink(known, text), '_blank', 'noopener');
-      else
-        window.location.href = `mailto:${encodeURIComponent(known.trim())}?subject=${encodeURIComponent(`${slip.heading} ${slip.reference}`)}&body=${encodeURIComponent(text)}`;
+    if (known && mode === 'whatsapp') {
+      window.open(getWhatsAppLink(known, toText(slip)), '_blank', 'noopener');
       setShareMode(null);
       return;
     }
+    // Email: recipient box opens pre-filled with the client's email, then Send emails it over SMTP
     setShareMode(shareMode === mode ? null : mode);
-    setRecipient('');
+    setRecipient(mode === 'email' ? known || '' : '');
   };
 
   const send = () => {
@@ -456,8 +457,18 @@ export const RecordQuickView = ({
       const link = getWhatsAppLink(recipient, text);
       window.open(link || `https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
     } else {
-      const subject = `${slip.heading} ${slip.reference}`;
-      window.location.href = `mailto:${encodeURIComponent(recipient.trim())}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text)}`;
+      const to = recipient.trim();
+      if (!to) return;
+      setSending(true);
+      apiClient
+        .post('/api/accounting/receipts/email', { to, ...slip })
+        .then(() => {
+          toast.success(`Receipt emailed to ${to}`);
+          setShareMode(null);
+        })
+        .catch((err) => toast.error(err?.response?.data?.message || 'Email could not be sent'))
+        .finally(() => setSending(false));
+      return;
     }
     setShareMode(null);
   };
@@ -502,8 +513,8 @@ export const RecordQuickView = ({
                 placeholder={shareMode === 'email' ? 'name@example.com' : '01XXXXXXXXX'}
                 className="h-9"
               />
-              <Button type="submit" size="sm" className="h-9">
-                Send
+              <Button type="submit" size="sm" className="h-9" disabled={sending}>
+                {sending ? 'Sending…' : 'Send'}
               </Button>
             </form>
           )}
