@@ -141,7 +141,7 @@ const compile = <T>(name: string, schema: Schema<T>): mongoose.Model<T> => {
 
 export const getPaymentMethodModel = () => compile<IPaymentMethod>('PaymentMethod', PaymentMethodSchema);
 export const getBusinessModel = () => compile<IBusiness>('Business', BusinessSchema);
-const getCounterModel = () => compile<ICounter>('Counter', CounterSchema);
+export const getCounterModel = () => compile<ICounter>('Counter', CounterSchema);
 
 // Next value of a named counter, created at 1 on first use
 export const nextSequence = async (key: string): Promise<number> => {

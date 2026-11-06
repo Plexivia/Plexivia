@@ -25,7 +25,7 @@ export function getDefaultInvoiceData() {
   return {
     _id: null,
     savedDocId: null,
-    invoiceNo: generateUniqueInvoiceNo(),
+    invoiceNo: '', // server serial, assigned on save
     issueDate: new Date().toISOString().split('T')[0],
     dueDate: new Date(Date.now() + (defaults.invoiceDueDays || 15) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     paymentStatus: "Pending", // 'Paid' | 'Pending' | 'Overdue'

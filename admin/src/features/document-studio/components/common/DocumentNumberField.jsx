@@ -1,13 +1,13 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AlertCircle, Check, Loader2, Wand2 } from 'lucide-react';
+import React, { useEffect, useRef } from 'react';
+import { Hash, Loader2 } from 'lucide-react';
 import { studioDocumentsApi } from '@/services/settingsApi';
 
 /**
- * The invoice / receipt / slip number field.
+ * The invoice / receipt / slip / voucher number — read-only.
  *
- * You can type a number yourself or press the wand inside the box to have a
- * fresh one generated. Either way it is checked against the numbers already
- * issued for this document type, so the same number is never used twice.
+ * Numbers are a plain database serial (e.g. 01MR260001) assigned by the server
+ * when the document is saved. Before saving, the field shows the number the
+ * save is expected to get; nobody types or generates one by hand.
  *
  * docType: 'invoice' | 'money-receipt' | 'salary-slip' | 'cash-voucher'
  */
@@ -16,130 +16,33 @@ export function DocumentNumberField({
   docType,
   value = '',
   onChange,
-  excludeId = '',
-  disabled = false,
-  autoGenerateWhenEmpty = true,
-  onAvailabilityChange = null,
+  isSaved = false,
   className = '',
 }) {
-  // 'idle' | 'checking' | 'available' | 'taken' | 'offline'
-  const [state, setState] = useState('idle');
-  const [takenBy, setTakenBy] = useState(null);
-  const [generating, setGenerating] = useState(false);
-  const debounceRef = useRef(null);
   const requestedRef = useRef(false);
 
-  const report = useCallback(
-    (next) => {
-      setState(next);
-      if (onAvailabilityChange) onAvailabilityChange(next);
-    },
-    [onAvailabilityChange]
-  );
-
-  // Ask the server for a free number, once, when the field starts out empty
+  // Unsaved document: show the next serial as a preview
   useEffect(() => {
-    if (!autoGenerateWhenEmpty || value || requestedRef.current || disabled) return;
+    if (isSaved || value || requestedRef.current) return;
     requestedRef.current = true;
     studioDocumentsApi
       .nextNumber(docType)
       .then((number) => {
         if (number && onChange) onChange(number);
       })
-      .catch(() => {
-        // No server number available — the caller's locally generated one stands
-      });
-  }, [autoGenerateWhenEmpty, value, docType, disabled, onChange]);
-
-  // Duplicate check, debounced while typing
-  useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    const trimmed = String(value || '').trim();
-    if (!trimmed) {
-      report('idle');
-      setTakenBy(null);
-      return undefined;
-    }
-
-    report('checking');
-    debounceRef.current = setTimeout(() => {
-      studioDocumentsApi
-        .checkNumber(docType, trimmed, excludeId)
-        .then((result) => {
-          if (result?.available === false) {
-            setTakenBy(result.usedBy || null);
-            report('taken');
-          } else {
-            setTakenBy(null);
-            report('available');
-          }
-        })
-        .catch(() => {
-          setTakenBy(null);
-          report('offline');
-        });
-    }, 450);
-
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, [value, docType, excludeId, report]);
-
-  const handleGenerate = async () => {
-    if (disabled) return;
-    setGenerating(true);
-    try {
-      const number = await studioDocumentsApi.nextNumber(docType);
-      if (number && onChange) onChange(number);
-    } catch {
-      report('offline');
-    } finally {
-      setGenerating(false);
-    }
-  };
-
-  const hint = {
-    checking: { icon: Loader2, text: 'Checking…', className: 'text-muted-foreground', spin: true },
-    available: { icon: Check, text: 'This number is free', className: 'text-emerald-600' },
-    taken: {
-      icon: AlertCircle,
-      text: takenBy?.clientName ? `Already used for ${takenBy.clientName}` : 'Already used — generate a new one',
-      className: 'text-rose-600',
-    },
-    offline: { icon: AlertCircle, text: 'Could not verify against saved documents', className: 'text-amber-600' },
-  }[state];
-
-  const HintIcon = hint?.icon;
+      .catch(() => {});
+  }, [isSaved, value, docType, onChange]);
 
   return (
     <div className={className}>
       <label className="mb-1 block text-xs font-bold text-foreground">{label}</label>
-      <div className="relative">
-        <input
-          type="text"
-          value={value || ''}
-          disabled={disabled}
-          onChange={(e) => onChange && onChange(e.target.value)}
-          className={`w-full rounded-xl border bg-background py-2 pl-3 pr-10 font-mono text-xs font-bold text-foreground outline-none transition-colors focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-60 ${
-            state === 'taken' ? 'border-rose-500' : 'border-border focus:border-primary'
-          }`}
-        />
-        <button
-          type="button"
-          onClick={handleGenerate}
-          disabled={disabled || generating}
-          title="Generate a new number"
-          className="absolute right-1.5 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-lg text-primary transition-colors hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
-        >
-          {generating ? <Loader2 className="size-4 animate-spin" /> : <Wand2 className="size-4" />}
-        </button>
+      <div className="flex items-center gap-2 rounded-xl border border-border bg-muted/40 px-3 py-2 font-mono text-xs font-bold text-foreground">
+        <Hash className="size-3.5 shrink-0 text-muted-foreground" />
+        {value ? <span className="truncate">{value}</span> : <Loader2 className="size-3.5 animate-spin text-muted-foreground" />}
       </div>
-      {hint && (
-        <p className={`mt-1 flex items-center gap-1 text-[10px] font-semibold ${hint.className}`}>
-          <HintIcon className={`size-3 ${hint.spin ? 'animate-spin' : ''}`} />
-          {hint.text}
-        </p>
-      )}
+      <p className="mt-1 text-[10px] font-semibold text-muted-foreground">
+        {isSaved ? 'Issued number — cannot be changed' : 'Auto serial — confirmed on save'}
+      </p>
     </div>
   );
 }

@@ -14,6 +14,11 @@ import {
   CheckCircle2,
   DollarSign,
   Layers,
+  Upload,
+  Paperclip,
+  X,
+  Lock,
+  Loader2,
 } from 'lucide-react';
 import { BdPhoneInput } from '@/components/common/BdPhoneInput';
 import { DatePicker } from '@/components/ui/date-picker';
@@ -24,7 +29,9 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { useClientLookup } from '../common/useClientLookup';
 import { ExistingClientAlertModal } from '../common/ExistingClientAlertModal';
-import { validateBdPhone } from '../common/phoneValidator';
+import { validateBdPhone, toPhoneString } from '../common/phoneValidator';
+import { useAuthStore } from '@/store/useAuthStore';
+import { uploadTicketAttachment } from '@/services/supportApi';
 import { ExistingClientSelector } from '@/components/common/ClientSelectorAndLineItems';
 import { DocumentNumberField } from '../common/DocumentNumberField';
 import { StudioSectionHeader } from '../common/StudioSectionHeader';
@@ -35,6 +42,50 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
   const [detectedMatch, setDetectedMatch] = useState(null);
   const [phoneTouched, setPhoneTouched] = useState(false);
   const [dateMode, setDateMode] = useState('auto'); // 'auto' | 'custom'
+  const [uploadingField, setUploadingField] = useState('');
+
+  // Received By = the dashboard user creating the voucher; only the owner may change it
+  const currentUser = useAuthStore((st) => st.user);
+  const isOwner = ['super_admin', 'owner'].includes(String(currentUser?.role || '').toLowerCase());
+  useEffect(() => {
+    if (!currentUser) return;
+    const profileSignature = currentUser.signature || currentUser.signatureUrl || '';
+    onChange((prev) => ({
+      ...prev,
+      receivedBy: prev.receivedBy || currentUser.name || '',
+      receivedByRole: prev.receivedByRole || currentUser.designation || currentUser.subRole || currentUser.role || '',
+      // Signature saved on the user's profile is used by default; it can be replaced here
+      signatureImage: prev.signatureImage || (profileSignature ? { url: profileSignature, name: 'Profile signature' } : null),
+    }));
+  }, [currentUser]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const selectedMethod = methodOptions.find((o) => o.value === data.paymentMethod)?.method || null;
+  const isCashMethod = /cash/i.test(`${data.paymentMethod || ''} ${selectedMethod?.category || ''}`);
+
+  // Payment proof / signature images: PDF or any image, max 5 MB
+  const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+  const handleFileUpload = async (field, file) => {
+    if (!file) return;
+    const okType = file.type === 'application/pdf' || file.type.startsWith('image/');
+    if (!okType) {
+      toast.error('Only PDF or image files are allowed.');
+      return;
+    }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      toast.error('File is larger than 5 MB.');
+      return;
+    }
+    setUploadingField(field);
+    try {
+      const uploaded = await uploadTicketAttachment(file);
+      onChange((prev) => ({ ...prev, [field]: uploaded }));
+      toast.success('File uploaded.');
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Upload failed.');
+    } finally {
+      setUploadingField('');
+    }
+  };
   // Payment methods exactly as configured under Accounts -> Payment Methods
   const { options: methodOptions, defaultMethod, loading: methodsLoading } = usePaymentMethodOptions();
 
@@ -71,8 +122,7 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
     onChange((prev) => ({
       ...prev,
       clientName: c.fullName || c.name || prev.clientName,
-      phone: c.phone || c.mobileNumber || prev.phone,
-      passportNumber: c.passportNumber || c.nidNumber || prev.passportNumber,
+      phone: toPhoneString(c.phone) || toPhoneString(c.mobileNumber) || prev.phone,
       clientId: c._id || c.did || prev.clientId,
       clientDid: c.did || c._id || prev.clientDid,
       linkedCaseId: detectedMatch.caseFile?._id || prev.linkedCaseId || null,
@@ -198,7 +248,7 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
               label="Receipt No."
               docType="money-receipt"
               value={data.receiptNo || ''}
-              excludeId={data.savedDocId || ''}
+              isSaved={Boolean(data.savedDocId)}
               onChange={(next) => onChange((prev) => ({ ...prev, receiptNo: next }))}
               onAvailabilityChange={onNumberStateChange}
             />
@@ -239,15 +289,14 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
               caseDid: clientData.caseDid || prev.caseDid,
               clientDid: clientData.did || prev.clientDid,
               clientName: clientData.name || prev.clientName,
-              phone: clientData.phone || prev.phone,
-              passportNumber: clientData.passportNumber || prev.passportNumber,
+              phone: toPhoneString(clientData.phone) || prev.phone,
             }));
           }}
         />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
           <div>
-            <label className="block font-bold text-foreground mb-1">Client / Passenger Name *</label>
+            <label className="block font-bold text-foreground mb-1">Client Name *</label>
             <input
               type="text"
               disabled={isLocked}
@@ -255,18 +304,6 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
               placeholder="Enter recipient / client name"
               onChange={(e) => handleFieldChange('clientName', e.target.value)}
               className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-semibold text-xs focus:ring-2 focus:ring-primary/20 outline-none disabled:opacity-70 disabled:bg-muted/40"
-            />
-          </div>
-
-          <div>
-            <label className="block font-bold text-foreground mb-1">Passport / NID No.</label>
-            <input
-              type="text"
-              disabled={isLocked}
-              value={data.passportNumber || ''}
-              placeholder="Enter passport number"
-              onChange={(e) => handleFieldChange('passportNumber', e.target.value)}
-              className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-mono font-medium text-xs focus:ring-2 focus:ring-primary/20 outline-none disabled:opacity-70 disabled:bg-muted/40"
             />
           </div>
 
@@ -293,44 +330,62 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
         </div>
       </div>
 
-      {/* Section 2: Service Purpose & Authorizer */}
+      {/* Section 2: Services & Billing Officer */}
       <div className="space-y-3">
-        <StudioSectionHeader icon={Layers} title="2. Purpose, Service Head & Officer" />
+        <StudioSectionHeader icon={Layers} title="2. Services & Billing Officer" />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
           <div>
-            <label className="block font-bold text-foreground mb-1">Purpose / Service Head *</label>
-            <input
-              type="text"
-              list="service-purpose-options"
-              value={data.purpose || ''}
-              placeholder="Enter payment purpose / description"
-              onChange={(e) => handleFieldChange('purpose', e.target.value)}
-              className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-medium text-xs focus:ring-2 focus:ring-primary/20 outline-none"
-            />
-            <datalist id="service-purpose-options">
-              {SERVICE_PURPOSES.map((sp, idx) => (
-                <option key={idx} value={sp} />
+            <label className="block font-bold text-foreground mb-1">Service / Deliverable *</label>
+            <select
+              value={SERVICE_PURPOSES.includes(data.purpose) ? data.purpose : data.purpose || data.purposeCustom ? '__custom' : ''}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (v === '__custom') onChange((prev) => ({ ...prev, purpose: '', purposeCustom: true }));
+                else onChange((prev) => ({ ...prev, purpose: v, purposeCustom: false }));
+              }}
+              className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-medium text-xs focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
+            >
+              <option value="">Select a service…</option>
+              {SERVICE_PURPOSES.map((sp) => (
+                <option key={sp} value={sp}>
+                  {sp}
+                </option>
               ))}
-            </datalist>
+              <option value="__custom">Other (write it in)</option>
+            </select>
+            {!SERVICE_PURPOSES.includes(data.purpose) && (data.purpose || data.purposeCustom) && (
+              <input
+                type="text"
+                value={data.purpose || ''}
+                placeholder="Describe the service"
+                onChange={(e) => handleFieldChange('purpose', e.target.value)}
+                className="mt-2 w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-medium text-xs focus:ring-2 focus:ring-primary/20 outline-none"
+              />
+            )}
           </div>
 
           <div>
-            <label className="block font-bold text-foreground mb-1">Received / Paid By (Accounts Officer)</label>
+            <label className="mb-1 flex items-center gap-1.5 font-bold text-foreground">
+              Received By
+              {!isOwner && <Lock className="w-3 h-3 text-muted-foreground" aria-label="Only the owner can change this" />}
+            </label>
             <div className="grid grid-cols-2 gap-2">
               <input
                 type="text"
                 value={data.receivedBy || ''}
-                placeholder="Enter recipient officer name"
+                disabled={!isOwner}
+                placeholder="Name"
                 onChange={(e) => handleFieldChange('receivedBy', e.target.value)}
-                className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-medium text-xs focus:ring-2 focus:ring-primary/20 outline-none"
+                className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-medium text-xs focus:ring-2 focus:ring-primary/20 outline-none disabled:bg-muted/40 disabled:cursor-not-allowed"
               />
               <input
                 type="text"
                 value={data.receivedByRole || ''}
-                placeholder="Enter officer designation / role"
+                disabled={!isOwner}
+                placeholder="Designation"
                 onChange={(e) => handleFieldChange('receivedByRole', e.target.value)}
-                className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground text-xs focus:ring-2 focus:ring-primary/20 outline-none"
+                className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground text-xs focus:ring-2 focus:ring-primary/20 outline-none disabled:bg-muted/40 disabled:cursor-not-allowed"
               />
             </div>
           </div>
@@ -397,6 +452,68 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
               </div>
             </div>
 
+            {!isCashMethod && data.paymentMethod && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-foreground mb-1">Transaction Amount (BDT)</label>
+                  <input
+                    type="number"
+                    value={data.transactionAmount ?? ''}
+                    placeholder={data.amount ? String(data.amount) : '0.00'}
+                    onChange={(e) => handleFieldChange('transactionAmount', e.target.value)}
+                    className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-mono font-bold text-xs focus:ring-2 focus:ring-primary/20 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-foreground mb-1">Transaction ID</label>
+                  <input
+                    type="text"
+                    value={data.transactionId || ''}
+                    placeholder="e.g. 9FD7XK2L1Q"
+                    onChange={(e) => handleFieldChange('transactionId', e.target.value)}
+                    className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-mono text-xs focus:ring-2 focus:ring-primary/20 outline-none"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div>
+              <label className="block font-bold text-foreground mb-1">
+                Payment Proof <span className="font-medium text-muted-foreground">(optional · PDF or image · max 5 MB)</span>
+              </label>
+              {data.paymentProof?.url ? (
+                <div className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2">
+                  <Paperclip className="w-3.5 h-3.5 text-primary shrink-0" />
+                  <a href={data.paymentProof.url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate text-primary hover:underline">
+                    {data.paymentProof.name || 'Attachment'}
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => onChange((prev) => ({ ...prev, paymentProof: null }))}
+                    className="p-1 rounded hover:bg-muted cursor-pointer"
+                    aria-label="Remove"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <label className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-background px-3 py-3 text-muted-foreground hover:bg-muted cursor-pointer">
+                  {uploadingField === 'paymentProof' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                  <span>{uploadingField === 'paymentProof' ? 'Uploading…' : 'Upload screenshot or PDF'}</span>
+                  <input
+                    type="file"
+                    accept="application/pdf,image/*"
+                    className="hidden"
+                    disabled={Boolean(uploadingField)}
+                    onChange={(e) => {
+                      handleFileUpload('paymentProof', e.target.files?.[0]);
+                      e.target.value = '';
+                    }}
+                  />
+                </label>
+              )}
+            </div>
+
             <div>
               <label className="block font-bold text-foreground mb-1">Amount in Words (In Words)</label>
               <input
@@ -415,6 +532,25 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
       <div className="space-y-3">
         <StudioSectionHeader icon={FileText} title="4. Signatures & Approvals" />
 
+        <label className="flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/20 px-4 py-3 text-xs cursor-pointer">
+          <span>
+            <span className="block font-bold text-foreground">Show signatures on the receipt</span>
+            <span className="block text-muted-foreground">
+              {data.showSignatures
+                ? 'Signature lines are printed. Upload a signature image, or use the one from your profile.'
+                : 'Off: no signature lines. The receipt prints a system-generated confirmation instead.'}
+            </span>
+          </span>
+          <input
+            type="checkbox"
+            checked={Boolean(data.showSignatures)}
+            onChange={(e) => handleFieldChange('showSignatures', e.target.checked)}
+            className="h-4 w-4 accent-primary cursor-pointer"
+          />
+        </label>
+
+        {data.showSignatures && (
+        <>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
           <div>
             <label className="block font-medium text-foreground mb-1">Prepared / Paid By</label>
@@ -460,6 +596,40 @@ export function MoneyReceiptForm({ data, onChange, onReset, onSave, onPreview, i
             />
           </div>
         </div>
+
+        <div className="text-xs">
+          <label className="block font-medium text-foreground mb-1">Signature Image (optional)</label>
+          {data.signatureImage?.url ? (
+            <div className="flex items-center gap-3 rounded-xl border border-border bg-background p-2">
+              <img src={data.signatureImage.url} alt="Signature" className="h-10 max-w-[160px] object-contain" />
+              <button
+                type="button"
+                onClick={() => onChange((prev) => ({ ...prev, signatureImage: null }))}
+                className="ml-auto p-1 rounded hover:bg-muted cursor-pointer"
+                aria-label="Remove"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : (
+            <label className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-background px-3 py-3 text-muted-foreground hover:bg-muted cursor-pointer">
+              {uploadingField === 'signatureImage' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+              <span>{uploadingField === 'signatureImage' ? 'Uploading…' : 'Upload signature image'}</span>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                disabled={Boolean(uploadingField)}
+                onChange={(e) => {
+                  handleFileUpload('signatureImage', e.target.files?.[0]);
+                  e.target.value = '';
+                }}
+              />
+            </label>
+          )}
+        </div>
+        </>
+        )}
       </div>
 
       {/* Form Action Controls */}

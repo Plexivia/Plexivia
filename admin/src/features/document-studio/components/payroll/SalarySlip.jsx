@@ -30,7 +30,7 @@ export function getDefaultSalarySlipData() {
     companyName: agencyInfo.agencyName?.toUpperCase() || 'PLEXIVIA',
     companyAddress: agencyInfo.address?.full || 'Mominpur Jagannathpur Road, Sunamganj, Post Code 3060',
     savedDocId: null,
-    slipNo: generateUniqueSlipNumber(),
+    slipNo: '', // server serial, assigned on save
     monthYear: today.toISOString().slice(0, 7), // YYYY-MM
     issueDate: today.toISOString().split('T')[0],
     // Current month and today, so a fresh slip is ready to fill in

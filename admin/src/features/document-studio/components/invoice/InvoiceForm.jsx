@@ -143,7 +143,7 @@ export function InvoiceForm({ data, onChange, onSubmit, onReset, isSubmitting = 
             label="Invoice No."
             docType="invoice"
             value={data.invoiceNo || ''}
-            excludeId={data.savedDocId || ''}
+            isSaved={Boolean(data.savedDocId)}
             onChange={(next) => onChange((prev) => ({ ...prev, invoiceNo: next }))}
             onAvailabilityChange={onNumberStateChange}
           />

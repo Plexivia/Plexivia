@@ -10,6 +10,7 @@ import { ExperienceCertificate } from '../components/certificate-experience/Expe
 import { ResumeBuilder } from '../components/resume/ResumeBuilder';
 import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
+import { toPhoneString } from '../components/common/phoneValidator';
 import { ShieldCheck, ArrowLeft, Lock, FileText, CheckCircle2, Loader2 } from 'lucide-react';
 
 /**
@@ -151,7 +152,8 @@ export const DocumentStudioPage = ({
     const { client = {}, caseFile = {} } = dossierContext;
 
     const applicantFullName = client.fullName || caseFile.applicantName || '';
-    const phone = client.phone || client.mobileNumber || caseFile.phone || '';
+    // Client.phone is an array in the DB — take the first number as a plain string
+    const phone = toPhoneString(client.phone) || toPhoneString(client.mobileNumber) || toPhoneString(client.contact_phone) || toPhoneString(caseFile.phone);
     const passportNumber = client.passportNumber || caseFile.passportNumber || '';
     const nidNumber = client.nidNumber || caseFile.nidNumber || '';
     const destination = caseFile.destinationCountry || caseFile.caseType || 'Work Permit & Job Placement';

@@ -5,6 +5,7 @@ import { getDefaultMoneyReceiptData, generateReceiptNo, numberToWords } from './
 import { Download, RefreshCw, Share2, Printer, Receipt } from 'lucide-react';
 import { toast } from 'sonner';
 import { studioDocumentsApi } from '@/services/settingsApi';
+import { paymentsApi, paymentSourcesApi, paymentMethodsApi } from '@/services/paymentsApi';
 import { printDocument, downloadDocumentDirect } from '@/lib/utils';
 import { HeaderTitle } from '@/components/common/HeaderTitle';
 import { StudioFloatingViewSwitcher } from '../common/StudioFloatingViewSwitcher';
@@ -47,6 +48,34 @@ export function MoneyReceipt({ initialData = null, isLocked = false, onSavedSucc
     toast.info('Money receipt form has been reset.');
   };
 
+  // Creates the matching payment record, linked to the client
+  const recordPayment = async (receiptNo) => {
+    const clientId = data.clientId || data.clientDid || initialData?.clientId || '';
+    if (!clientId) return;
+    const sources = await paymentSourcesApi.list();
+    const source = sources.find((src) => src.linkType === 'client' && src.status !== 'Inactive');
+    if (!source) throw new Error('no active client payment source in Accounts');
+    const methods = await paymentMethodsApi.list().catch(() => []);
+    const method = methods.find((m) => m.name === data.paymentMethod);
+    const total = Number(data.amount) || 0;
+    const received = data.transactionAmount !== undefined && data.transactionAmount !== '' ? Number(data.transactionAmount) : total;
+    await paymentsApi.create({
+      paymentSourceId: source.id,
+      clientId,
+      customerName: data.clientName || '',
+      amount: total,
+      paidAmount: received,
+      paymentMethod: data.paymentMethod || '',
+      paymentMethodId: method?.id || '',
+      charges: [],
+      trxId: data.transactionId || '',
+      date: data.date || new Date().toISOString().slice(0, 10),
+      status: received < total ? 'Partial' : 'Completed',
+      notes: `Money receipt ${receiptNo}${data.purpose ? ` — ${data.purpose}` : ''}`,
+      attachments: data.paymentProof?.url ? [data.paymentProof] : [],
+    });
+  };
+
   const handleFormSubmit = async () => {
     if (!data.clientName?.trim()) {
       toast.error('Client name is required.');
@@ -56,15 +85,10 @@ export function MoneyReceipt({ initialData = null, isLocked = false, onSavedSucc
       toast.error('A valid total amount is required.');
       return;
     }
-    if (numberState === 'taken') {
-      toast.error('That receipt number is already used. Press the wand to generate a new one.');
-      return;
-    }
-
-    const finalReceiptNo = data.receiptNo?.trim() || generateReceiptNo();
+    // The receipt number is a server serial, assigned on save (the field only previews it)
+    const finalReceiptNo = data.receiptNo?.trim() || '';
     const body = {
       type: 'money-receipt',
-      number: finalReceiptNo,
       clientId: data.clientId || data.clientDid || initialData?.clientId || '',
       clientName: data.clientName,
       paymentMethod: data.paymentMethod || '',
@@ -92,6 +116,15 @@ export function MoneyReceipt({ initialData = null, isLocked = false, onSavedSucc
         receiptNo: saved.number || finalReceiptNo,
         amountInWords: body.payload.amountInWords,
       }));
+
+      // New receipt: record the money in Accounts -> Payments too (same as Add Payment)
+      if (!isEdit) {
+        await recordPayment(saved.number || finalReceiptNo).catch((err) => {
+          toast.warning(
+            `Receipt saved, but the payment entry was not recorded: ${err?.response?.data?.message || err?.message || 'unknown error'}`
+          );
+        });
+      }
 
       if (onSavedSuccess) onSavedSuccess(saved);
       toast.success(

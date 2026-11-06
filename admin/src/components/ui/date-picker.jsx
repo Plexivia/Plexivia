@@ -201,14 +201,25 @@ export function DatePicker({
             </button>
 
             <div className="flex items-center gap-1.5 text-xs font-bold text-foreground">
-              <span>{i18n.language === 'bn' ? MONTH_NAMES_BN[viewMonth] : MONTH_NAMES[viewMonth]}</span>
+              <select
+                value={viewMonth}
+                onChange={(e) => setViewMonth(Number(e.target.value))}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-transparent border border-border/60 rounded px-1 py-0.5 text-xs font-bold outline-none cursor-pointer"
+              >
+                {(i18n.language === 'bn' ? MONTH_NAMES_BN : MONTH_NAMES).map((m, idx) => (
+                  <option key={m} value={idx} className="bg-popover text-foreground">
+                    {m}
+                  </option>
+                ))}
+              </select>
               <select
                 value={viewYear}
                 onChange={(e) => setViewYear(Number(e.target.value))}
                 onClick={(e) => e.stopPropagation()}
                 className="bg-transparent border border-border/60 rounded px-1 py-0.5 text-xs font-bold font-mono outline-none cursor-pointer"
               >
-                {Array.from({ length: 40 }, (_, i) => 2000 + i).map((y) => (
+                {Array.from({ length: 12 }, (_, i) => viewYear - 6 + i).map((y) => (
                   <option key={y} value={y} className="bg-popover text-foreground">
                     {y}
                   </option>

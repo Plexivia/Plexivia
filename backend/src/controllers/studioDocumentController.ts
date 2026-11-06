@@ -1,6 +1,5 @@
 import { Response } from 'express';
-import { getStudioDocumentModel, nextStudioDocNumber, STUDIO_DOC_TYPES, StudioDocType } from '../models/StudioDocument.js';
-import { getOrCreateAppSettings } from '../models/Settings.js';
+import { getStudioDocumentModel, nextStudioDocNumber, peekStudioDocNumber, STUDIO_DOC_TYPES, StudioDocType } from '../models/StudioDocument.js';
 import { softDeleteOne } from '../plugins/softDelete.js';
 import { AuthedRequest } from '../middleware/auth.js';
 
@@ -25,14 +24,6 @@ const DOC_TYPE_ALIASES: Record<string, StudioDocType> = {
 };
 
 const resolveDocType = (value: any): StudioDocType | null => DOC_TYPE_ALIASES[String(value || '').toLowerCase()] || null;
-
-const prefixFor = async (docType: StudioDocType): Promise<string | undefined> => {
-  const settings = await getOrCreateAppSettings();
-  if (docType === 'invoice') return settings.documents?.invoice_prefix;
-  if (docType === 'money-receipt') return settings.documents?.receipt_prefix;
-  if (docType === 'salary-slip') return settings.documents?.slip_prefix;
-  return undefined;
-};
 
 // Amount shown in listings: whatever the form calls its total
 const resolveAmount = (body: any): number => {
@@ -67,8 +58,9 @@ export const getNextDocumentNumber = async (req: AuthedRequest, res: Response) =
   try {
     const docType = resolveDocType(req.query.type);
     if (!docType) return fail(res, 400, `type must be one of: ${STUDIO_DOC_TYPES.join(', ')}`);
-    const number = await nextStudioDocNumber(docType, await prefixFor(docType));
-    return ok(res, { type: docType, number });
+    // Preview only: the serial is consumed when the document is saved
+    const number = await peekStudioDocNumber(docType);
+    return ok(res, { type: docType, number, preview: true });
   } catch (error: any) {
     return fail(res, 500, error.message || 'Failed to generate a document number');
   }
@@ -123,8 +115,8 @@ export const createDocument = async (req: AuthedRequest, res: Response) => {
     const docType = resolveDocType(body.type || body.docType);
     if (!docType) return fail(res, 400, `type must be one of: ${STUDIO_DOC_TYPES.join(', ')}`);
 
-    const requested = String(body.number || body.docNumber || '').trim();
-    const docNumber = requested || (await nextStudioDocNumber(docType, await prefixFor(docType)));
+    // Numbers are always assigned by the server from the serial — client input is ignored
+    const docNumber = await nextStudioDocNumber(docType);
 
     const created = await getStudioDocumentModel().create({
       doc_type: docType,
@@ -158,8 +150,7 @@ export const updateDocument = async (req: AuthedRequest, res: Response) => {
     const document = await Model.findOne({ $or: [{ dId: id }, { doc_number: id }] });
     if (!document) return fail(res, 404, `Document '${id}' not found`);
 
-    const requested = String(body.number || body.docNumber || '').trim();
-    if (requested && requested !== document.doc_number) document.doc_number = requested;
+    // doc_number is fixed once issued — it is not editable
     if (body.clientId !== undefined) document.client_id = String(body.clientId || '').trim();
     if (body.clientName !== undefined) document.client_name = String(body.clientName || '').trim();
     if (body.projectId !== undefined) document.project_id = String(body.projectId || '').trim();

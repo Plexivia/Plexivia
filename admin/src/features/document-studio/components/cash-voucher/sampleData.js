@@ -91,7 +91,7 @@ export function getDefaultCashVoucherData() {
 
   return {
     _id: null,
-    voucherNo: generateVoucherNo(),
+    voucherNo: '', // server serial, assigned on save
     voucherDate: new Date().toLocaleDateString('en-GB'), // DD/MM/YYYY
     qrCode: '',
     did: '',

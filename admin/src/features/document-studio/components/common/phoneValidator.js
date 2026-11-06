@@ -5,6 +5,7 @@
  * - Country code formats: +8801XXXXXXXXX or 8801XXXXXXXXX
  */
 export function validateBdPhone(phone) {
+  if (Array.isArray(phone)) phone = toPhoneString(phone);
   if (!phone || typeof phone !== 'string' || !phone.trim()) {
     return { isValid: false, formatted: '', error: 'Phone number is required' };
   }
@@ -48,3 +49,12 @@ export function validateBdPhone(phone) {
   };
 }
 
+
+/**
+ * Clients store phone as an array (Client.phone: string[]); forms need one string.
+ * Returns the first non-empty number, or '' if none.
+ */
+export function toPhoneString(phone) {
+  if (Array.isArray(phone)) return String(phone.find((p) => String(p || '').trim()) || '').trim();
+  return phone == null ? '' : String(phone).trim();
+}

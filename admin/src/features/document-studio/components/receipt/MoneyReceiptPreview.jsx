@@ -166,22 +166,17 @@ export function VoucherSlipCard({ data = {}, copyTitle = 'Original Copy', idSuff
         {/* Row 1: Client / Passenger Name */}
         <div className="grid grid-cols-12 border-b border-[#E2E8F0] px-3.5 py-2">
           <div className="col-span-4 sm:col-span-3 font-bold text-slate-700">
-            Client / Passenger Name:
+            Client Name:
           </div>
           <div className="col-span-8 sm:col-span-9 font-bold text-slate-900">
-            {clientName || '—'}{' '}
-            {passportNumber && (
-              <span className="font-normal text-slate-700">
-                (Passport: <span className="font-mono font-semibold">{passportNumber}</span>)
-              </span>
-            )}
+            {clientName || '—'}
           </div>
         </div>
 
         {/* Row 2: Purpose / Service Head */}
         <div className="grid grid-cols-12 border-b border-[#E2E8F0] px-3.5 py-2 bg-white">
           <div className="col-span-4 sm:col-span-3 font-bold text-slate-700">
-            Purpose / Service Head:
+            Service / Deliverable:
           </div>
           <div className="col-span-8 sm:col-span-9 font-medium text-slate-900">
             {purpose || '—'}
@@ -191,7 +186,7 @@ export function VoucherSlipCard({ data = {}, copyTitle = 'Original Copy', idSuff
         {/* Row 3: Received / Paid By */}
         <div className="grid grid-cols-12 border-b border-[#E2E8F0] px-3.5 py-2">
           <div className="col-span-4 sm:col-span-3 font-bold text-slate-700">
-            Received / Paid By:
+            Received By:
           </div>
           <div className="col-span-8 sm:col-span-9 font-medium text-slate-900">
             {receivedBy || '—'}{' '}
@@ -206,39 +201,18 @@ export function VoucherSlipCard({ data = {}, copyTitle = 'Original Copy', idSuff
           <div className="col-span-4 sm:col-span-3 font-bold text-slate-700">
             Payment Method:
           </div>
-          <div className="col-span-8 sm:col-span-9 flex items-center gap-4 flex-wrap">
-            <label className="flex items-center gap-1.5 cursor-pointer">
-              {paymentMethod === 'Cash' ? (
-                <CheckSquare className="w-3.5 h-3.5 text-[#0D47A1] fill-[#0D47A1]/10" />
-              ) : (
-                <Square className="w-3.5 h-3.5 text-slate-400" />
-              )}
-              <span className={`text-[11.5px] ${paymentMethod === 'Cash' ? 'font-bold text-slate-900' : 'text-slate-600'}`}>
-                Cash
+          <div className="col-span-8 sm:col-span-9 flex items-center gap-x-4 gap-y-1 flex-wrap">
+            <span className="font-bold text-slate-900 text-[11.5px]">{paymentMethod || '—'}</span>
+            {data?.transactionId && (
+              <span className="text-[11px] text-slate-700">
+                TrxID: <span className="font-mono font-semibold text-slate-900">{data.transactionId}</span>
               </span>
-            </label>
-
-            <label className="flex items-center gap-1.5 cursor-pointer">
-              {paymentMethod === 'Bank Transfer / Cheque' ? (
-                <CheckSquare className="w-3.5 h-3.5 text-[#0D47A1] fill-[#0D47A1]/10" />
-              ) : (
-                <Square className="w-3.5 h-3.5 text-slate-400" />
-              )}
-              <span className={`text-[11.5px] ${paymentMethod === 'Bank Transfer / Cheque' ? 'font-bold text-slate-900' : 'text-slate-600'}`}>
-                Bank Transfer / Cheque
+            )}
+            {data?.transactionAmount !== undefined && data?.transactionAmount !== '' && (
+              <span className="text-[11px] text-slate-700">
+                Paid: <span className="font-mono font-semibold text-slate-900">BDT {Number(data.transactionAmount || 0).toLocaleString('en-IN')}</span>
               </span>
-            </label>
-
-            <label className="flex items-center gap-1.5 cursor-pointer">
-              {paymentMethod === 'Online Payment' ? (
-                <CheckSquare className="w-3.5 h-3.5 text-[#0D47A1] fill-[#0D47A1]/10" />
-              ) : (
-                <Square className="w-3.5 h-3.5 text-slate-400" />
-              )}
-              <span className={`text-[11.5px] ${paymentMethod === 'Online Payment' ? 'font-bold text-slate-900' : 'text-slate-600'}`}>
-                Online Payment
-              </span>
-            </label>
+            )}
           </div>
         </div>
       </div>
@@ -266,8 +240,17 @@ export function VoucherSlipCard({ data = {}, copyTitle = 'Original Copy', idSuff
         </div>
       </div>
 
-      {/* 5. Four Signatures Bar */}
+      {/* 5. Signatures (toggle) or system confirmation */}
+      {!data?.showSignatures ? (
+        <p className="mt-4 border-t border-dashed border-slate-300 pt-2 text-center text-[10px] font-medium text-slate-500">
+          This is a system-generated receipt and does not require a signature. Payment received and confirmed by{' '}
+          {agencyInfo.agencyName || 'Plexivia'}.
+        </p>
+      ) : (
       <div className="grid grid-cols-4 gap-3 pt-6 mt-4 text-center text-[10.5px]">
+        {data?.signatureImage?.url && (
+          <img src={data.signatureImage.url} alt="Signature" className="col-start-2 -mb-6 h-8 mx-auto object-contain" />
+        )}
         <div>
           <div className="border-t border-slate-400 pt-1 font-bold text-slate-800">
             Prepared / Paid By
@@ -296,6 +279,7 @@ export function VoucherSlipCard({ data = {}, copyTitle = 'Original Copy', idSuff
           <div className="text-[10px] text-slate-500 font-medium">({approvedBySignature || 'General Manager / Proprietor'})</div>
         </div>
       </div>
+      )}
     </div>
   );
 }

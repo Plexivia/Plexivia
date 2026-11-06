@@ -84,7 +84,7 @@ export const getDefaultMoneyReceiptData = () => {
   return {
     _id: null,
     savedDocId: null,
-    receiptNo: generateReceiptNo(),
+    receiptNo: '', // server serial, assigned on save
     date: new Date().toISOString().split('T')[0],
     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     clientName: '',

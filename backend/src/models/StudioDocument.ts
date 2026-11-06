@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { secureDbConnection } from '../config/database.js';
 import { generateDId } from '../utils/dId.js';
-import { nextSequence } from './Accounts.js';
+import { nextSequence, getCounterModel } from './Accounts.js';
 
 /**
  * Every document generated in Document Studio — invoice, money receipt, salary
@@ -65,26 +65,41 @@ const compile = <T>(name: string, schema: Schema<T>): mongoose.Model<T> => {
 
 export const getStudioDocumentModel = () => compile<IStudioDocument>('StudioDocument', StudioDocumentSchema);
 
-const NUMBER_PREFIX: Record<StudioDocType, string> = {
-  invoice: 'PX-INV',
-  'money-receipt': 'PX-MR',
-  'salary-slip': 'PX-SLIP',
-  'cash-voucher': 'PX-CV',
+/**
+ * Document numbers: <company><type><yy><serial>, e.g. 01MR260001.
+ * Plain database serial per type and year — never random, never typed by hand.
+ */
+export const DOC_NUMBER_COMPANY = '01';
+const DOC_TYPE_CODE: Record<StudioDocType, string> = {
+  invoice: 'INV',
+  'money-receipt': 'MR',
+  'salary-slip': 'SS',
+  'cash-voucher': 'CV',
 };
 
-// Next free number for a type, e.g. PX-INV-2026-00001 — skips numbers already taken
-export const nextStudioDocNumber = async (docType: StudioDocType, prefixOverride?: string, date = new Date()): Promise<string> => {
+const counterKey = (docType: StudioDocType, year: number) => `studio-serial:${docType}:${year}`;
+const formatDocNumber = (docType: StudioDocType, year: number, seq: number) =>
+  `${DOC_NUMBER_COMPANY}${DOC_TYPE_CODE[docType]}${String(year).slice(-2)}${String(seq).padStart(4, '0')}`;
+
+// Next number, consumed — called only when a document is actually saved
+export const nextStudioDocNumber = async (docType: StudioDocType, _prefixOverride?: string, date = new Date()): Promise<string> => {
   const Model = getStudioDocumentModel();
-  const prefix = (prefixOverride || NUMBER_PREFIX[docType] || 'PX-DOC').replace(/-+$/, '');
   const year = date.getFullYear();
 
   for (let attempt = 0; attempt < 25; attempt++) {
-    const seq = await nextSequence(`studio:${docType}:${year}`);
-    const candidate = `${prefix}-${year}-${String(seq).padStart(5, '0')}`;
+    const seq = await nextSequence(counterKey(docType, year));
+    const candidate = formatDocNumber(docType, year, seq);
     const taken = await Model.findOne({ doc_type: docType, doc_number: candidate })
       .collation({ locale: 'en', strength: 2 })
       .setOptions({ withInactive: true });
     if (!taken) return candidate;
   }
-  return `${prefix}-${year}-${Date.now().toString(36).toUpperCase()}`;
+  throw new Error('Could not allocate a document number');
+};
+
+// The number the next save will most likely get — read-only, does not consume the serial
+export const peekStudioDocNumber = async (docType: StudioDocType, date = new Date()): Promise<string> => {
+  const year = date.getFullYear();
+  const counter: any = await getCounterModel().findOne({ key: counterKey(docType, year) }).lean();
+  return formatDocNumber(docType, year, (counter?.seq || 0) + 1);
 };

@@ -128,7 +128,7 @@ export function SalarySlipForm({ formData, setFormData, onSubmit, onReset, isSub
             label="Slip No."
             docType="salary-slip"
             value={formData.slipNo || ''}
-            excludeId={formData.savedDocId || ''}
+            isSaved={Boolean(formData.savedDocId)}
             onChange={(next) => setFormData((prev) => ({ ...prev, slipNo: next }))}
             onAvailabilityChange={onNumberStateChange}
           />
