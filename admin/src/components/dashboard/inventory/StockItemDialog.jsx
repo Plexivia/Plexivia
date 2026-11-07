@@ -8,6 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { UNIT_OPTIONS } from '@/services/inventoryApi';
 
+// Capitalizes the first letter of every word, leaving the rest as typed (KN95 stays KN95)
+const titleCase = (v) => v.replace(/(^|\s)(\S)/g, (m, sp, ch) => sp + ch.toUpperCase());
+
 const EMPTY = { shortName: '', name: '', unit: 'pcs', reorderLevel: 0, notes: '', isActive: true, packs: [{ label: 'Packet', unitsPerPack: 10 }], openingQuantity: 0, openingCost: 0 };
 
 // Form state for an item: unknown units fall back to pcs so a bad old value can be fixed with one save
@@ -75,7 +78,7 @@ export const StockItemDialog = ({ open, onOpenChange, item, onSave, saving }) =>
             </div>
             <div className="col-span-2 space-y-1.5">
               <label className="text-xs font-semibold">Full name</label>
-              <Input value={form.name} onChange={(e) => set('name', e.target.value)} placeholder="Medicated oil 10ml" className="text-xs" />
+              <Input value={form.name} onChange={(e) => set('name', titleCase(e.target.value))} placeholder="Medicated Oil 10ml" className="text-xs" />
             </div>
           </div>
 
