@@ -3,6 +3,7 @@ import authRouter from './auth.routes.js';
 import hubRouter from './hub.routes.js';
 import agencyRouter from './agency.routes.js';
 import accountingRouter from './accounting.routes.js';
+import inventoryRouter from './inventory.routes.js';
 import backupRouter from './backup.routes.js';
 import qrRouter from './qr.routes.js';
 import supportRouter from './support.routes.js';
@@ -51,6 +52,10 @@ router.use('/v1/hub', hubRouter);
 // 3. Agency & Client Operations Chunk (/api/agency/*)
 router.use('/agency', agencyRouter);
 router.use('/v1/agency', agencyRouter);
+
+// 3b. E-commerce store inventory (/api/inventory/*)
+router.use('/inventory', inventoryRouter);
+router.use('/v1/inventory', inventoryRouter);
 
 // 4. Accounting & Finance Chunk (/api/accounting/* & /api/finance/*)
 router.use('/accounting', accountingRouter);

@@ -25,12 +25,16 @@ const surokkhaConnection = async () => {
   return cfg;
 };
 
-// Calls a Surokkha /plexivia endpoint with the shared key and returns its data
-export const callSurokkha = async (path: string, init: { method?: string; body?: any } = {}) => {
+// Calls a Surokkha /plexivia endpoint with the shared key; returns its data, or the whole reply when raw is set
+export const callSurokkha = async (path: string, init: { method?: string; body?: any; actor?: string; raw?: boolean } = {}) => {
   const cfg = await surokkhaConnection();
   const res = await fetch(`${cfg.baseUrl}/plexivia${path}`, {
     method: init.method || 'GET',
-    headers: { 'x-plexivia-key': cfg.key, ...(init.body ? { 'Content-Type': 'application/json' } : {}) },
+    headers: {
+      'x-plexivia-key': cfg.key,
+      ...(init.actor ? { 'x-plexivia-actor': init.actor } : {}),
+      ...(init.body ? { 'Content-Type': 'application/json' } : {}),
+    },
     body: init.body ? JSON.stringify(init.body) : undefined,
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
@@ -40,7 +44,7 @@ export const callSurokkha = async (path: string, init: { method?: string; body?:
     err.status = res.status;
     throw err;
   }
-  return body.data;
+  return init.raw ? body : body.data;
 };
 
 // Active Surokkha stock items for the purchase form

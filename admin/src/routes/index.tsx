@@ -32,6 +32,7 @@ import { AllBillsPage } from '@/pages/accounts/allBills';
 import { PurchasesPage } from '@/pages/accounts/purchases';
 import { PurchaseEditorPage } from '@/pages/accounts/purchaseEditor';
 import { VendorsPage } from '@/pages/accounts/vendors';
+import { InventoryPage } from '@/pages/inventory/InventoryPage';
 import { BillTypesPage } from '@/pages/accounts/billTypes';
 import { AddNewPaymentPage } from '@/pages/accounts/addNewPayment';
 import { AllPaymentsPage } from '@/pages/accounts/allPayments';
@@ -224,6 +225,14 @@ export const AppRoutes = () => {
         element={
           <AppShell>
             <BusinessesPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/inventory"
+        element={
+          <AppShell>
+            <InventoryPage />
           </AppShell>
         }
       />

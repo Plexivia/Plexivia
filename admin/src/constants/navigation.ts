@@ -29,6 +29,7 @@ import { Plug,
   ShoppingCart,
   Truck,
   PackagePlus,
+  Warehouse,
 } from 'lucide-react';
 import type { MenuGroup } from '@/types';
 
@@ -64,6 +65,11 @@ export const NAVIGATION_MENU_GROUPS: MenuGroup[] = [
         title: 'Businesses',
         url: '/businesses',
         icon: Briefcase,
+      },
+      {
+        title: 'Inventory',
+        url: '/inventory',
+        icon: Warehouse,
       },
       {
         title: 'Tasks',

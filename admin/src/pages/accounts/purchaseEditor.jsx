@@ -9,6 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { purchasesApi, vendorsApi, taka } from '@/services/purchasesApi';
 import { paymentMethodsApi, apiErrorMessage } from '@/services/paymentsApi';
+import { inventoryApi } from '@/services/inventoryApi';
+import { StockItemDialog } from '@/components/dashboard/inventory/StockItemDialog';
 
 const NEW_VENDOR = '__new__';
 const UNIT = 'unit';
@@ -57,6 +59,8 @@ export const PurchaseEditorPage = () => {
   const [discount, setDiscount] = useState('');
   const [shipping, setShipping] = useState('');
   const [notes, setNotes] = useState('');
+  const [newItemFor, setNewItemFor] = useState(null);
+  const [creatingItem, setCreatingItem] = useState(false);
 
   // Loads Surokkha's live stock items for the item picker
   const loadItems = async () => {
@@ -190,6 +194,25 @@ export const PurchaseEditorPage = () => {
 
   const isReceived = existing?.status === 'RECEIVED';
 
+  // Creates a stock item in Surokkha from here and puts it on the empty (or a new) line
+  const createStockItem = async (body) => {
+    setCreatingItem(true);
+    try {
+      const created = await inventoryApi.createItem('surokkha', body);
+      await loadItems();
+      const target = lines.find((l) => l.key === newItemFor && !l.stock_item_id);
+      const pack = created.packs?.length ? '0' : UNIT;
+      if (target) setLine(target.key, { stock_item_id: created.id, pack });
+      else setLines((ls) => [...ls, { ...emptyLine(), stock_item_id: created.id, pack }]);
+      toast.success(`${created.shortName} added to Surokkha inventory`);
+      setNewItemFor(null);
+    } catch (err) {
+      toast.error(apiErrorMessage(err, 'Could not add the stock item'));
+    } finally {
+      setCreatingItem(false);
+    }
+  };
+
   // Item picker choices, keeping a saved line's item visible even if Surokkha no longer lists it
   const itemChoices = (r) => [
     ...items.map((i) => ({ value: i.id, label: `${i.shortName}${i.name ? ` · ${i.name}` : ''} (${i.quantity} ${i.unit})` })),
@@ -259,9 +282,14 @@ export const PurchaseEditorPage = () => {
               <CardTitle className="text-sm font-bold flex items-center gap-2">
                 <PackagePlus className="w-4 h-4 text-primary" /> Items
               </CardTitle>
-              <Button type="button" variant="ghost" size="sm" onClick={loadItems} className="h-7 text-xs">
-                <RefreshCw className="mr-1 h-3.5 w-3.5" /> Reload from Surokkha
-              </Button>
+              <div className="flex gap-1">
+                <Button type="button" variant="outline" size="sm" onClick={() => setNewItemFor(lines[lines.length - 1]?.key || null)} className="h-7 text-xs">
+                  <Plus className="mr-1 h-3.5 w-3.5" /> New stock item
+                </Button>
+                <Button type="button" variant="ghost" size="sm" onClick={loadItems} className="h-7 text-xs">
+                  <RefreshCw className="mr-1 h-3.5 w-3.5" /> Reload from Surokkha
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="p-5 space-y-3">
               {itemsError && <p className="rounded-md bg-red-500/10 p-3 text-xs text-red-600">{itemsError}</p>}
@@ -409,6 +437,7 @@ export const PurchaseEditorPage = () => {
           </Card>
         </div>
       </div>
+      <StockItemDialog open={newItemFor !== null} onOpenChange={(o) => !o && setNewItemFor(null)} item={null} onSave={createStockItem} saving={creatingItem} />
     </div>
   );
 };
