@@ -40,6 +40,7 @@ export interface DocumentDefaults {
   invoicePrefix: string;
   receiptPrefix: string;
   slipPrefix: string;
+  cashVoucherPrefix: string;
   defaultTaxRate: number;
   invoiceDueDays: number;
   paymentTerms: string;

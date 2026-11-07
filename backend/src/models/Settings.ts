@@ -40,6 +40,7 @@ export interface IDocumentSettings {
   invoice_prefix: string;
   receipt_prefix: string;
   slip_prefix: string;
+  cash_voucher_prefix: string;
   default_tax_rate: number;
   invoice_due_days: number;
   payment_terms: string;
@@ -104,6 +105,7 @@ const DocumentSettingsSchema = new Schema<IDocumentSettings>(
     invoice_prefix: { type: String, trim: true, default: 'PX-INV' },
     receipt_prefix: { type: String, trim: true, default: 'PX-MR' },
     slip_prefix: { type: String, trim: true, default: 'PX-SLIP' },
+    cash_voucher_prefix: { type: String, trim: true, default: 'PX-CV' },
     default_tax_rate: { type: Number, default: 0, min: 0, max: 100 },
     invoice_due_days: { type: Number, default: 15, min: 0 },
     payment_terms: { type: String, trim: true, default: '' },

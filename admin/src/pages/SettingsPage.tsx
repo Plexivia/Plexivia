@@ -317,6 +317,7 @@ export const SettingsPage: React.FC = () => {
               <Field label="Invoice number prefix" value={draft.documents.invoicePrefix} onChange={(v) => setDocuments({ invoicePrefix: v })} placeholder="PX-INV" />
               <Field label="Receipt number prefix" value={draft.documents.receiptPrefix} onChange={(v) => setDocuments({ receiptPrefix: v })} placeholder="PX-MR" />
               <Field label="Salary slip prefix" value={draft.documents.slipPrefix} onChange={(v) => setDocuments({ slipPrefix: v })} placeholder="PX-SLIP" />
+              <Field label="Cash voucher prefix" value={draft.documents.cashVoucherPrefix} onChange={(v) => setDocuments({ cashVoucherPrefix: v })} placeholder="PX-CV" />
               <Field
                 label="Default VAT / tax rate (%)"
                 type="number"

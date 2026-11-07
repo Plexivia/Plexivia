@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 import { secureDbConnection } from '../config/database.js';
 import { generateDId } from '../utils/dId.js';
 import { nextSequence, getCounterModel, nextInvoiceNumber, peekInvoiceNumber } from './Accounts.js';
+import { getOrCreateAppSettings } from './Settings.js';
 
 /**
  * Every document generated in Document Studio — invoice, money receipt, salary
@@ -66,8 +67,11 @@ const compile = <T>(name: string, schema: Schema<T>): mongoose.Model<T> => {
 export const getStudioDocumentModel = () => compile<IStudioDocument>('StudioDocument', StudioDocumentSchema);
 
 /**
- * Document numbers: <company><type><yy><serial>, e.g. 01MR260001.
+ * Document numbers: <prefix><yy><serial>, e.g. 01MR260001.
  * Plain database serial per type and year — never random, never typed by hand.
+ * Invoice's prefix comes from Settings via nextInvoiceNumber/peekInvoiceNumber (shared with payments).
+ * Money receipt keeps its own fixed company+type code. Salary slip and cash voucher read their
+ * prefix from Settings (documents.slip_prefix / documents.cash_voucher_prefix).
  */
 export const DOC_NUMBER_COMPANY = '01';
 const DOC_TYPE_CODE: Record<StudioDocType, string> = {
@@ -77,19 +81,28 @@ const DOC_TYPE_CODE: Record<StudioDocType, string> = {
   'cash-voucher': 'CV',
 };
 
+// The display prefix for a non-invoice doc type; money-receipt stays fixed, the rest come from Settings
+const resolvePrefix = async (docType: Exclude<StudioDocType, 'invoice'>): Promise<string> => {
+  if (docType === 'money-receipt') return `${DOC_NUMBER_COMPANY}${DOC_TYPE_CODE['money-receipt']}`;
+  const settings = await getOrCreateAppSettings();
+  if (docType === 'salary-slip') return settings.documents?.slip_prefix || 'PX-SLIP';
+  return settings.documents?.cash_voucher_prefix || 'PX-CV';
+};
+
 const counterKey = (docType: StudioDocType, year: number) => `studio-serial:${docType}:${year}`;
-const formatDocNumber = (docType: StudioDocType, year: number, seq: number) =>
-  `${DOC_NUMBER_COMPANY}${DOC_TYPE_CODE[docType]}${String(year).slice(-2)}${String(seq).padStart(4, '0')}`;
+const formatDocNumber = (prefix: string, year: number, seq: number) =>
+  `${prefix}${String(year).slice(-2)}${String(seq).padStart(4, '0')}`;
 
 // Next number, consumed — called only when a document is actually saved
 export const nextStudioDocNumber = async (docType: StudioDocType, _prefixOverride?: string, date = new Date()): Promise<string> => {
-  if (docType === 'invoice') return nextInvoiceNumber(date); // 02IN26001, shared with payments
+  if (docType === 'invoice') return nextInvoiceNumber(date); // shared with payments, prefix from Settings
   const Model = getStudioDocumentModel();
   const year = date.getFullYear();
+  const prefix = await resolvePrefix(docType);
 
   for (let attempt = 0; attempt < 25; attempt++) {
     const seq = await nextSequence(counterKey(docType, year));
-    const candidate = formatDocNumber(docType, year, seq);
+    const candidate = formatDocNumber(prefix, year, seq);
     const taken = await Model.findOne({ doc_type: docType, doc_number: candidate })
       .collation({ locale: 'en', strength: 2 })
       .setOptions({ withInactive: true });
@@ -102,6 +115,7 @@ export const nextStudioDocNumber = async (docType: StudioDocType, _prefixOverrid
 export const peekStudioDocNumber = async (docType: StudioDocType, date = new Date()): Promise<string> => {
   if (docType === 'invoice') return peekInvoiceNumber(date);
   const year = date.getFullYear();
+  const prefix = await resolvePrefix(docType);
   const counter: any = await getCounterModel().findOne({ key: counterKey(docType, year) }).lean();
-  return formatDocNumber(docType, year, (counter?.seq || 0) + 1);
+  return formatDocNumber(prefix, year, (counter?.seq || 0) + 1);
 };

@@ -49,6 +49,9 @@ export default function IntegrationsPage() {
   const [testing, setTesting] = useState(false);
   const [status, setStatus] = useState(null);
   const [syncingDay, setSyncingDay] = useState('');
+  const [syncingAll, setSyncingAll] = useState(false);
+
+  const STATUS_DAYS = 60;
 
   const loadConn = useCallback(async () => {
     const { data } = await apiClient.get('/api/integrations/surokkha');
@@ -56,7 +59,7 @@ export default function IntegrationsPage() {
     setApiUrl(data.data.apiUrl || '');
   }, []);
   const loadStatus = useCallback(async () => {
-    const { data } = await apiClient.get('/api/integrations/surokkha/status', { params: { days: 30 } });
+    const { data } = await apiClient.get('/api/integrations/surokkha/status', { params: { days: STATUS_DAYS } });
     setStatus(data.data);
   }, []);
 
@@ -110,6 +113,39 @@ export default function IntegrationsPage() {
     }
   };
 
+  // Walks every day that isn't imported yet (oldest first) and syncs it one at a time —
+  // the 7-day nightly catch-up can't reach a backlog this old on its own.
+  const syncAll = async () => {
+    const pending = rows.filter((r) => r.payment.status !== 'imported').map((r) => r.day).sort();
+    if (!pending.length) {
+      toast.success('Nothing to sync — every day in range is already imported');
+      return;
+    }
+    setSyncingAll(true);
+    let imported = 0;
+    let total = 0;
+    try {
+      for (const day of pending) {
+        setSyncingDay(day);
+        try {
+          const { data } = await apiClient.post('/api/integrations/surokkha/sync', { date: day });
+          const p = data.data?.payments;
+          if (p?.status === 'imported') {
+            imported += 1;
+            total += Number(p.total) || 0;
+          }
+        } catch {
+          // Keep going — one bad day shouldn't stop the rest of the backlog
+        }
+      }
+      await loadStatus();
+      toast.success(imported ? `Synced ${imported} day(s) · ${money(total)} total` : 'No new payments found in that range');
+    } finally {
+      setSyncingDay('');
+      setSyncingAll(false);
+    }
+  };
+
   const copyKey = async () => {
     if (!key) return;
     await navigator.clipboard.writeText(key);
@@ -153,7 +189,7 @@ export default function IntegrationsPage() {
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-foreground">Surokkha API URL</label>
-            <Input value={apiUrl} onChange={(e) => setApiUrl(e.target.value)} placeholder="https://api.surokkha.store/api/v1" className="font-mono text-xs" />
+            <Input value={apiUrl} onChange={(e) => setApiUrl(e.target.value)} placeholder="https://admin.surokkha.store/api/v1" className="font-mono text-xs" />
           </div>
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-foreground">Sync key</label>
@@ -209,14 +245,25 @@ export default function IntegrationsPage() {
       <section className="rounded-2xl border border-border bg-card shadow-xs overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
           <div>
-            <h2 className="text-sm font-bold text-foreground">Daily sync — last 30 days</h2>
+            <h2 className="text-sm font-bold text-foreground">Daily sync — last {STATUS_DAYS} days</h2>
             <p className="text-xs text-muted-foreground">
               {importedRows.length} days imported · {money(importedRows.reduce((a, r) => a + (Number(r.payment.amount) || 0), 0))} total
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => loadStatus()} className="gap-1.5">
-            <RefreshCw className="size-3.5" /> Refresh
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={syncAll}
+              disabled={syncingAll || !!syncingDay || !conn?.hasKey || !rows.some((r) => r.payment.status !== 'imported')}
+              className="gap-1.5"
+            >
+              {syncingAll ? <Loader2 className="size-3.5 animate-spin" /> : <RefreshCw className="size-3.5" />} Sync all
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => loadStatus()} disabled={syncingAll} className="gap-1.5">
+              <RefreshCw className="size-3.5" /> Refresh
+            </Button>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -252,7 +299,7 @@ export default function IntegrationsPage() {
                   </td>
                   <td className="px-4 py-2.5 text-right">
                     {r.payment.status !== 'imported' && (
-                      <Button variant="outline" size="sm" className="h-7 gap-1 text-xs" disabled={!!syncingDay || !conn?.hasKey} onClick={() => syncDay(r.day)}>
+                      <Button variant="outline" size="sm" className="h-7 gap-1 text-xs" disabled={!!syncingDay || syncingAll || !conn?.hasKey} onClick={() => syncDay(r.day)}>
                         {syncingDay === r.day ? <Loader2 className="size-3 animate-spin" /> : <RefreshCw className="size-3" />} Sync now
                       </Button>
                     )}

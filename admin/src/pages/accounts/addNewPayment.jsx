@@ -368,9 +368,9 @@ export const AddNewPaymentPage = () => {
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-foreground">
-                    Invoice ID
+                    Reference
                   </label>
-                  {/* Server-assigned serial (e.g. 02IN26001) — never typed or edited */}
+                  {/* Server-assigned serial (Money Receipt if paid, Invoice if partial) — never typed or edited */}
                   <Input
                     readOnly
                     disabled
@@ -378,7 +378,7 @@ export const AddNewPaymentPage = () => {
                     className="text-xs font-mono bg-muted/40 cursor-not-allowed"
                   />
                   <p className="text-[11px] text-muted-foreground">
-                    {editId ? 'Issued invoice number, cannot be changed.' : 'Auto serial, assigned when you save.'}
+                    {editId ? 'Issued reference number, cannot be changed.' : 'Auto serial — Money Receipt if paid, Invoice if partial, assigned when you save.'}
                   </p>
                 </div>
               </div>

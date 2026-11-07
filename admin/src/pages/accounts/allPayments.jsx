@@ -291,7 +291,7 @@ export const AllPaymentsPage = () => {
   const columns = [
     {
       key: 'invoiceId',
-      header: 'Invoice / Trx ID',
+      header: 'Reference',
       className: 'w-[160px]',
       render: (p) => (
         <>
@@ -548,7 +548,7 @@ export const AllPaymentsPage = () => {
         editLabel="Edit Payment"
         slip={
           viewPaymentTarget && {
-            heading: 'Money Receipt',
+            heading: viewPaymentTarget.status === 'Completed' ? 'Money Receipt' : 'Invoice',
             reference: viewPaymentTarget.invoiceId || viewPaymentTarget.id,
             rows: [
               { label: 'Received From', value: viewPaymentTarget.customerName },

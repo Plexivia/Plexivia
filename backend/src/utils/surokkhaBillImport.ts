@@ -1,6 +1,6 @@
 import { Cron } from 'croner';
 import { getBillModel, getPaymentModel, getPaymentSourceModel } from '../models/Finance.js';
-import { getBusinessModel, nextInvoiceNumber } from '../models/Accounts.js';
+import { getBusinessModel, nextMoneyReceiptNumber } from '../models/Accounts.js';
 import { getProjectModel } from '../models/Agency.js';
 import { getWhiteLabelEcommerceModel } from '../models/WhiteLabelEcommerce.js';
 import { getOrCreateAppSettings } from '../models/Settings.js';
@@ -139,7 +139,8 @@ export const importSurokkhaPaymentsDay = async (day: string) => {
   await PaymentModel.create({
     payment_number: `SRK-PAY-${day.replace(/-/g, '')}`,
     external_ref: paymentRefFor(day),
-    invoice_id: await nextInvoiceNumber(new Date(`${day}T12:00:00+06:00`)),
+    // Always fully paid business revenue, so it gets a Money Receipt serial, e.g. 26MR001
+    invoice_id: await nextMoneyReceiptNumber(new Date(`${day}T12:00:00+06:00`)),
     payment_source_dId: source?.dId,
     payment_source_name: source?.name || 'Business',
     business_dId: business.dId,

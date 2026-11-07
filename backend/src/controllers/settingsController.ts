@@ -12,7 +12,7 @@ const BRAND_TEXT_FIELDS = [
   'logo_url', 'icon_url', 'phone', 'phone_local', 'email', 'website', 'domain',
 ];
 const ADDRESS_FIELDS = ['line1', 'road', 'district', 'postcode', 'country', 'full', 'full_bn'];
-const DOC_TEXT_FIELDS = ['currency', 'invoice_prefix', 'receipt_prefix', 'slip_prefix', 'payment_terms', 'receipt_signatory'];
+const DOC_TEXT_FIELDS = ['currency', 'invoice_prefix', 'receipt_prefix', 'slip_prefix', 'cash_voucher_prefix', 'payment_terms', 'receipt_signatory'];
 const DOC_NUMBER_FIELDS = ['default_tax_rate', 'invoice_due_days'];
 
 const ok = (res: Response, data: any, message?: string) =>

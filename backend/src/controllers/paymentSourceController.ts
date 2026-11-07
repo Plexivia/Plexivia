@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { getPaymentModel, getPaymentSourceModel, IPaymentSource } from '../models/Finance.js';
 import { getClientModel } from '../models/Client.js';
 import { softDeleteOne } from '../plugins/softDelete.js';
-import { getBusinessModel, getPaymentMethodModel, nextInvoiceNumber, normalizeCharges, roundMoney } from '../models/Accounts.js';
+import { getBusinessModel, getPaymentMethodModel, nextInvoiceNumber, nextMoneyReceiptNumber, normalizeCharges, roundMoney } from '../models/Accounts.js';
 
 const CLIENT_SOURCE_NAME = 'Client';
 const LINK_TYPES = ['client', 'business', 'none'];
@@ -296,8 +296,9 @@ export const recordPayment = async (req: Request, res: Response) => {
     if (methodError) return res.status(400).json({ success: false, message: methodError });
     applyCharges(fields, body);
     if (fields.charge_total > fields.amount) return res.status(400).json({ success: false, message: 'Charges cannot be more than the received amount' });
-    // Every payment gets the next invoice serial, e.g. 02IN26001
-    fields.invoice_id = await nextInvoiceNumber();
+    // Fully paid payments get a Money Receipt serial (e.g. 26MR001); partial/due ones get an Invoice serial (e.g. 02IN26001)
+    const effectiveStatus = fields.status || 'SUCCESS';
+    fields.invoice_id = effectiveStatus === 'SUCCESS' ? await nextMoneyReceiptNumber() : await nextInvoiceNumber();
 
     const created = await getPaymentModel().create({
       payment_number: body.payment_number || `PX-PAY-${Date.now().toString().slice(-8)}`,

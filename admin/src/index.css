@@ -139,7 +139,7 @@
   --secondary: color-mix(in srgb, var(--ui-accent) 6%, var(--ui-bg));
   --secondary-foreground: var(--ui-text);
   --muted: color-mix(in srgb, var(--ui-accent) 6%, var(--ui-bg));
-  --muted-foreground: var(--ui-text);
+  --muted-foreground: color-mix(in srgb, var(--ui-text) 55%, var(--ui-bg));
   --accent: color-mix(in srgb, var(--ui-accent) 10%, var(--ui-bg));
   --accent-foreground: color-mix(in srgb, var(--ui-accent) 80%, var(--ui-text));
   --destructive: #ef4444;

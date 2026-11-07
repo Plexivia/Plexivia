@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { secureDbConnection } from '../config/database.js';
 import { generateDId } from '../utils/dId.js';
+import { getOrCreateAppSettings } from './Settings.js';
 
 // A named charge, as a percent of the amount, a fixed amount, or both (e.g. bKash Cash Out 1.85%)
 export interface IChargeRate {
@@ -149,19 +150,39 @@ export const nextSequence = async (key: string): Promise<number> => {
   return doc!.seq;
 };
 
-// Invoice numbers like 02IN26001: "02" + "IN" + 2-digit year + 3-digit serial, numbered per year.
-// Shared by payment records and Document Studio invoices so the two never collide.
+// Invoice numbers like 02IN26001: Settings' invoice_prefix + 2-digit year + 3-digit serial, numbered per year.
+// Shared by payment records and Document Studio invoices so the two never collide. The counter key stays
+// fixed regardless of the prefix text, so changing the prefix in Settings mid-year never resets or collides it.
 export const nextInvoiceNumber = async (date = new Date()): Promise<string> => {
+  const settings = await getOrCreateAppSettings();
+  const prefix = settings.documents?.invoice_prefix || 'PX-INV';
   const year = date.getFullYear();
   const seq = await nextSequence(`invoice-serial:${year}`);
-  return `02IN${String(year).slice(-2)}${String(seq).padStart(3, '0')}`;
+  return `${prefix}${String(year).slice(-2)}${String(seq).padStart(3, '0')}`;
 };
 
 // The next invoice number without consuming it (form preview only)
 export const peekInvoiceNumber = async (date = new Date()): Promise<string> => {
+  const settings = await getOrCreateAppSettings();
+  const prefix = settings.documents?.invoice_prefix || 'PX-INV';
   const year = date.getFullYear();
   const counter: any = await getCounterModel().findOne({ key: `invoice-serial:${year}` }).lean();
-  return `02IN${String(year).slice(-2)}${String((counter?.seq || 0) + 1).padStart(3, '0')}`;
+  return `${prefix}${String(year).slice(-2)}${String((counter?.seq || 0) + 1).padStart(3, '0')}`;
+};
+
+// Money Receipt numbers like 26MR001: 2-digit year + "MR" + 3-digit serial, numbered per year.
+// For payments that are fully paid at creation (never for due/partial ones, which get an Invoice number instead).
+export const nextMoneyReceiptNumber = async (date = new Date()): Promise<string> => {
+  const year = date.getFullYear();
+  const seq = await nextSequence(`payment-receipt-serial:${year}`);
+  return `${String(year).slice(-2)}MR${String(seq).padStart(3, '0')}`;
+};
+
+// The next money receipt number without consuming it (form preview only)
+export const peekMoneyReceiptNumber = async (date = new Date()): Promise<string> => {
+  const year = date.getFullYear();
+  const counter: any = await getCounterModel().findOne({ key: `payment-receipt-serial:${year}` }).lean();
+  return `${String(year).slice(-2)}MR${String((counter?.seq || 0) + 1).padStart(3, '0')}`;
 };
 
 export const roundMoney = (n: number) => Math.round((Number(n) || 0) * 100) / 100;
