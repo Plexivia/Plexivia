@@ -64,6 +64,7 @@ export interface ButtonProps
     VariantProps<typeof buttonVariants> {
   icon?: React.ElementType | null;
   iconPosition?: 'left' | 'right';
+  asChild?: boolean;
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -74,16 +75,29 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       size = 'default',
       icon: Icon = null,
       iconPosition = 'left',
+      asChild = false,
       children,
       ...props
     },
     ref
   ) => {
+    const buttonClassName = cn(buttonVariants({ variant, size, className }));
+
+    if (asChild && React.isValidElement(children)) {
+      const child = children as React.ReactElement<{ className?: string }>;
+      return React.cloneElement(child, {
+        ...props,
+        ref,
+        'data-slot': 'button',
+        className: cn(buttonClassName, child.props.className),
+      } as any);
+    }
+
     return (
       <button
         ref={ref}
         data-slot="button"
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={buttonClassName}
         {...props}
       >
         {Icon && iconPosition === 'left' && <Icon />}
