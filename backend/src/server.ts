@@ -11,6 +11,7 @@ import { initVpsTerminal } from './utils/vpsTerminal.js';
 import { startImapListener } from './utils/imapSync.js';
 import { initBackupScheduler } from './utils/backupScheduler.js';
 import { initSurokkhaImportScheduler } from './utils/surokkhaBillImport.js';
+import { initPurchaseSyncScheduler } from './utils/purchaseSync.js';
 import { initTicketReminderScheduler } from './utils/ticketReminderScheduler.js';
 
 const app = express();
@@ -104,6 +105,8 @@ const startServer = async () => {
 
   // Nightly Surokkha store bill summary (3 AM Dhaka)
   initSurokkhaImportScheduler();
+  // Purchases whose stock Surokkha has not confirmed yet (every 15 minutes)
+  initPurchaseSyncScheduler();
 
   // Support Desk SLA / follow-up digest (9am & 3pm Dhaka)
   initTicketReminderScheduler();

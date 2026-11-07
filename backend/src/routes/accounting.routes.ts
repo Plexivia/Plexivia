@@ -2,6 +2,7 @@ import { Router } from 'express';
 import * as accountingController from '../controllers/accountingController.js';
 import * as paymentSourceController from '../controllers/paymentSourceController.js';
 import * as accountsSetupController from '../controllers/accountsSetupController.js';
+import * as purchaseController from '../controllers/purchaseController.js';
 import { requireAuth } from '../middleware/auth.js';
 import { emailReceipt } from '../controllers/receiptMailController.js';
 import { importSurokkhaDay, importSurokkhaPaymentsDay } from '../utils/surokkhaBillImport.js';
@@ -46,6 +47,26 @@ router.get('/payment-sources', paymentSourceController.getPaymentSources);
 router.post('/payment-sources', paymentSourceController.createPaymentSource);
 router.put('/payment-sources/:id', paymentSourceController.updatePaymentSource);
 router.delete('/payment-sources/:id', paymentSourceController.deletePaymentSource);
+
+// Vendors (who stock is bought from)
+router.get('/vendors', purchaseController.getVendors);
+router.post('/vendors', purchaseController.createVendor);
+router.put('/vendors/:id', purchaseController.updateVendor);
+router.delete('/vendors/:id', purchaseController.deleteVendor);
+
+// Product purchases: each one keeps a "Product Purchase" bill and Surokkha's stock in step
+router.get('/purchases', purchaseController.getPurchases);
+router.post('/purchases', purchaseController.createPurchase);
+router.get('/purchases/stock-items', purchaseController.getStockItems);
+router.post('/purchases/resync-all', purchaseController.resyncAllPurchases);
+router.get('/purchases/:id', purchaseController.getPurchaseById);
+router.put('/purchases/:id', purchaseController.updatePurchase);
+router.post('/purchases/:id/receive', purchaseController.receivePurchase);
+router.post('/purchases/:id/payments', purchaseController.addPurchasePayment);
+router.delete('/purchases/:id/payments/:paymentId', purchaseController.removePurchasePayment);
+router.post('/purchases/:id/cancel', purchaseController.cancelPurchase);
+router.post('/purchases/:id/resync', purchaseController.resyncPurchase);
+router.get('/purchases/:id/sync-check', purchaseController.checkPurchaseSync);
 
 // Bills (Expenses & Vouchers)
 router.get('/bills', accountingController.getBills);

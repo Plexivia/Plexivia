@@ -155,7 +155,7 @@ export const getBills = async (req: Request, res: Response) => {
 };
 
 // Bill numbers like PX-BILL-2026-00001, numbered per year
-const nextBillNumber = async () => {
+export const nextBillNumber = async () => {
   const year = new Date().getFullYear();
   return `PX-BILL-${year}-${String(await nextSequence(`bill:${year}`)).padStart(5, '0')}`;
 };

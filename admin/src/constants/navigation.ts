@@ -26,6 +26,9 @@ import { Plug,
   Server,
   HardDrive,
   Settings,
+  ShoppingCart,
+  Truck,
+  PackagePlus,
 } from 'lucide-react';
 import type { MenuGroup } from '@/types';
 
@@ -181,6 +184,34 @@ export const NAVIGATION_MENU_GROUPS: MenuGroup[] = [
             iconClass: 'text-red-500',
             exact: true,
             activePaths: ['/accounts/bills', '/dashboard/accounts/bills'],
+          },
+          {
+            title: 'Purchases',
+            isSectionLabel: true,
+          },
+          {
+            title: 'New Purchase',
+            url: '/accounts/purchases/new',
+            icon: PackagePlus,
+            iconClass: 'text-sky-500',
+            exact: true,
+            activePaths: ['/accounts/purchases/new'],
+          },
+          {
+            title: 'All Purchases',
+            url: '/accounts/purchases',
+            icon: ShoppingCart,
+            iconClass: 'text-sky-500',
+            exact: true,
+            activePaths: ['/accounts/purchases'],
+          },
+          {
+            title: 'Vendors',
+            url: '/accounts/vendors',
+            icon: Truck,
+            iconClass: 'text-sky-500',
+            exact: true,
+            activePaths: ['/accounts/vendors'],
           },
           {
             title: 'Payments',

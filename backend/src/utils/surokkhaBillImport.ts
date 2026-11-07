@@ -37,6 +37,16 @@ const bdDay = (offset: number) => new Date(Date.now() + 6 * 3600000 + offset * 8
 
 const refFor = (day: string) => `surokkha-daily:${day}`;
 
+// The asset Surokkha bills belong to: a regular project or, for Surokkha, a white-label store
+export const resolveSurokkhaAsset = async (projectDId: string): Promise<any> =>
+  projectDId
+    ? (await getProjectModel().findOne({ $or: [{ dId: projectDId }, { id: projectDId }] }).lean()) ||
+      (await getWhiteLabelEcommerceModel()
+        .findOne({ dId: projectDId })
+        .lean()
+        .then((w: any) => w && { dId: w.dId, name: w.name, client_dId: w.clientDId || undefined }))
+    : null;
+
 // Pull one day's summary from Surokkha and store it as a single bill; skips days already imported
 export const importSurokkhaDay = async (day: string, { syncPathao = true } = {}) => {
   const cfg = await getSurokkhaConfig();
@@ -53,14 +63,7 @@ export const importSurokkhaDay = async (day: string, { syncPathao = true } = {})
   const summary = body.data;
   if (!summary.bills_count) return { day, status: 'no bills' };
 
-  // The asset is a regular project or, for Surokkha, a white-label store
-  const project: any = cfg.projectDId
-    ? (await getProjectModel().findOne({ $or: [{ dId: cfg.projectDId }, { id: cfg.projectDId }] }).lean()) ||
-      (await getWhiteLabelEcommerceModel()
-        .findOne({ dId: cfg.projectDId })
-        .lean()
-        .then((w) => w && { dId: w.dId, name: w.name, client_dId: w.clientDId || undefined }))
-    : null;
+  const project: any = await resolveSurokkhaAsset(cfg.projectDId);
   const total = Number(summary.total) || 0;
   const paid = Math.min(total, Number(summary.paid) || 0);
 

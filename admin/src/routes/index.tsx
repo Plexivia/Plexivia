@@ -29,6 +29,9 @@ import { DocumentStudioPage } from '@/features/document-studio/pages/DocumentStu
 import { BalanceOverview as BalanceOverviewPage } from '@/pages/accounts/balanceOverview';
 import { AddNewBillPage } from '@/pages/accounts/addNewBill';
 import { AllBillsPage } from '@/pages/accounts/allBills';
+import { PurchasesPage } from '@/pages/accounts/purchases';
+import { PurchaseEditorPage } from '@/pages/accounts/purchaseEditor';
+import { VendorsPage } from '@/pages/accounts/vendors';
 import { BillTypesPage } from '@/pages/accounts/billTypes';
 import { AddNewPaymentPage } from '@/pages/accounts/addNewPayment';
 import { AllPaymentsPage } from '@/pages/accounts/allPayments';
@@ -271,6 +274,30 @@ export const AppRoutes = () => {
         element={
           <AppShell>
             <AddNewBillPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/accounts/purchases"
+        element={
+          <AppShell>
+            <PurchasesPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/accounts/purchases/new"
+        element={
+          <AppShell>
+            <PurchaseEditorPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/accounts/vendors"
+        element={
+          <AppShell>
+            <VendorsPage />
           </AppShell>
         }
       />
