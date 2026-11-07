@@ -4,7 +4,7 @@ import * as paymentSourceController from '../controllers/paymentSourceController
 import * as accountsSetupController from '../controllers/accountsSetupController.js';
 import { requireAuth } from '../middleware/auth.js';
 import { emailReceipt } from '../controllers/receiptMailController.js';
-import { importSurokkhaDay } from '../utils/surokkhaBillImport.js';
+import { importSurokkhaDay, importSurokkhaPaymentsDay } from '../utils/surokkhaBillImport.js';
 
 const router = Router();
 
@@ -56,6 +56,16 @@ router.post('/bills/import-surokkha', async (req, res) => {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ success: false, message: 'date must be YYYY-MM-DD' });
   try {
     return res.json({ success: true, data: await importSurokkhaDay(date) });
+  } catch (error: any) {
+    return res.status(502).json({ success: false, message: error.message });
+  }
+});
+// Import one day's Surokkha payments now (?date=YYYY-MM-DD) as a single business payment
+router.post('/payments/import-surokkha', async (req, res) => {
+  const date = String(req.query.date || req.body?.date || '');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ success: false, message: 'date must be YYYY-MM-DD' });
+  try {
+    return res.json({ success: true, data: await importSurokkhaPaymentsDay(date) });
   } catch (error: any) {
     return res.status(502).json({ success: false, message: error.message });
   }

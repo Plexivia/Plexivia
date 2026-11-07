@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import { sendMail } from '../utils/mailer.js';
 import { encryptText } from '../utils/security.js';
 import { getMailMessageModel, getMailSettingsModel, getNotificationModel } from '../models/Webmail.js';
-import { broadcast } from '../utils/realtime.js';
+import { notificationFilterFor, broadcast } from '../utils/realtime.js';
 import {
   FOLDER_KEYS,
   type FolderKey,
@@ -413,9 +413,10 @@ export const listNotifications = async (req: Request, res: Response) => {
   try {
     const limit = Math.min(Number(req.query.limit) || 30, 100);
     const Notification = getNotificationModel();
+    const visible = notificationFilterFor((req as any).auth?.role);
     const [items, unreadCount] = await Promise.all([
-      Notification.find().sort({ created_at: -1 }).limit(limit).lean(),
-      Notification.countDocuments({ isRead: false }),
+      Notification.find(visible).sort({ created_at: -1 }).limit(limit).lean(),
+      Notification.countDocuments({ isRead: false, ...visible }),
     ]);
     return res.json({ success: true, data: items, unreadCount });
   } catch (error) {

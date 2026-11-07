@@ -1,4 +1,4 @@
-import {
+import { Plug,
   LayoutDashboard,
   Mail,
   LifeBuoy,
@@ -278,6 +278,12 @@ export const NAVIGATION_MENU_GROUPS: MenuGroup[] = [
         url: '/backups',
         icon: HardDrive,
         roles: ['owner', 'admin', 'super_admin'],
+      },
+      {
+        title: 'Integrations',
+        url: '/settings/integrations',
+        icon: Plug,
+        roles: ['owner', 'super_admin'],
       },
       {
         title: 'Cpanel',

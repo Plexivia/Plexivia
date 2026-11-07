@@ -46,10 +46,23 @@ export interface IDocumentSettings {
   receipt_signatory: string;
 }
 
+// Surokkha Store connection, managed from Settings → Integrations (the key is stored encrypted)
+export interface ISurokkhaIntegration {
+  enabled: boolean;
+  api_url: string;
+  key_enc: string;
+  key_hint: string;
+  key_updated_at?: string;
+  last_test_at?: string;
+  last_test_ok?: boolean;
+  last_test_message?: string;
+}
+
 export interface IAppSettings extends Document {
   key: string;
   brand: IBrandSettings;
   documents: IDocumentSettings;
+  integrations?: { surokkha?: ISurokkhaIntegration };
   updated_at: string;
 }
 
@@ -104,6 +117,18 @@ const AppSettingsSchema = new Schema<IAppSettings>(
     key: { type: String, required: true, unique: true, default: 'app' },
     brand: { type: BrandSettingsSchema, default: () => ({}) },
     documents: { type: DocumentSettingsSchema, default: () => ({}) },
+    integrations: {
+      surokkha: {
+        enabled: { type: Boolean, default: false },
+        api_url: { type: String, trim: true, default: '' },
+        key_enc: { type: String, default: '' },
+        key_hint: { type: String, default: '' },
+        key_updated_at: { type: String },
+        last_test_at: { type: String },
+        last_test_ok: { type: Boolean },
+        last_test_message: { type: String, default: '' },
+      },
+    },
     updated_at: { type: String, default: () => new Date().toISOString() },
   },
   { collection: 'app_settings', timestamps: false, minimize: false }

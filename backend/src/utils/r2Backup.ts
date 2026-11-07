@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { getSurokkhaSyncLogModel } from '../models/SurokkhaSyncLog.js';
 import os from 'os';
 import path from 'path';
 import zlib from 'zlib';
@@ -403,6 +404,22 @@ const notifyBackupResult = async (result: {
     if (result.ok) {
       rows.push(['Database size', result.sizeFormatted || ''], ['Bucket', result.bucket || ''], ['Object key', result.key || '']);
       if (result.pruned) rows.push(['Old backups removed', String(result.pruned)]);
+    }
+
+    // Surokkha daily sync report (last 24 hours), sent along with the backup email
+    try {
+      const since = new Date(Date.now() - 24 * 3600000).toISOString();
+      const logs: any[] = await getSurokkhaSyncLogModel().find({ kind: 'payments', at: { $gte: since } }).lean();
+      const imported = logs.filter((l) => l.status === 'imported');
+      const failed = logs.filter((l) => l.status === 'failed');
+      if (imported.length || failed.length) {
+        const total = imported.reduce((acc, l) => acc + (Number(l.total) || 0), 0);
+        const orders = imported.reduce((acc, l) => acc + (Number(l.count) || 0), 0);
+        rows.push(['Surokkha payments added', imported.length ? `৳${total.toLocaleString('en-IN')} · ${orders} orders (${imported.map((l) => l.day).join(', ')})` : 'None']);
+        if (failed.length) rows.push(['Surokkha sync failed', `${failed.map((l) => l.day).join(', ')}: ${failed[0].error || 'unknown error'}`]);
+      }
+    } catch {
+      // The report is optional; never block the backup email
     }
 
     await sendMail({

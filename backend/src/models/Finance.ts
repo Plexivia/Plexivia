@@ -23,6 +23,7 @@ export interface IInvoice extends Document {
 export interface IPayment extends Document {
   dId: string;
   payment_number: string;
+  external_ref?: string;
   invoice_dId?: string;
   invoice_id?: string;
   client_dId?: string;
@@ -136,6 +137,8 @@ const InvoiceSchema = new Schema<IInvoice>({
 const PaymentSchema = new Schema<IPayment>({
   dId: { type: String, required: true, unique: true, index: true, default: generateDId },
   payment_number: { type: String, required: true, unique: true },
+  // Set by automated imports (e.g. surokkha-payments:2026-11-06) so a day is never recorded twice
+  external_ref: { type: String, index: true, sparse: true },
   invoice_dId: { type: String, index: true },
   invoice_id: { type: String, index: true },
   client_dId: { type: String, index: true },

@@ -2,12 +2,21 @@ import { Router } from 'express';
 import express from 'express';
 import * as settingsController from '../controllers/settingsController.js';
 import * as studioDocs from '../controllers/studioDocumentController.js';
-import { requireAuth } from '../middleware/auth.js';
+import { requireAuth, requireRole } from '../middleware/auth.js';
+import * as integrations from '../controllers/integrationsController.js';
 
 const router = Router();
 
 // Dashboard-wide settings and Document Studio records both need a signed-in admin
 router.use(requireAuth);
+
+// Integrations (owner only): Surokkha Store connection, key, test, daily sync status and manual sync
+const owner = requireRole('OWNER', 'SUPER_ADMIN');
+router.get('/integrations/surokkha', owner, integrations.getSurokkhaIntegration);
+router.put('/integrations/surokkha', owner, integrations.updateSurokkhaIntegration);
+router.post('/integrations/surokkha/test', owner, integrations.testSurokkhaIntegration);
+router.get('/integrations/surokkha/status', owner, integrations.getSurokkhaSyncStatus);
+router.post('/integrations/surokkha/sync', owner, integrations.syncSurokkhaNow);
 
 // Brand identity + document defaults (one settings document for the whole dashboard)
 router.get('/settings', settingsController.getSettings);

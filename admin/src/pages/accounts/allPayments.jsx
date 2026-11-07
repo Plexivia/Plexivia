@@ -302,28 +302,24 @@ export const AllPaymentsPage = () => {
     },
     {
       key: 'customerName',
-      header: 'Payer / Project',
-      render: (p) => (
-        <>
-          <span className="block truncate text-xs font-semibold text-foreground">{p.customerName}</span>
-          {(p.projectName || p.notes) && (
-            <span className="block truncate text-[11px] text-muted-foreground">{p.projectName || p.notes}</span>
-          )}
-        </>
-      ),
-    },
-    {
-      key: 'paymentSource',
-      header: 'Source',
-      className: 'w-[120px]',
-      render: (p) =>
-        p.paymentSource ? (
-          <Badge variant="outline" className="text-[11px] bg-muted/40">
-            {p.paymentSource}
-          </Badge>
-        ) : (
-          <span className="text-xs text-muted-foreground">—</span>
-        ),
+      header: 'Received From',
+      className: 'min-w-[200px]',
+      render: (p) => {
+        // Who the money came from: the business, or the client (with their project)
+        const from = p.businessName || p.customerName || '—';
+        const kind = p.businessName ? 'Business' : p.clientId ? 'Client' : p.paymentSource;
+        const extra = p.businessName ? '' : p.projectName;
+        return (
+          <>
+            <span className="block truncate text-xs font-semibold text-foreground">{from}</span>
+            {(kind || extra) && (
+              <span className="block truncate text-[11px] text-muted-foreground">
+                {[kind, extra].filter(Boolean).join(' · ')}
+              </span>
+            )}
+          </>
+        );
+      },
     },
     { key: 'method', header: 'Method', className: 'w-[120px]', render: (p) => getMethodBadge(p.method || p.paymentMethod) },
     {

@@ -16,6 +16,7 @@ import { WebmailPage } from '@/pages/WebmailPage';
 import { SupportDeskPage } from '@/pages/SupportDeskPage';
 import { UsersPage } from '@/pages/UsersPage';
 import { BackupsPage } from '@/pages/BackupsPage';
+import IntegrationsPage from '@/pages/IntegrationsPage';
 import { ProjectsPage } from '@/pages/ProjectsPage';
 import { BusinessesPage } from '@/pages/BusinessesPage';
 import { TasksPage } from '@/pages/TasksPage';
@@ -180,6 +181,14 @@ export const AppRoutes = () => {
         element={
           <AppShell>
             <UsersPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/settings/integrations"
+        element={
+          <AppShell>
+            <IntegrationsPage />
           </AppShell>
         }
       />

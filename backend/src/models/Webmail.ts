@@ -41,6 +41,8 @@ export interface INotification extends Document {
   description: string;
   link: string;
   isRead: boolean;
+  // 'all' (default) or 'owner' — owner-only notices are hidden from other roles
+  audience?: string;
   created_at: Date;
 }
 
@@ -96,6 +98,7 @@ const NotificationSchema = new Schema<INotification>(
     description: { type: String, default: '' },
     link: { type: String, default: '' },
     isRead: { type: Boolean, default: false, index: true },
+    audience: { type: String, default: 'all', index: true },
   },
   { timestamps: { createdAt: 'created_at', updatedAt: false } }
 );

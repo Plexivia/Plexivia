@@ -23,20 +23,27 @@ const authenticate = (url: URL): AuthPayload | null => {
   }
 };
 
-// Push an event to every connected dashboard
-export const broadcast = (event: string, data: unknown) => {
+const OWNER_ROLES = new Set(['OWNER', 'SUPER_ADMIN']);
+export const isOwnerRole = (role?: string) => OWNER_ROLES.has(String(role || '').toUpperCase());
+// Notifications a given role may see
+export const notificationFilterFor = (role?: string) => (isOwnerRole(role) ? {} : { audience: { $ne: 'owner' } });
+
+// Push an event to every connected dashboard (or only owners' dashboards)
+export const broadcast = (event: string, data: unknown, { ownersOnly = false } = {}) => {
   const payload = JSON.stringify({ event, data });
   for (const ws of clients) {
+    if (ownersOnly && !isOwnerRole(ws.auth?.role)) continue;
     if (ws.readyState === WebSocket.OPEN) ws.send(payload);
   }
 };
 
 // Store a notification and push it live to all dashboards
-export const notify = async (input: { type: string; title: string; description?: string; link?: string }) => {
+export const notify = async (input: { type: string; title: string; description?: string; link?: string; audience?: 'all' | 'owner' }) => {
   try {
     const doc = await getNotificationModel().create(input);
-    const unreadCount = await getNotificationModel().countDocuments({ isRead: false });
-    broadcast('notification', { notification: doc.toObject(), unreadCount });
+    const ownersOnly = input.audience === 'owner';
+    const unreadCount = await getNotificationModel().countDocuments({ isRead: false, ...(ownersOnly ? {} : { audience: { $ne: 'owner' } }) });
+    broadcast('notification', { notification: doc.toObject(), unreadCount }, { ownersOnly });
   } catch (err: any) {
     console.warn('⚠️ [REALTIME] Failed to store notification:', err.message);
   }
@@ -73,8 +80,8 @@ export const initRealtime = (server: Server) => {
     try {
       const Notification = getNotificationModel();
       const [notifications, unreadCount] = await Promise.all([
-        Notification.find().sort({ created_at: -1 }).limit(20).lean(),
-        Notification.countDocuments({ isRead: false }),
+        Notification.find(notificationFilterFor(ws.auth?.role)).sort({ created_at: -1 }).limit(20).lean(),
+        Notification.countDocuments({ isRead: false, ...notificationFilterFor(ws.auth?.role) }),
       ]);
       ws.send(JSON.stringify({ event: 'init', data: { notifications, unreadCount } }));
     } catch {
